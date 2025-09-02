@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 import { ExpedientesListComponent } from '../components/expediente-list.component';
-import { ExpedientesDetailComponent } from '../components/expediente-detail.component';
+import { ExpedienteDetailComponent } from '../components/expediente-detail.component';
 import { ActaDetalleComponent } from '../../actas/components/acta-detalle.component';
 
 export const EXPEDIENTES_ROUTES: Routes = [
@@ -14,7 +14,7 @@ export const EXPEDIENTES_ROUTES: Routes = [
   },
   {
     path: ':id',
-    component: ExpedientesDetailComponent
+  component: ExpedienteDetailComponent
   },
   {
     path: ':id/acta/:actaId',
@@ -23,7 +23,9 @@ export const EXPEDIENTES_ROUTES: Routes = [
   {
     path: ':id/resolucion/:resolucionId',
     loadComponent: () => import('../../resoluciones/components/resolucion-detail.component').then(m => m.ResolucionDetalleComponent)
+  },
+  {
+    path: ':id/editar',
+    loadComponent: () => import('../pages/expediente-edit-page.component').then(m => m.ExpedienteEditPageComponent)
   }
-  // TODO: Agregar rutas para:
-  // - editar expediente
 ];

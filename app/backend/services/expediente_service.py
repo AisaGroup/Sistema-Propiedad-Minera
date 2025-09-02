@@ -49,3 +49,7 @@ class ExpedienteService:
         self.repository.update(expediente.IdExpediente, {"IdTransaccion": transaccion.IdTransaccion})
 
         return expediente
+
+    def update(self, id_expediente: int, expediente_data: dict):
+        expediente = self.repository.update(id_expediente, expediente_data)
+        return expediente

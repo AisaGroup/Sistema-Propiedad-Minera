@@ -1,5 +1,4 @@
-
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -15,6 +14,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ExpedienteCreate } from '../models/expediente.model';
+import { TipoExpedienteService, TipoExpediente } from '../services/tipo-expediente.service';
 
 @Component({
   selector: 'app-expediente-form',
@@ -22,9 +22,9 @@ import { ExpedienteCreate } from '../models/expediente.model';
   imports: [CommonModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatCardModule, MatDatepickerModule, MatNativeDateModule, MatAutocompleteModule],
   template: `
     <mat-card class="expediente-form-card">
-      <mat-card-title class="form-title">Datos del Expediente</mat-card-title>
+      <mat-card-title class="form-title">{{ modo === 'editar' ? 'Editar Expediente' : 'Datos del Expediente' }}</mat-card-title>
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="expediente-form-grid" autocomplete="off" novalidate>
-        <!-- Fila 1 -->
+        <!-- Fila 1: Código, Año, Estado -->
         <mat-form-field appearance="fill">
           <mat-label>Código de Expediente</mat-label>
           <input matInput formControlName="CodigoExpediente" maxlength="50">
@@ -34,23 +34,23 @@ import { ExpedienteCreate } from '../models/expediente.model';
           <input matInput formControlName="Ano" type="number" min="1800" max="2100">
         </mat-form-field>
         <mat-form-field appearance="fill">
-          <mat-label>Primer Dueño</mat-label>
-          <input matInput formControlName="PrimerDueno" maxlength="50">
-        </mat-form-field>
-        <!-- Fila 2 -->
-        <mat-form-field appearance="fill">
           <mat-label>Estado</mat-label>
           <input matInput formControlName="Estado" maxlength="50">
+        </mat-form-field>
+        <!-- Fila 2: Carátula, Primer Dueño, Dependencia -->
+        <mat-form-field appearance="fill">
+          <mat-label>Carátula</mat-label>
+          <input matInput formControlName="Caratula" maxlength="200">
+        </mat-form-field>
+        <mat-form-field appearance="fill">
+          <mat-label>Primer Dueño</mat-label>
+          <input matInput formControlName="PrimerDueno" maxlength="50">
         </mat-form-field>
         <mat-form-field appearance="fill">
           <mat-label>Dependencia</mat-label>
           <input matInput formControlName="Dependencia" maxlength="100">
         </mat-form-field>
-        <mat-form-field appearance="fill">
-          <mat-label>Carátula</mat-label>
-          <input matInput formControlName="Caratula" maxlength="200">
-        </mat-form-field>
-        <!-- Fila 3 -->
+        <!-- Fila 3: Fechas y Propiedad Minera -->
         <mat-form-field appearance="fill">
           <mat-label>Fecha de Inicio</mat-label>
           <input matInput [matDatepicker]="pickerInicio" formControlName="FechaInicio">
@@ -71,23 +71,29 @@ import { ExpedienteCreate } from '../models/expediente.model';
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <!-- Fila 4 -->
-        <mat-form-field appearance="fill">
-          <mat-label>ID Tipo de Expediente</mat-label>
-          <input matInput type="number" formControlName="IdTipoExpediente" min="1">
-        </mat-form-field>
-        <!-- Fila 5 (full width) -->
+        <!-- Fila 4: ID Tipo de Expediente -->
+          <mat-form-field appearance="fill">
+            <mat-label>Tipo de Expediente</mat-label>
+            <mat-select formControlName="IdTipoExpediente">
+              <mat-option *ngFor="let tipo of tiposExpedienteLista" [value]="tipo.IdTipoExpediente">
+                {{ tipo.Nombre }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        <!-- Fila 5 (full width): Descripción -->
         <mat-form-field appearance="fill" class="full-width">
           <mat-label>Descripción</mat-label>
           <input matInput formControlName="Descripcion" maxlength="50">
         </mat-form-field>
-        <!-- Fila 6 (full width) -->
+        <!-- Fila 6 (full width): Observaciones -->
         <mat-form-field appearance="fill" class="full-width">
           <mat-label>Observaciones</mat-label>
           <textarea matInput formControlName="Observaciones" maxlength="500"></textarea>
         </mat-form-field>
         <div class="form-actions full-width">
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Crear Expediente</button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+            {{ modo === 'editar' ? 'Guardar cambios' : 'Crear Expediente' }}
+          </button>
         </div>
       </form>
     </mat-card>
@@ -147,13 +153,40 @@ import { ExpedienteCreate } from '../models/expediente.model';
       background: #fff !important;
       border-radius: 50%;
     }
-    ::ng-deep .mat-select-panel .mat-option {
+    ::ng-deep .mat-form-field {
+      background: #fff !important;
+      border-radius: 6px !important;
+    }
+    ::ng-deep .mat-form-field-flex {
+      background: #fff !important;
+      border-radius: 6px !important;
+    }
+    ::ng-deep .mat-select-trigger {
+      background: #fff !important;
+      border-radius: 6px !important;
+      color: #111 !important;
+    }
+    ::ng-deep .mat-select-value {
       background: #fff !important;
       color: #111 !important;
     }
-    ::ng-deep .mat-select-panel .mat-option.mat-selected {
+    ::ng-deep .mat-select-panel {
+      background: #fff !important;
+      color: #111 !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.12) !important;
+      border-radius: 8px !important;
+    }
+    ::ng-deep .mat-option {
+      background: #fff !important;
+      color: #111 !important;
+    }
+    ::ng-deep .mat-option.mat-selected {
       background: #d0e7db !important;
       color: #111 !important;
+    }
+    ::ng-deep .mat-select {
+      background: #fff !important;
+      border-radius: 6px !important;
     }
     /* Paginador sólido */
     .mat-paginator, .mat-paginator-range-label, .mat-paginator-icon {
@@ -196,39 +229,50 @@ import { ExpedienteCreate } from '../models/expediente.model';
 })
 export class ExpedienteFormComponent implements OnInit {
   @Output() create = new EventEmitter<ExpedienteCreate>();
-  form: FormGroup;
+  @Input() form!: FormGroup;
+  @Input() modo: 'crear' | 'editar' = 'crear';
   propiedadesMineraLista: PropiedadMinera[] = [];
+  tiposExpedienteLista: TipoExpediente[] = [];
 
-  constructor(private fb: FormBuilder, private propiedadMineraService: PropiedadMineraService) {
-
-    this.form = this.fb.group({
-      CodigoExpediente: [''],
-      PrimerDueno: [''],
-      Ano: [''],
-      FechaInicio: [''],
-      FechaFin: [''],
-      Estado: [''],
-      Dependencia: [''],
-      Caratula: [''],
-      Descripcion: [''],
-      Observaciones: [''],
-      IdPropiedadMinera: [null],
-      IdTipoExpediente: [null],
-    });
-  }
-  
-    ngOnInit(): void {
-      this.propiedadMineraService.getPropiedades({}).subscribe(res => {
-        this.propiedadesMineraLista = res.data;
+  constructor(
+    private fb: FormBuilder,
+    private propiedadMineraService: PropiedadMineraService,
+    private tipoExpedienteService: TipoExpedienteService
+  ) {
+    // Si el form no viene por input, crear uno nuevo (modo creación)
+    if (!this.form) {
+      this.form = this.fb.group({
+        CodigoExpediente: [''],
+        PrimerDueno: [''],
+        Ano: [''],
+        FechaInicio: [''],
+        FechaFin: [''],
+        Estado: [''],
+        Dependencia: [''],
+        Caratula: [''],
+        Descripcion: [''],
+        Observaciones: [''],
+        IdPropiedadMinera: [null],
+        IdTipoExpediente: [null],
       });
     }
-  
-    onSubmit() {
-      if (this.form.valid) {
-        this.create.emit(this.form.value);
+  }
+
+  ngOnInit(): void {
+    this.propiedadMineraService.getPropiedades({}).subscribe((res: any) => {
+      this.propiedadesMineraLista = res?.data ?? [];
+    });
+    this.tipoExpedienteService.getTipos().subscribe((res: any) => {
+      this.tiposExpedienteLista = res ?? [];
+    });
+  }
+
+  onSubmit(): void {
+    if (this.form && this.form.valid) {
+      this.create.emit(this.form.value);
+      if (this.modo === 'crear') {
         this.form.reset();
       }
     }
-
-
+  }
 }

@@ -371,8 +371,7 @@ export class ExpedientesListComponent implements OnInit {
   }
 
   editarExpediente(id: number): void {
-    // TODO: Navegar a formulario de edición
-    console.log('Editar expediente:', id);
+    this.router.navigate(['/expedientes', id, 'editar']);
   }
 
   eliminarExpediente(id: number): void {

@@ -8,7 +8,7 @@ import { Expediente, ExpedienteCreate, ExpedienteFilter, ExpedienteResponse } fr
   providedIn: 'root'
 })
 export class ExpedienteService {
-  private readonly baseUrl = 'http://localhost:9000/expedientes/';
+  private readonly baseUrl = 'http://localhost:9000/expedientes';
 
   constructor(private http: HttpClient) {}
 
@@ -65,7 +65,7 @@ export class ExpedienteService {
    * Obtiene un expediente por ID
    */
   getExpedienteById(id: number): Observable<Expediente> {
-    return this.http.get<any>(`${this.baseUrl}${id}`).pipe(
+  return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
       map((response: any) => ({
         ...response,
         PrimerDueno: response.PrimerDueño, // Mapear PrimerDueño -> PrimerDueno
