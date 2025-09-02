@@ -1,0 +1,18 @@
+<div class="observaciones-tab">
+  <h3>Observaciones</h3>
+  <ng-container *ngIf="observaciones?.length; else noObs">
+    <ul>
+      <li *ngFor="let obs of observaciones">
+        <strong>{{ obs.Descripcion }}</strong><br>
+        <span>{{ obs.Observaciones }}</span>
+        <div class="meta">
+          <span *ngIf="obs.AudFecha">Fecha: {{ obs.AudFecha | date:'short' }}</span>
+          <span *ngIf="obs.AudUsuario">Usuario: {{ obs.AudUsuario }}</span>
+        </div>
+      </li>
+    </ul>
+  </ng-container>
+  <ng-template #noObs>
+    <p>No hay observaciones para este expediente.</p>
+  </ng-template>
+</div>

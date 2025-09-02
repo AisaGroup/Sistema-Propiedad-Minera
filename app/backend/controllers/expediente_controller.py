@@ -4,6 +4,9 @@ from backend.services.expediente_service import ExpedienteService
 from backend.schemas.expediente_schema import ExpedienteRead, ExpedienteCreate
 from backend.schemas.alerta_schema import AlertaOut
 from backend.models.alerta_model import Alerta
+from backend.schemas.observaciones_schema import ObservacionesOut
+from backend.models.observaciones_model import Observaciones
+from backend.models.acta_model import Acta
 from backend.database.connection import get_db
 from typing import List
 from fastapi import Query
@@ -45,6 +48,7 @@ def obtener_expediente(id_expediente: int, db: Session = Depends(get_db)):
     # Buscar alertas relacionadas por IdTransaccion
     id_transaccion = getattr(expediente, "IdTransaccion", None)
     alertas = []
+    observaciones = []
     if id_transaccion:
         try:
             alertas_db = db.query(Alerta).filter(Alerta.IdTransaccion == id_transaccion).order_by(Alerta.idAlerta).all()
@@ -52,12 +56,19 @@ def obtener_expediente(id_expediente: int, db: Session = Depends(get_db)):
             for a in alertas_db:
                 print(f"[DEBUG] Alerta cruda: idAlerta={a.idAlerta}, IdTransaccion={a.IdTransaccion}, Estado={a.Estado}")
             alertas = [AlertaOut.from_orm(a).dict() for a in alertas_db]
+            # Buscar observaciones relacionadas por IdTransaccion
+            observaciones_db = db.query(Observaciones).filter(Observaciones.IdTransaccion == id_transaccion).all()
+            print(f"[DEBUG] Observaciones crudas para IdTransaccion={id_transaccion}: {observaciones_db}")
+            print(f"[DEBUG] Observaciones encontradas para IdTransaccion={id_transaccion}: {len(observaciones_db)}")
+            observaciones = [ObservacionesOut.from_orm(o).dict() for o in observaciones_db]
         except Exception as e:
-            print(f"[ERROR] Al procesar alertas para expediente {id_expediente}: {e}")
+            print(f"[ERROR] Al procesar alertas/observaciones para expediente {id_expediente}: {e}")
             alertas = []
+            observaciones = []
     # Serializar expediente usando Pydantic (from_orm para SQLAlchemy)
     expediente_data = ExpedienteRead.from_orm(expediente).dict()
     expediente_data["alertas"] = alertas
+    expediente_data["observaciones"] = observaciones
     print(f"[DEBUG] Expediente response: {expediente_data}")
     return expediente_data
 

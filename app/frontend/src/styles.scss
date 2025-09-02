@@ -1,0 +1,154 @@
+// Include theming for Angular Material with `mat.theme()`.
+// This Sass mixin will define CSS variables that are used for styling Angular Material
+// components according to the Material 3 design spec.
+// Learn more about theming and how to use it for your application's
+// custom components at https://material.angular.dev/guide/theming
+@use '@angular/material' as mat;
+
+// Define custom corporate color palette
+$corporate-green: (
+  50: #e8f4f1,
+  100: #c4e3dc,
+  200: #9dd0c4,
+  300: #75bdac,
+  400: #58ae9a,
+  500: #416759, // Main corporate color
+  600: #3b5f51,
+  700: #335248,
+  800: #2b453e,
+  900: #1d312c,
+  A100: #88ffcc,
+  A200: #55ffaa,
+  A400: #22ff88,
+  A700: #09ff77,
+  contrast: (
+    50: rgba(0, 0, 0, 0.87),
+    100: rgba(0, 0, 0, 0.87),
+    200: rgba(0, 0, 0, 0.87),
+    300: rgba(0, 0, 0, 0.87),
+    400: rgba(0, 0, 0, 0.87),
+    500: white,
+    600: white,
+    700: white,
+    800: white,
+    900: white,
+    A100: rgba(0, 0, 0, 0.87),
+    A200: rgba(0, 0, 0, 0.87),
+    A400: rgba(0, 0, 0, 0.87),
+    A700: rgba(0, 0, 0, 0.87),
+  )
+);
+
+html {
+  @include mat.theme((
+    color: (
+      primary: $corporate-green,
+      tertiary: $corporate-green,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+}
+
+body {
+  // Default the application to a light color theme. This can be changed to
+  // `dark` to enable the dark color theme, or to `light dark` to defer to the
+  // user's system settings.
+  color-scheme: light;
+
+  // Set a default background, font and text colors for the application using
+  // Angular Material's system-level CSS variables. Learn more about these
+  // variables at https://material.angular.dev/guide/system-variables
+  background-color: #fafbfa;
+  color: #2e3e33;
+  font: var(--mat-sys-body-medium);
+
+  // Reset the user agent margin.
+  margin: 0;
+}
+
+/* You can add global styles to this file, and also import other style files */
+html, body { 
+  height: 100%; 
+}
+
+body { 
+  margin: 0; 
+  font-family: Roboto, "Helvetica Neue", sans-serif; 
+}
+
+/* Global Material Design overrides for corporate colors */
+.mat-mdc-button.mat-primary {
+  --mdc-text-button-label-text-color: #416759 !important;
+}
+
+.mat-mdc-outlined-button.mat-primary {
+  --mdc-outlined-button-outline-color: #416759 !important;
+  --mdc-outlined-button-label-text-color: #416759 !important;
+}
+
+.mat-mdc-form-field.mat-primary {
+  --mdc-filled-text-field-focus-active-indicator-color: #416759 !important;
+  --mdc-filled-text-field-focus-label-text-color: #416759 !important;
+}
+
+.mat-mdc-select.mat-primary {
+  --mdc-filled-text-field-focus-active-indicator-color: #416759 !important;
+}
+
+.mat-mdc-checkbox.mat-primary {
+  --mdc-checkbox-selected-checkmark-color: white !important;
+  --mdc-checkbox-selected-focus-icon-color: #416759 !important;
+  --mdc-checkbox-selected-hover-icon-color: #416759 !important;
+  --mdc-checkbox-selected-icon-color: #416759 !important;
+  --mdc-checkbox-selected-pressed-icon-color: #416759 !important;
+}
+
+th.mat-mdc-header-cell,
+.mat-mdc-table .mat-mdc-header-cell,
+th[ngcontent],
+th[class*='mat-mdc-header-cell'],
+th[class*='mat-header-cell'],
+th[_ngcontent],
+th[_ngcontent-ng-c2596952125],
+.mat-mdc-header-cell[ngcontent],
+.mat-mdc-header-cell[_ngcontent],
+.mat-mdc-header-cell[_ngcontent-ng-c2596952125],
+.mat-mdc-header-cell[class*='mat-mdc-header-cell'] {
+  background: #416759 !important;
+  color: #fff !important;
+  font-weight: 700;
+  font-size: 1.08rem;
+  border-bottom: 2px solid #335248;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+/* Forzar fondo blanco en todos los paneles desplegables globales de Angular Material */
+::ng-deep .mat-calendar-table, 
+::ng-deep .mat-calendar-body, 
+::ng-deep .mat-select-panel, 
+::ng-deep .mat-paginator, 
+::ng-deep .mat-paginator-range-label, 
+::ng-deep .mat-paginator-icon, 
+::ng-deep .mat-menu-panel, 
+::ng-deep .mat-autocomplete-panel {
+  background: #fff !important;
+  color: #111 !important;
+}
+::ng-deep .mat-select-panel .mat-option {
+  background: #fff !important;
+  color: #111 !important;
+}
+::ng-deep .mat-select-panel .mat-option.mat-selected {
+  background: #d0e7db !important;
+  color: #111 !important;
+}
+::ng-deep .mat-calendar-arrow, 
+::ng-deep .mat-calendar-period-button, 
+::ng-deep .mat-calendar-previous-button, 
+::ng-deep .mat-calendar-next-button {
+  color: #416759 !important;
+  background: #fff !important;
+  border-radius: 50%;
+}

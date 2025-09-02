@@ -1,0 +1,21 @@
+.mat-mdc-form-field label, .mat-mdc-form-field .mat-mdc-floating-label, .mat-mdc-form-field .mat-mdc-form-field-label {
+  color: #222 !important;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+.mat-mdc-form-field .mat-mdc-input-element {
+  color: #222 !important;
+}
+th.mat-mdc-header-cell,
+.mat-mdc-table .mat-mdc-header-cell,
+th[ngcontent],
+th[class*='mat-mdc-header-cell'],
+th[class*='mat-header-cell'],
+th[_ngcontent],
+th[_ngcontent-ng-c2596952125],
+.mat-mdc-header-cell[ngcontent],
+.mat-mdc-header-cell[_ngcontent],
+.mat-mdc-header-cell[_ngcontent-ng-c2596952125],
+.mat-mdc-header-cell[class*='mat-mdc-header-cell'] {
+  color: #fff !important;
+}

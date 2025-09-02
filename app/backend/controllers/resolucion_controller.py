@@ -4,6 +4,8 @@ from typing import List, Optional
 from backend.schemas.resolucion_schema import ResolucionRead, ResolucionCreate, ResolucionUpdate
 from backend.services.resolucion_service import ResolucionService
 from backend.database.connection import get_db
+from backend.models.alerta_model import Alerta
+from backend.schemas.alerta_schema import AlertaOut
 
 router = APIRouter(prefix="/resoluciones", tags=["Resoluciones"])
 
@@ -57,13 +59,27 @@ def listar_resoluciones(
     response.headers["Content-Range"] = f"resoluciones {start}-{end}/{total}"
     return paginated_items
 
-@router.get("/{id_resolucion}", response_model=ResolucionRead)
+@router.get("/{id_resolucion}", response_model=dict)
 def obtener_resolucion(id_resolucion: int, db: Session = Depends(get_db)):
     service = ResolucionService(db)
     resolucion = service.get_by_id(id_resolucion)
     if not resolucion:
         raise HTTPException(status_code=404, detail="Resolución no encontrada")
-    return resolucion
+    # Buscar alertas relacionadas por IdTransaccion de la resolución
+    id_transaccion = getattr(resolucion, "IdTransaccion", None)
+    alertas = []
+    if id_transaccion:
+        try:
+            alertas_db = db.query(Alerta).filter(Alerta.IdTransaccion == id_transaccion).order_by(Alerta.idAlerta).all()
+            alertas = [AlertaOut.from_orm(a).dict() for a in alertas_db]
+        except Exception as e:
+            print(f"[ERROR] Al procesar alertas para resolucion {id_resolucion}: {e}")
+            alertas = []
+    # Serializar resolución usando Pydantic (from_orm para SQLAlchemy)
+    from backend.schemas.resolucion_schema import ResolucionRead
+    resolucion_data = ResolucionRead.from_orm(resolucion).dict()
+    resolucion_data["alertas"] = alertas
+    return resolucion_data
 
 @router.post("", response_model=ResolucionRead)
 def crear_resolucion(resolucion_data: ResolucionCreate, db: Session = Depends(get_db)):

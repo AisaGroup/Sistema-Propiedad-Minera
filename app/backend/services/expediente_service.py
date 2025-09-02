@@ -19,11 +19,12 @@ class ExpedienteService:
         return self.repository.get_by_id(id_expediente)
 
     def create(self, expediente_data: ExpedienteCreate):
-        # Validar que el IdTipoExpediente exista
+        # Si se envía IdTipoExpediente, validar que exista
         id_tipo = expediente_data.IdTipoExpediente
-        tipo = self.repository.db.query(TipoExpediente).filter(TipoExpediente.IdTipoExpediente == id_tipo).first()
-        if not tipo:
-            raise HTTPException(status_code=400, detail="IdTipoExpediente no existe")
+        if id_tipo is not None:
+            tipo = self.repository.db.query(TipoExpediente).filter(TipoExpediente.IdTipoExpediente == id_tipo).first()
+            if not tipo:
+                raise HTTPException(status_code=400, detail="IdTipoExpediente no existe")
 
         # 1. Crear el expediente
         expediente = self.repository.create(expediente_data)

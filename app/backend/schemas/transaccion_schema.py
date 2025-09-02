@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 class TransaccionBase(BaseModel):
-    IdTransaccionPadre: int
+    IdTransaccionPadre: Optional[int] = None
     Descripcion: Optional[str] = None
     IdRegistro: int
     Tabla: str

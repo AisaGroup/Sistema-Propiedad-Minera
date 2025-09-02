@@ -14,7 +14,7 @@ class ExpedienteBase(BaseModel):
     Descripcion: Optional[str] = None
     Observaciones: Optional[str] = None
     IdPropiedadMinera: Optional[int]
-    IdTipoExpediente: int
+    IdTipoExpediente: Optional[int] = None
     IdTransaccion: Optional[int] = None
 
 class ExpedienteCreate(ExpedienteBase):

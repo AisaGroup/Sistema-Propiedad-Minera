@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from backend.services.acta_service import ActaService
@@ -6,6 +5,8 @@ from backend.schemas.acta_schema import ActaRead, ActaCreate
 from backend.database.connection import get_db
 from typing import List
 from fastapi import Query
+from backend.models.alerta_model import Alerta
+from backend.schemas.alerta_schema import AlertaOut
 
 router = APIRouter(prefix="/actas", tags=["Actas"])
 
@@ -57,13 +58,27 @@ def listar_actas(
     response.headers["Content-Range"] = f"actas {start}-{end}/{total}"
     return paginated_items
 
-@router.get("/{id_acta}", response_model=ActaRead)
+@router.get("/{id_acta}", response_model=dict)
 def obtener_acta(id_acta: int, db: Session = Depends(get_db)):
     service = ActaService(db)
     acta = service.get_by_id(id_acta)
     if not acta:
         raise HTTPException(status_code=404, detail="Acta no encontrada")
-    return acta
+    # Buscar alertas relacionadas por IdTransaccion del acta
+    id_transaccion = getattr(acta, "IdTransaccion", None)
+    alertas = []
+    if id_transaccion:
+        try:
+            alertas_db = db.query(Alerta).filter(Alerta.IdTransaccion == id_transaccion).order_by(Alerta.idAlerta).all()
+            alertas = [AlertaOut.from_orm(a).dict() for a in alertas_db]
+        except Exception as e:
+            print(f"[ERROR] Al procesar alertas para acta {id_acta}: {e}")
+            alertas = []
+    # Serializar acta usando Pydantic (from_orm para SQLAlchemy)
+    from backend.schemas.acta_schema import ActaRead
+    acta_data = ActaRead.from_orm(acta).dict()
+    acta_data["alertas"] = alertas
+    return acta_data
 
 @router.post("", response_model=ActaRead)
 def crear_acta(acta_data: ActaCreate, db: Session = Depends(get_db)):
