@@ -1,10 +1,10 @@
 export interface Expediente {
   IdExpediente: number;
   CodigoExpediente?: string;
-  PrimerDueno?: string; // Cambiado de PrimerDueño
-  Ano?: string; // Cambiado de Año - DateTime from backend
-  FechaInicio?: string; // Date from backend
-  FechaFin?: string; // Date from backend
+  PrimerDueno?: string;
+  Ano?: string;
+  FechaInicio?: string;
+  FechaFin?: string;
   Estado?: string;
   Dependencia?: string;
   Caratula?: string;
@@ -20,8 +20,8 @@ export interface Expediente {
 
 export interface ExpedienteCreate {
   CodigoExpediente?: string;
-  PrimerDueno?: string; // Cambiado de PrimerDueño
-  Ano?: string; // Cambiado de Año
+  PrimerDueno?: string;
+  Ano?: string;
   FechaInicio?: string;
   FechaFin?: string;
   Estado?: string;
@@ -38,9 +38,6 @@ export interface ExpedienteFilter {
   CodigoExpediente?: string;
   Estado?: string;
   Dependencia?: string;
-  IdTipoExpediente?: number;
-  FechaInicio?: string;
-  FechaFin?: string;
 }
 
 export interface Alerta {

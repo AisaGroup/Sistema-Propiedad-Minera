@@ -11,8 +11,8 @@ class Expediente(Base):
 
     IdExpediente = Column(Integer, primary_key=True, index=True, nullable=False)
     CodigoExpediente = Column(String(50), nullable=True)
-    PrimerDueño = Column(String(50), nullable=True)
-    Año = Column(DateTime, nullable=True)
+    PrimerDueno = Column(String(50), nullable=True)
+    Ano = Column(DateTime, nullable=True)
     FechaInicio = Column(Date, nullable=True)
     FechaFin = Column(Date, nullable=True)
     Estado = Column(String(50), nullable=True)

@@ -4,8 +4,8 @@ from datetime import datetime, date
 
 class ExpedienteBase(BaseModel):
     CodigoExpediente: Optional[str]
-    PrimerDueño: Optional[str] = None
-    Año: Optional[datetime] = None
+    PrimerDueno: Optional[str] = None
+    Ano: Optional[datetime] = None
     FechaInicio: Optional[date] = None
     FechaFin: Optional[date] = None
     Estado: Optional[str] = None
