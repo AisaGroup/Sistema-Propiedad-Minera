@@ -102,9 +102,9 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
               </ng-container>
 
               <!-- Primer Dueño Column -->
-              <ng-container matColumnDef="PrimerDueño">
+              <ng-container matColumnDef="PrimerDueno">
                 <th mat-header-cell *matHeaderCellDef>Primer Dueño</th>
-                <td mat-cell *matCellDef="let expediente">{{ expediente.PrimerDueno || 'Sin dueno' }}</td>
+                <td mat-cell *matCellDef="let expediente">{{ expediente.PrimerDueno || 'Sin dato' }}</td>
               </ng-container>
 
               <!-- Carátula Column -->
@@ -299,9 +299,9 @@ export class ExpedientesListComponent implements OnInit {
 
   expedientes: Expediente[] = [];
   displayedColumns: string[] = [
-    'IdExpediente', 
-    'CodigoExpediente', 
-    'PrimerDueño',
+  'IdExpediente', 
+  'CodigoExpediente', 
+  'PrimerDueno',
     'Caratula', 
     'Estado', 
     'Dependencia', 

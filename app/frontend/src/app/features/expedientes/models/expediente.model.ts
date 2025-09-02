@@ -2,7 +2,7 @@ export interface Expediente {
   IdExpediente: number;
   CodigoExpediente?: string;
   PrimerDueno?: string;
-  Ano?: string;
+  Ano?: number;
   FechaInicio?: string;
   FechaFin?: string;
   Estado?: string;
@@ -21,7 +21,7 @@ export interface Expediente {
 export interface ExpedienteCreate {
   CodigoExpediente?: string;
   PrimerDueno?: string;
-  Ano?: string;
+  Ano?: number;
   FechaInicio?: string;
   FechaFin?: string;
   Estado?: string;

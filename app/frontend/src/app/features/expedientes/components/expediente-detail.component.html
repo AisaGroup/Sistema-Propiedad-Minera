@@ -60,7 +60,7 @@
                       <div class="info-item"><label>Dependencia:</label><span>{{ expediente.Dependencia || 'Sin dependencia' }}</span></div>
                     </div>
                     <div class="info-col">
-                      <div class="info-item"><label>Año:</label><span>{{ expediente.Ano ? (expediente.Ano | date:'yyyy') : 'Sin año' }}</span></div>
+                      <div class="info-item"><label>Año:</label><span>{{ expediente.Ano || 'Sin año' }}</span></div>
                       <div class="info-item"><label>Fecha Inicio:</label><span>{{ expediente.FechaInicio ? (expediente.FechaInicio | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
                       <div class="info-item"><label>Fecha Fin:</label><span>{{ expediente.FechaFin ? (expediente.FechaFin | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
                       <div class="info-item"><label>Carátula:</label><span>{{ expediente.Caratula || 'Sin carátula' }}</span></div>

@@ -66,12 +66,17 @@ export class ExpedienteService {
    */
   getExpedienteById(id: number): Observable<Expediente> {
   return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
-      map((response: any) => ({
+    map((response: any) => {
+      console.log('[ExpedienteService] Respuesta cruda del backend:', response);
+      const mapped = {
         ...response,
-        PrimerDueno: response.PrimerDueño, // Mapear PrimerDueño -> PrimerDueno
-        Ano: response.Año, // Mapear Año -> Ano
-      }))
-    );
+        PrimerDueno: response.PrimerDueno ?? response.PrimerDueño,
+        Ano: response.Ano ?? response.Año,
+      };
+      console.log('[ExpedienteService] Expediente mapeado:', mapped);
+      return mapped;
+    })
+  );
   }
 
   /**

@@ -91,7 +91,7 @@ import { TipoExpedienteService, TipoExpediente } from '../services/tipo-expedien
           <textarea matInput formControlName="Observaciones" maxlength="500"></textarea>
         </mat-form-field>
         <div class="form-actions full-width">
-          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+          <button mat-raised-button color="primary" type="submit">
             {{ modo === 'editar' ? 'Guardar cambios' : 'Crear Expediente' }}
           </button>
         </div>
@@ -242,18 +242,18 @@ export class ExpedienteFormComponent implements OnInit {
     // Si el form no viene por input, crear uno nuevo (modo creación)
     if (!this.form) {
       this.form = this.fb.group({
-        CodigoExpediente: [''],
-        PrimerDueno: [''],
-        Ano: [''],
-        FechaInicio: [''],
-        FechaFin: [''],
-        Estado: [''],
-        Dependencia: [''],
-        Caratula: [''],
-        Descripcion: [''],
-        Observaciones: [''],
-        IdPropiedadMinera: [null],
-        IdTipoExpediente: [null],
+        CodigoExpediente: ['', [Validators.required, Validators.maxLength(50)]],
+        PrimerDueno: ['', [Validators.maxLength(50)]],
+        Ano: [null, [Validators.required, Validators.pattern(/^\d{4}$/)]],
+        FechaInicio: ['', [Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]],
+        FechaFin: ['', [Validators.pattern(/^\d{4}-\d{2}-\d{2}$/)]],
+        Estado: ['', [Validators.maxLength(50)]],
+        Dependencia: ['', [Validators.maxLength(100)]],
+        Caratula: ['', [Validators.maxLength(200)]],
+        Descripcion: ['', [Validators.maxLength(50)]],
+        Observaciones: ['', [Validators.maxLength(500)]],
+        IdPropiedadMinera: [null, [Validators.required, Validators.min(1)]],
+        IdTipoExpediente: [null, [Validators.required, Validators.min(1)]],
       });
     }
   }
@@ -268,11 +268,21 @@ export class ExpedienteFormComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.form && this.form.valid) {
-      this.create.emit(this.form.value);
-      if (this.modo === 'crear') {
-        this.form.reset();
-      }
+    const value = { ...this.form.value };
+    console.log('[ExpedienteForm] onSubmit ejecutado, datos:', value);
+    // Formatear fechas y año a string ISO si existen
+    if (value.Ano) {
+      value.Ano = parseInt(value.Ano, 10);
+    }
+    if (value.FechaInicio) {
+      value.FechaInicio = typeof value.FechaInicio === 'string' ? value.FechaInicio : (value.FechaInicio instanceof Date ? value.FechaInicio.toISOString().slice(0, 10) : '');
+    }
+    if (value.FechaFin) {
+      value.FechaFin = typeof value.FechaFin === 'string' ? value.FechaFin : (value.FechaFin instanceof Date ? value.FechaFin.toISOString().slice(0, 10) : '');
+    }
+    this.create.emit(value);
+    if (this.modo === 'crear') {
+      this.form.reset();
     }
   }
 }
