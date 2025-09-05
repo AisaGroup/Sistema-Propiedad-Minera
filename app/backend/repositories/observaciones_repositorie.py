@@ -34,3 +34,6 @@ class ObservacionesRepository:
 
     def get_all(self):
         return self.db.query(Observaciones).all()
+
+    def get_all_by_transaccion(self, id_transaccion: int):
+        return self.db.query(Observaciones).filter(Observaciones.IdTransaccion == id_transaccion).order_by(Observaciones.IdObservacion).all()

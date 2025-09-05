@@ -98,19 +98,19 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
               <!-- Código Column -->
               <ng-container matColumnDef="CodigoExpediente">
                 <th mat-header-cell *matHeaderCellDef>Código</th>
-                <td mat-cell *matCellDef="let expediente">{{ expediente.CodigoExpediente || 'Sin código' }}</td>
+                <td mat-cell *matCellDef="let expediente">{{ mostrarDato(expediente.CodigoExpediente) }}</td>
               </ng-container>
 
               <!-- Primer Dueño Column -->
               <ng-container matColumnDef="PrimerDueno">
                 <th mat-header-cell *matHeaderCellDef>Primer Dueño</th>
-                <td mat-cell *matCellDef="let expediente">{{ expediente.PrimerDueno || 'Sin dato' }}</td>
+                <td mat-cell *matCellDef="let expediente">{{ mostrarDato(expediente.PrimerDueno) }}</td>
               </ng-container>
 
               <!-- Carátula Column -->
               <ng-container matColumnDef="Caratula">
                 <th mat-header-cell *matHeaderCellDef>Carátula</th>
-                <td mat-cell *matCellDef="let expediente">{{ expediente.Caratula || 'Sin caratula' }}</td>
+                <td mat-cell *matCellDef="let expediente">{{ mostrarDato(expediente.Caratula) }}</td>
               </ng-container>
 
               <!-- Estado Column -->
@@ -118,7 +118,7 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
                 <th mat-header-cell *matHeaderCellDef>Estado</th>
                 <td mat-cell *matCellDef="let expediente">
                   <span class="estado-badge" [ngClass]="'estado-' + (expediente.Estado || 'sin-estado').toLowerCase()">
-                    {{ expediente.Estado || 'Sin estado' }}
+                    {{ mostrarDato(expediente.Estado) }}
                   </span>
                 </td>
               </ng-container>
@@ -126,14 +126,14 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
               <!-- Dependencia Column -->
               <ng-container matColumnDef="Dependencia">
                 <th mat-header-cell *matHeaderCellDef>Dependencia</th>
-                <td mat-cell *matCellDef="let expediente">{{ expediente.Dependencia || 'Sin dependencia' }}</td>
+                <td mat-cell *matCellDef="let expediente">{{ mostrarDato(expediente.Dependencia) }}</td>
               </ng-container>
 
               <!-- Fecha Inicio Column -->
               <ng-container matColumnDef="FechaInicio">
                 <th mat-header-cell *matHeaderCellDef>Fecha Inicio</th>
                 <td mat-cell *matCellDef="let expediente">
-                  {{ expediente.FechaInicio ? (expediente.FechaInicio | date:'dd/MM/yyyy') : 'Sin fecha' }}
+                  {{ expediente.FechaInicio !== undefined && expediente.FechaInicio !== null && expediente.FechaInicio !== '' ? (expediente.FechaInicio | date:'dd/MM/yyyy') : 'Sin fecha' }}
                 </td>
               </ng-container>
 
@@ -327,11 +327,15 @@ export class ExpedientesListComponent implements OnInit {
 
   loadExpedientes(): void {
     this.loading = true;
-    
     this.expedienteService.getExpedientes(this.currentPage, this.pageSize, this.filters)
       .subscribe({
         next: (response) => {
           console.log('Expedientes recibidos:', response); // Debug
+          if (response && response.data && response.data.length > 0) {
+            response.data.forEach((exp, idx) => {
+              console.log(`Expediente[${idx}]:`, exp);
+            });
+          }
           this.expedientes = response.data;
           this.totalExpedientes = response.total;
           this.loading = false;
@@ -377,5 +381,10 @@ export class ExpedientesListComponent implements OnInit {
   eliminarExpediente(id: number): void {
     // TODO: Mostrar confirmación y eliminar
     console.log('Eliminar expediente:', id);
+  }
+
+  // Utilidad para mostrar valores en tabla
+  mostrarDato(valor: any): string {
+    return valor !== undefined && valor !== null && valor !== '' ? valor : 'Sin dato';
   }
 }

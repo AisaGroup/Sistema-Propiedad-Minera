@@ -18,6 +18,21 @@ export interface TitularMinero {
   Descripcion?: string;
 }
 
+export interface TitularMineroCreate {
+  IdTransaccion?: number;
+  TipoPersona: string;
+  Nombre: string;
+  DniCuit: string;
+  Domicilio?: string;
+  Telefono?: string;
+  Email?: string;
+  FechaAsignacion?: string;
+  Estado?: string;
+  RepresentanteLegal?: string;
+  Observaciones?: string;
+  Descripcion?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class TitularMineroService {
   private apiUrl = 'http://localhost:9000/titulares-mineros';
@@ -26,5 +41,21 @@ export class TitularMineroService {
 
   getAll(): Observable<TitularMinero[]> {
     return this.http.get<TitularMinero[]>(this.apiUrl);
+  }
+
+  create(titular: TitularMineroCreate): Observable<TitularMinero> {
+    return this.http.post<TitularMinero>(this.apiUrl, titular);
+  }
+
+  update(id: number, titular: Partial<TitularMineroCreate>): Observable<TitularMinero> {
+    return this.http.put<TitularMinero>(`${this.apiUrl}/${id}`, titular);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  getById(id: number): Observable<TitularMinero> {
+    return this.http.get<TitularMinero>(`${this.apiUrl}/${id}`);
   }
 }

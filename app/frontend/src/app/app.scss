@@ -14,7 +14,7 @@ body {
 
 /* Colores corporativos globales */
 :root {
-  --corporate-green: #416759;
+  --corporate-green: #3F6858;
   --corporate-green-dark: #335248;
   --corporate-white: #fff;
   --corporate-black: #222;
@@ -31,21 +31,21 @@ body {
 }
 
 .mat-mdc-card {
-  box-shadow: 0 2px 8px rgba(65, 103, 89, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(63, 104, 88, 0.1) !important;
   border-radius: 8px !important;
-  border-top: 3px solid #416759;
+  border-top: 3px solid #3F6858;
 }
 
 /* Material Design theme override */
 .mat-primary {
-  --mdc-filled-button-container-color: #416759 !important;
-  --mdc-outlined-button-outline-color: #416759 !important;
-  --mdc-outlined-button-label-text-color: #416759 !important;
-  --mat-form-field-focus-select-arrow-color: #416759 !important;
+  --mdc-filled-button-container-color: #3F6858 !important;
+  --mdc-outlined-button-outline-color: #3F6858 !important;
+  --mdc-outlined-button-label-text-color: #3F6858 !important;
+  --mat-form-field-focus-select-arrow-color: #3F6858 !important;
 }
 
 .mat-accent {
-  --mdc-filled-button-container-color: #416759 !important;
+  --mdc-filled-button-container-color: #3F6858 !important;
 }
 
 /* Button overrides */

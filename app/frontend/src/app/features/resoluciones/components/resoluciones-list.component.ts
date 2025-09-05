@@ -10,26 +10,33 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { HttpResponse } from '@angular/common/http';
 import { ResolucionService, Resolucion } from '../services/resolucion.service';
 import { Router } from '@angular/router';
+import { ResolucionCreateComponent } from './resolucion-create.component';
+import { ResolucionEditComponent } from './resolucion-edit.component';
 
 @Component({
   selector: 'app-resoluciones-list',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatTooltipModule, MatProgressSpinnerModule, MatPaginatorModule],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatTooltipModule, MatProgressSpinnerModule, MatPaginatorModule, ResolucionCreateComponent, ResolucionEditComponent],
   template: `
     <div>
       <div class="header-row">
         <span class="section-title">Resoluciones Asociadas</span>
         <mat-chip *ngIf="totalResoluciones > 0" class="count-chip">{{ totalResoluciones }}</mat-chip>
         <span class="spacer"></span>
-        <button mat-raised-button color="primary" (click)="crearResolucion()">
+        <button *ngIf="!mostrarFormulario" mat-raised-button color="primary" (click)="abrirCrear()">
           <mat-icon>add</mat-icon> Nueva Resolución
         </button>
       </div>
-      <div *ngIf="loadingResoluciones" class="loading-container">
-        <mat-spinner diameter="32"></mat-spinner>
-        <p>Cargando resoluciones...</p>
+      <button *ngIf="mostrarFormulario" mat-stroked-button class="close-btn" (click)="cerrarFormulario()" aria-label="Cerrar">
+        Cerrar
+      </button>
+      <div *ngIf="mostrarFormulario && !editando">
+        <app-resolucion-create [idExpediente]="idExpediente" (create)="onCrearResolucion($event)" (cancelar)="cerrarFormulario()"></app-resolucion-create>
       </div>
-      <div class="table-container" *ngIf="resoluciones && resoluciones.length > 0 && !loadingResoluciones">
+      <div *ngIf="mostrarFormulario && editando">
+        <app-resolucion-edit [resolucion]="resolucionEdit" (update)="onActualizarResolucion($event)" (cancelar)="cerrarFormulario()"></app-resolucion-edit>
+      </div>
+      <div class="table-container" *ngIf="resoluciones && resoluciones.length > 0 && !loadingResoluciones && !mostrarFormulario">
         <table mat-table [dataSource]="resoluciones" class="resoluciones-table mat-elevation-4">
           <!-- Columnas -->
           <ng-container matColumnDef="IdResolucion">
@@ -64,7 +71,7 @@ import { Router } from '@angular/router';
         </table>
         <mat-paginator [length]="totalResoluciones" [pageSize]="pageSize" [pageIndex]="pageIndex" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)"></mat-paginator>
       </div>
-      <div *ngIf="resoluciones && resoluciones.length === 0 && !loadingResoluciones" class="no-data">
+      <div *ngIf="resoluciones && resoluciones.length === 0 && !loadingResoluciones && !mostrarFormulario" class="no-data">
         No hay resoluciones asociadas.
       </div>
     </div>
@@ -78,6 +85,7 @@ import { Router } from '@angular/router';
     .resoluciones-table th, .resoluciones-table td { color: #333; }
     .no-data { color: #888; font-style: italic; margin-top: 16px; }
     .loading-container { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+    .close-btn { display: block; margin: 0 0 1.5rem 0; position: relative; left: 0; top: 0; background: #fff; border-radius: 6px; z-index: 2; }
   `]
 })
 export class ResolucionesListComponent implements OnInit {
@@ -88,6 +96,9 @@ export class ResolucionesListComponent implements OnInit {
   totalResoluciones = 0;
   pageSize = 10;
   pageIndex = 0;
+  mostrarFormulario = false;
+  editando = false;
+  resolucionEdit: Resolucion | null = null;
 
   constructor(private resolucionService: ResolucionService, private router: Router) {}
 
@@ -126,13 +137,39 @@ export class ResolucionesListComponent implements OnInit {
     this.cargarResoluciones();
   }
 
-  crearResolucion() {
-    // Lógica para crear resolución
+  abrirCrear() {
+    this.mostrarFormulario = true;
+    this.editando = false;
+    this.resolucionEdit = null;
+  }
+  cerrarFormulario() {
+    this.mostrarFormulario = false;
+    this.editando = false;
+    this.resolucionEdit = null;
+  }
+  onCrearResolucion(resolucion: Resolucion) {
+    this.resolucionService.createResolucion(resolucion).subscribe({
+      next: () => {
+        this.cargarResoluciones();
+        this.cerrarFormulario();
+      }
+    });
   }
   verResolucion(resolucion: Resolucion) {
     this.router.navigate(['/expedientes', this.idExpediente, 'resolucion', resolucion.IdResolucion]);
   }
   editarResolucion(resolucion: Resolucion) {
-    // Lógica para editar resolución
+    this.resolucionEdit = { ...resolucion };
+    this.editando = true;
+    this.mostrarFormulario = true;
+  }
+  onActualizarResolucion(resolucion: Resolucion) {
+    if (!resolucion.IdResolucion) return;
+    this.resolucionService.updateResolucion(resolucion.IdResolucion, resolucion).subscribe({
+      next: () => {
+        this.cargarResoluciones();
+        this.cerrarFormulario();
+      }
+    });
   }
 }

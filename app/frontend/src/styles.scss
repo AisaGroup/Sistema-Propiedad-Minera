@@ -1,9 +1,25 @@
+@use '@angular/material' as mat;
+.cdk-overlay-pane .mat-select-panel,
+.cdk-overlay-pane .mat-option {
+  background: #fff !important;
+  opacity: 1 !important;
+  color: #222 !important;
+}
+/* Angular Material overlay and select panel fix for dropdown superposition */
+.cdk-overlay-pane, .cdk-overlay-container {
+  z-index: 999999 !important;
+}
+.cdk-overlay-pane .mat-select-panel {
+  background: #fff !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  z-index: 1000000 !important;
+  position: fixed !important;
+}
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
 // Learn more about theming and how to use it for your application's
 // custom components at https://material.angular.dev/guide/theming
-@use '@angular/material' as mat;
 
 // Define custom corporate color palette
 $corporate-green: (
@@ -12,7 +28,7 @@ $corporate-green: (
   200: #9dd0c4,
   300: #75bdac,
   400: #58ae9a,
-  500: #416759, // Main corporate color
+  500: #3F6858, // Main corporate color actualizado
   600: #3b5f51,
   700: #335248,
   800: #2b453e,
@@ -151,4 +167,879 @@ th[_ngcontent-ng-c2596952125],
   color: #416759 !important;
   background: #fff !important;
   border-radius: 50%;
+}
+
+/* Fondo blanco sólido para todos los selectores desplegables (mat-select) */
+::ng-deep .mat-select-trigger,
+::ng-deep .mat-select,
+::ng-deep .mat-select-value {
+  background: #fff !important;
+  color: #111 !important;
+  border-radius: 6px !important;
+}
+
+/* FORZAR FONDO BLANCO PARA FORM FIELDS Y TODOS SUS ELEMENTOS */
+::ng-deep .mat-form-field {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field .mat-form-field-wrapper {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field .mat-form-field-flex {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field .mat-form-field-infix {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field .mat-form-field-underline {
+  background: #fff !important;
+}
+
+::ng-deep .mat-form-field .mat-form-field-ripple {
+  background: #fff !important;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-flex {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-underline::before {
+  background: #ddd !important;
+}
+
+/* ESTILOS ESPECÍFICOS PARA APPEARANCE FILL MÁS FUERTES */
+::ng-deep .mat-mdc-form-field {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-form-field-focus-overlay {
+  background: #fff !important;
+  opacity: 0 !important;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--filled {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: #fff !important;
+}
+
+::ng-deep .mat-mdc-select {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-select .mat-mdc-select-trigger {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-select .mat-mdc-select-value {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* ESTILOS EQUIVALENTES PARA DATEPICKERS COMO LOS SELECTORES */
+::ng-deep .mat-mdc-form-field:has(input[matInput][matDatepicker]) {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-form-field:has(input[matInput][matDatepicker]) .mdc-text-field {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-form-field:has(input[matInput][matDatepicker]) .mdc-text-field--filled {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-mdc-form-field:has(input[matInput][matDatepicker]) .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: #fff !important;
+}
+
+/* ESTILOS ALTERNATIVOS PARA DATEPICKERS SIN :has() */
+::ng-deep input[matInput][matDatepicker] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field--filled input[matDatepicker] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mat-mdc-form-field .mdc-text-field input[matDatepicker] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* FONDO ESPECÍFICO PARA DATEPICKERS */
+::ng-deep .mat-datepicker-input {
+  background: #fff !important;
+  color: #111 !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field.mat-form-field-appearance-fill .mat-form-field-flex {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-infix {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+::ng-deep .mat-form-field-appearance-fill .mat-form-field-wrapper {
+  background: #fff !important;
+  border-radius: 6px !important;
+}
+
+/* INPUTS CON DATEPICKER ESPECÍFICAMENTE */
+::ng-deep input[matInput] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mat-form-field input[matInput] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* ASEGURAR QUE TODOS LOS INPUTS TENGAN FONDO BLANCO */
+::ng-deep .mat-mdc-form-field input {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* FORZAR FONDO PARA INPUTS Y SELECTS ESPECÍFICAMENTE */
+::ng-deep .mat-input-element {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mat-select-value-text {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mat-select-placeholder {
+  background: #fff !important;
+  color: #666 !important;
+}
+
+::ng-deep .mat-select-arrow {
+  background: #fff !important;
+}
+
+/* ESTILOS ESPECÍFICOS PARA DATEPICKERS - FORZAR FONDO BLANCO */
+::ng-deep .mat-datepicker-input {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep input[matInput][placeholder*="dd/mm/yyyy"] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep input[matInput][placeholder*="DD/MM/YYYY"] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mat-mdc-form-field .mat-datepicker-input {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+::ng-deep .mdc-text-field--filled input[matInput] {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+/* CORRECCIÓN FINAL - MÁXIMA PRIORIDAD PARA INPUTS Y SELECTORES */
+::ng-deep .mat-mdc-form-field .mdc-text-field--filled .mdc-text-field__input {
+  background-color: #fff !important;
+  background: #fff !important;
+}
+
+::ng-deep .mat-mdc-form-field input.mat-mdc-input-element {
+  background-color: #fff !important;
+  background: #fff !important;
+}
+
+::ng-deep .mat-mdc-form-field input.mdc-text-field__input {
+  background-color: #fff !important;
+  background: #fff !important;
+}
+
+::ng-deep .mat-mdc-form-field .mat-mdc-select-trigger {
+  background-color: #fff !important;
+  background: #fff !important;
+}
+
+/* ESPECÍFICO PARA DATEPICKERS CON MÁXIMA ESPECIFICIDAD */
+::ng-deep .mat-mdc-form-field input[matInput][matDatepicker].mat-mdc-input-element {
+  background-color: #fff !important;
+  background: #fff !important;
+}
+
+::ng-deep .mat-mdc-form-field input[matInput][matDatepicker].mdc-text-field__input {
+  background-color: #fff !important;
+  background: #fff !important;
+}
+
+/* ===== SOLUCIÓN DEFINITIVA PARA TRANSPARENCIA ===== */
+/* Usando la máxima especificidad CSS posible */
+
+/* Para TODOS los inputs (incluyendo datepickers) */
+body ::ng-deep .mat-mdc-form-field input[matInput] {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+body ::ng-deep .mat-mdc-form-field input {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Para TODOS los selectores */
+body ::ng-deep .mat-mdc-form-field .mat-mdc-select-trigger {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+body ::ng-deep .mat-mdc-select-trigger {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Para el contenedor de form fields */
+body ::ng-deep .mat-mdc-form-field .mdc-text-field--filled {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+body ::ng-deep .mdc-text-field--filled {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* Para los input elements específicos */
+body ::ng-deep .mdc-text-field__input {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+}
+
+/* ===== SOLUCIÓN CENTRALIZADA PARA FORM FIELDS ===== */
+/* Eliminando todos los estilos conflictivos y creando una solución única */
+
+/* Estilos base para formularios - FONDO BLANCO UNIVERSAL */
+mat-form-field[appearance="fill"] {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+/* Angular Material MDC - MÁXIMA ESPECIFICIDAD */
+html body .mat-mdc-form-field {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+  z-index: 1 !important;
+  position: relative !important;
+}
+
+/* ESPECÍFICO PARA SELECTORES VACÍOS - REDUCIR Z-INDEX CUANDO ESTÁ ABIERTO */
+html body .mat-mdc-form-field.mat-form-field-should-float {
+  z-index: 0 !important;
+}
+
+html body .mat-mdc-form-field.mat-focused {
+  z-index: 0 !important;
+}
+
+html body .mat-mdc-form-field:has(.mat-mdc-select.mat-mdc-select-empty) {
+  z-index: 0 !important;
+}
+
+html body .mat-mdc-form-field .mat-mdc-select-trigger {
+  z-index: 0 !important;
+  position: relative !important;
+}
+
+/* CUANDO EL SELECTOR ESTÁ ABIERTO, REDUCIR Z-INDEX DEL INPUT */
+body .mat-mdc-select.mat-mdc-select-open + .mat-mdc-form-field,
+body .mat-mdc-form-field:has(.mat-mdc-select.mat-mdc-select-open) {
+  z-index: 0 !important;
+}
+
+html body .mat-mdc-form-field .mdc-text-field {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+html body .mat-mdc-form-field .mdc-text-field--filled {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+  min-height: 56px !important;
+  height: auto !important;
+}
+
+html body .mat-mdc-form-field .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+  background-color: #ffffff !important;
+  min-height: 56px !important;
+  height: auto !important;
+}
+
+/* INPUTS - Todas las variantes */
+html body .mat-mdc-form-field input {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+html body .mat-mdc-form-field input[matInput] {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+html body .mat-mdc-form-field .mdc-text-field__input {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+html body .mat-mdc-form-field .mat-mdc-input-element {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+html body .mat-mdc-form-field textarea {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* ALTURA Y ESPACIADO PARA LABELS Y PLACEHOLDERS */
+html body .mat-mdc-form-field .mdc-floating-label {
+  line-height: 1.4 !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
+html body .mat-mdc-form-field .mat-mdc-form-field-infix {
+  min-height: 56px !important;
+  padding: 16px 0 !important;
+}
+
+html body .mat-mdc-form-field .mdc-text-field__input {
+  min-height: 24px !important;
+  line-height: 1.4 !important;
+}
+
+/* ESPECÍFICO PARA SELECTORES - ASEGURAR ALTURA SUFICIENTE */
+html body .mat-mdc-form-field:has(.mat-mdc-select) {
+  min-height: 56px !important;
+}
+
+html body .mat-mdc-form-field:has(.mat-mdc-select) .mdc-text-field {
+  min-height: 56px !important;
+}
+
+/* SELECTORES - Todas las variantes */
+html body .mat-mdc-select {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+html body .mat-mdc-select-trigger {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  min-height: 56px !important;
+  height: auto !important;
+  padding: 16px 12px !important;
+  line-height: 1.4 !important;
+}
+
+html body .mat-mdc-form-field .mat-mdc-select-trigger {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  min-height: 56px !important;
+  height: auto !important;
+  padding: 16px 12px !important;
+  line-height: 1.4 !important;
+}
+
+html body .mat-mdc-select-value {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  line-height: 1.4 !important;
+  min-height: 24px !important;
+  height: auto !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+}
+
+html body .mat-mdc-select-value-text {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+  line-height: 1.4 !important;
+  min-height: 24px !important;
+  height: auto !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow: visible !important;
+}
+
+/* FORM FIELDS ESPECÍFICOS PARA SELECTORES */
+html body .mat-mdc-form-field:has(.mat-mdc-select),
+html body .mat-mdc-form-field:has(mat-select) {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+html body .mat-mdc-form-field:has(.mat-mdc-select) .mdc-text-field,
+html body .mat-mdc-form-field:has(mat-select) .mdc-text-field {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+html body .mat-mdc-form-field:has(.mat-mdc-select) .mdc-text-field--filled,
+html body .mat-mdc-form-field:has(mat-select) .mdc-text-field--filled {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+/* SELECTORES ALTERNATIVOS SIN :has() PARA COMPATIBILIDAD */
+html body mat-form-field[appearance="fill"] mat-select,
+html body .mat-form-field[appearance="fill"] mat-select,
+html body .mat-mdc-form-field mat-select,
+html body .mat-mdc-form-field .mat-mdc-select {
+  background-color: #ffffff !important;
+}
+
+/* CONTENEDOR DEL SELECTOR */
+html body mat-select .mat-select-trigger,
+html body .mat-select .mat-select-trigger,
+html body .mat-mdc-select .mat-mdc-select-trigger {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* FORZAR FONDO EN FORM FIELDS QUE CONTIENEN SELECTORES */
+html body mat-form-field:has(mat-select),
+html body .mat-form-field:has(mat-select),
+html body .mat-mdc-form-field:has(mat-select) {
+  background-color: #ffffff !important;
+}
+
+/* ALTERNATIVA SIN :has() - USANDO CLASES ESPECÍFICAS */
+html body .mat-mdc-form-field.mat-mdc-form-field-type-mat-select,
+html body .mat-form-field.mat-form-field-type-mat-select {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+html body .mat-mdc-form-field.mat-mdc-form-field-type-mat-select .mdc-text-field,
+html body .mat-form-field.mat-form-field-type-mat-select .mat-form-field-flex {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+html body .mat-mdc-form-field.mat-mdc-form-field-type-mat-select .mdc-text-field--filled,
+html body .mat-form-field.mat-form-field-type-mat-select .mat-form-field-infix {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+/* TARGETING POR CLASES GENERADAS AUTOMÁTICAMENTE */
+html body .mat-mdc-form-field[class*="mat-select"],
+html body .mat-form-field[class*="mat-select"] {
+  background-color: #ffffff !important;
+  border-radius: 6px !important;
+}
+
+/* FONDO BLANCO UNIVERSAL PARA TODOS LOS FORM FIELDS DE SELECTORES */
+html body mat-form-field[appearance="fill"]:has(mat-select) .mat-mdc-text-field-wrapper,
+html body .mat-mdc-form-field[appearance="fill"] .mat-mdc-text-field-wrapper {
+  background-color: #ffffff !important;
+}
+
+/* DATEPICKERS - Todas las variantes */
+html body .mat-datepicker-input {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+html body .mat-mdc-form-field input[matDatepicker] {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+html body .mat-mdc-form-field input[matInput][matDatepicker] {
+  background-color: #ffffff !important;
+  color: #111111 !important;
+}
+
+/* OVERLAYS Y PANELES */
+html body .mat-datepicker-content {
+  background-color: #ffffff !important;
+}
+
+html body .mat-calendar {
+  background-color: #ffffff !important;
+}
+
+/* SOLUCIÓN AGRESIVA PARA PANELES DE SELECTORES */
+/* Targeting todas las clases posibles para mat-select panel */
+.mat-select-panel,
+.mat-mdc-select-panel,
+.cdk-overlay-pane .mat-select-panel,
+.cdk-overlay-pane .mat-mdc-select-panel,
+html body .mat-select-panel,
+html body .mat-mdc-select-panel,
+html body .cdk-overlay-pane .mat-select-panel,
+html body .cdk-overlay-pane .mat-mdc-select-panel {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3) !important;
+  border: 2px solid #cccccc !important;
+  z-index: 1000000 !important;
+  position: fixed !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+  /* CONTROL DE ANCHO DEL PANEL DROPDOWN */
+  max-width: 500px !important;
+  width: auto !important;
+  min-width: 300px !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
+  max-height: none !important;
+  overflow-y: visible !important;
+}
+
+/* Targeting específico para overlay containers sin afectar datepickers */
+/* Solo aplicar backdrop cuando el panel sea de selector, no datepicker */
+.cdk-overlay-backdrop.mat-select-backdrop,
+.cdk-overlay-backdrop[aria-label*="select"],
+html body .cdk-overlay-backdrop.mat-select-backdrop {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+  z-index: 99997 !important;
+}
+
+/* FORZAR Z-INDEX ALTO PARA OVERLAYS DE SELECTORES */
+.cdk-overlay-container .cdk-overlay-pane {
+  z-index: 1000000 !important;
+}
+
+.cdk-overlay-pane[aria-label*="select"],
+.cdk-overlay-pane:has(.mat-select-panel),
+.cdk-overlay-pane:has(.mat-mdc-select-panel) {
+  z-index: 1000001 !important;
+  position: fixed !important;
+}
+
+/* ASEGURAR QUE TODOS LOS INPUTS DE SELECTORES TENGAN Z-INDEX BAJO CUANDO ESTÁN ABIERTOS */
+.mat-mdc-select-open,
+.mat-select-open {
+  z-index: 0 !important;
+}
+
+/* CUANDO HAY UN OVERLAY VISIBLE, REDUCIR Z-INDEX DE TODOS LOS FORM FIELDS */
+body:has(.cdk-overlay-pane) .mat-mdc-form-field,
+body:has(.mat-select-panel) .mat-mdc-form-field {
+  z-index: 0 !important;
+}
+
+/* FORZAR Z-INDEX EXTREMO PARA CONTENEDORES DE OVERLAY */
+.cdk-overlay-container {
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+}
+
+.cdk-overlay-container .cdk-overlay-pane {
+  pointer-events: auto !important;
+  z-index: 1000000 !important;
+  position: absolute !important;
+}
+
+/* HACER TRANSPARENTE EL INPUT CUANDO ESTÁ VACÍO Y ENFOCADO */
+.mat-mdc-form-field:has(.mat-mdc-select-empty) {
+  background-color: transparent !important;
+}
+
+.mat-mdc-form-field:has(.mat-mdc-select-empty) .mdc-text-field {
+  background-color: transparent !important;
+}
+
+.mat-mdc-form-field:has(.mat-mdc-select-empty) .mdc-text-field--filled {
+  background-color: transparent !important;
+}
+
+.mat-mdc-form-field:has(.mat-mdc-select-empty) .mat-mdc-select-trigger {
+  background-color: transparent !important;
+}
+
+/* ALTERNATIVA SIN :has() PARA SELECTORES VACÍOS */
+.mat-mdc-select-empty + .mat-mdc-form-field,
+.mat-mdc-form-field .mat-mdc-select-empty {
+  background-color: transparent !important;
+}
+
+.mat-mdc-select-empty,
+.mat-mdc-select-trigger:empty,
+.mat-mdc-select-value:empty {
+  background-color: transparent !important;
+}
+
+/* CUANDO EL SELECTOR ESTÁ ABIERTO, HACER TRANSPARENTE EL CONTENEDOR */
+.mat-mdc-select-open + .mat-mdc-form-field,
+.mat-mdc-form-field:has(.mat-mdc-select-open) {
+  background-color: transparent !important;
+}
+
+.mat-mdc-form-field:has(.mat-mdc-select-open) .mdc-text-field,
+.mat-mdc-form-field:has(.mat-mdc-select-open) .mdc-text-field--filled {
+  background-color: transparent !important;
+}
+
+/* FORZAR TRANSPARENCIA CON MÁXIMA ESPECIFICIDAD PARA SELECTORES ABIERTOS */
+html body .mat-mdc-form-field.mat-focused {
+  background-color: transparent !important;
+}
+
+html body .mat-mdc-form-field.mat-focused .mdc-text-field {
+  background-color: transparent !important;
+}
+
+html body .mat-mdc-form-field.mat-focused .mdc-text-field--filled {
+  background-color: transparent !important;
+}
+
+html body .mat-mdc-form-field.mat-focused .mat-mdc-select-trigger {
+  background-color: transparent !important;
+}
+
+/* CUANDO EL PANEL ESTÁ VISIBLE, HACER TRANSPARENTE EL FORM FIELD */
+body:has(.mat-select-panel) .mat-mdc-form-field.mat-focused,
+body:has(.mat-mdc-select-panel) .mat-mdc-form-field.mat-focused {
+  background-color: transparent !important;
+}
+
+body:has(.mat-select-panel) .mat-mdc-form-field.mat-focused .mdc-text-field,
+body:has(.mat-mdc-select-panel) .mat-mdc-form-field.mat-focused .mdc-text-field--filled {
+  background-color: transparent !important;
+}
+
+/* ALTERNATIVA SIN :has() - USAR CLASES ESPECÍFICAS DE ANGULAR MATERIAL */
+.mat-mdc-form-field.mat-mdc-form-field-focus-overlay-open,
+.mat-mdc-form-field.mat-form-field-should-float.mat-focused {
+  background-color: transparent !important;
+}
+
+.mat-mdc-form-field.mat-mdc-form-field-focus-overlay-open .mdc-text-field,
+.mat-mdc-form-field.mat-form-field-should-float.mat-focused .mdc-text-field {
+  background-color: transparent !important;
+}
+
+.mat-mdc-form-field.mat-mdc-form-field-focus-overlay-open .mdc-text-field--filled,
+.mat-mdc-form-field.mat-form-field-should-float.mat-focused .mdc-text-field--filled {
+  background-color: transparent !important;
+}
+
+/* Mantener datepickers funcionando normalmente */
+.cdk-overlay-backdrop.mat-datepicker-backdrop,
+.cdk-overlay-backdrop[aria-label*="calendar"],
+html body .cdk-overlay-backdrop.mat-datepicker-backdrop {
+  background-color: rgba(0, 0, 0, 0.32) !important;
+  z-index: 1000 !important;
+  pointer-events: auto !important;
+}
+
+html body .mat-autocomplete-panel {
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e0e0e0 !important;
+  z-index: 9999 !important;
+}
+
+/* OPCIONES DEL SELECTOR - TODAS LAS VARIANTES */
+.mat-option,
+.mat-mdc-option,
+html body .mat-option,
+html body .mat-mdc-option,
+.mat-select-panel .mat-option,
+.mat-mdc-select-panel .mat-mdc-option,
+html body .mat-select-panel .mat-option,
+html body .mat-mdc-select-panel .mat-mdc-option {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #111111 !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  position: relative !important;
+  /* CONTROL DE ANCHO DE LAS OPCIONES */
+  max-width: 496px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  box-sizing: border-box !important;
+  padding: 12px 16px !important;
+  height: auto !important;
+  min-height: 56px !important;
+  line-height: 1.4 !important;
+  word-wrap: break-word !important;
+}
+
+.mat-option:hover,
+.mat-mdc-option:hover,
+html body .mat-option:hover,
+html body .mat-mdc-option:hover {
+  background-color: #f5f5f5 !important;
+  background: #f5f5f5 !important;
+  color: #111111 !important;
+  opacity: 1 !important;
+}
+
+.mat-option.mat-selected,
+.mat-mdc-option.mat-selected,
+.mat-option.mdc-list-item--selected,
+.mat-mdc-option.mdc-list-item--selected,
+html body .mat-option.mat-selected,
+html body .mat-mdc-option.mat-selected {
+  background-color: #e3f2fd !important;
+  background: #e3f2fd !important;
+  color: #111111 !important;
+  opacity: 1 !important;
+}
+
+.mat-option.mat-active,
+.mat-mdc-option.mat-active,
+html body .mat-option.mat-active,
+html body .mat-mdc-option.mat-active {
+  background-color: #f0f0f0 !important;
+  background: #f0f0f0 !important;
+  color: #111111 !important;
+  opacity: 1 !important;
+}
+
+/* Asegurar que no haya efectos de transparencia en ningún elemento del panel */
+.mat-select-panel *,
+.mat-mdc-select-panel *,
+html body .mat-select-panel *,
+html body .mat-mdc-select-panel *,
+html body .cdk-overlay-pane * {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* CONTENEDORES Y WRAPPERS */
+html body .mat-mdc-text-field-wrapper {
+  background-color: #ffffff !important;
+}
+
+html body .mat-form-field-wrapper {
+  background-color: #ffffff !important;
+}
+
+html body .mat-form-field-flex {
+  background-color: #ffffff !important;
+}
+
+html body .mat-form-field-infix {
+  background-color: #ffffff !important;
+}
+
+/* ANULAR RESTRICCIONES DE ALTURA DE ANGULAR MATERIAL */
+.mat-select-panel,
+.mat-mdc-select-panel {
+  max-height: none !important;
+  height: auto !important;
+  overflow-y: visible !important;
+}
+
+.mat-option,
+.mat-mdc-option {
+  height: auto !important;
+  min-height: 48px !important;
+  max-height: none !important;
+  line-height: 1.4 !important;
+  padding: 12px 16px !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
+
+/* FORZAR ALTURA AUTOMÁTICA EN TODAS LAS OPCIONES */
+.cdk-overlay-pane .mat-option,
+.cdk-overlay-pane .mat-mdc-option {
+  height: auto !important;
+  min-height: 48px !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+/* CONTROL ESPECÍFICO PARA EVITAR QUE LOS DROPDOWNS SE EXTIENDAN DEMASIADO */
+.cdk-overlay-pane {
+  max-width: 400px !important;
+  width: auto !important;
+}
+
+/* POSICIONAMIENTO MEJORADO PARA PANELES DE SELECTORES */
+.cdk-overlay-pane:has(.mat-select-panel),
+.cdk-overlay-pane:has(.mat-mdc-select-panel) {
+  max-width: 500px !important;
+  width: auto !important;
+  left: auto !important;
+  right: auto !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+}
+
+/* CONTENEDOR ESPECÍFICO DEL SELECTOR PARA CONTROLAR EL ANCHO */
+.mat-select-panel-wrap,
+.mat-mdc-select-panel-wrap {
+  max-width: 500px !important;
+  width: auto !important;
+  overflow: visible !important;
+  max-height: 400px !important;
+  overflow-y: auto !important;
+}
+
+/* ESTILOS PARA EL TEXTO DE LAS OPCIONES - PERMITIR TEXTO MULTILÍNEA */
+.mat-option .mat-option-text,
+.mat-mdc-option .mdc-list-item__primary-text {
+  max-width: 460px !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  display: block !important;
+  word-wrap: break-word !important;
+  line-height: 1.4 !important;
 }

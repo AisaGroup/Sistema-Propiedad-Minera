@@ -64,4 +64,18 @@ export class ResolucionService {
     const url = `${this.baseUrl}?filter=${encodeURIComponent(filterJson)}&range=${encodeURIComponent(range)}`;
     return this.http.get<Resolucion[]>(url, { observe: 'response' });
   }
+
+  /**
+   * Crea una nueva resolución
+   */
+  createResolucion(resolucion: Partial<Resolucion>) {
+    return this.http.post<Resolucion>(this.baseUrl, resolucion);
+  }
+
+  /**
+   * Actualiza una resolución existente
+   */
+  updateResolucion(id: number, resolucion: Partial<Resolucion>) {
+    return this.http.put<Resolucion>(`${this.baseUrl}/${id}`, resolucion);
+  }
 }

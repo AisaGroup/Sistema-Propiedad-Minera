@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -40,7 +41,7 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
       <!-- Header -->
       <div class="header">
         <h1>Propiedades Mineras</h1>
-        <button mat-raised-button color="primary" class="add-button">
+        <button mat-raised-button color="primary" class="add-button" (click)="crearPropiedad()">
           <mat-icon>add</mat-icon>
           Nueva Propiedad
         </button>
@@ -383,7 +384,8 @@ export class PropiedadesListComponent implements OnInit {
 
   constructor(
     private propiedadService: PropiedadMineraService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private router: Router
   ) {
     this.filterForm = this.fb.group({
       Nombre: [''],
@@ -443,18 +445,33 @@ export class PropiedadesListComponent implements OnInit {
     this.loadPropiedades();
   }
 
+  crearPropiedad() {
+    this.router.navigate(['/propiedades/nueva']);
+  }
+
   viewPropiedad(propiedad: PropiedadMinera) {
     console.log('Ver propiedad:', propiedad);
-    // Implementar navegación a detalle
+    // TODO: Implementar navegación a detalle cuando esté creado
+    // this.router.navigate(['/propiedades', propiedad.IdPropiedadMinera]);
   }
 
   editPropiedad(propiedad: PropiedadMinera) {
-    console.log('Editar propiedad:', propiedad);
-    // Implementar navegación a edición
+    this.router.navigate(['/propiedades', propiedad.IdPropiedadMinera, 'editar']);
   }
 
   deletePropiedad(propiedad: PropiedadMinera) {
-    console.log('Eliminar propiedad:', propiedad);
-    // Implementar confirmación y eliminación
+    if (confirm(`¿Está seguro de que desea eliminar la propiedad "${propiedad.Nombre}"?`)) {
+      this.propiedadService.deletePropiedad(propiedad.IdPropiedadMinera).subscribe({
+        next: () => {
+          console.log('Propiedad eliminada correctamente');
+          // Recargar la lista
+          this.loadPropiedades();
+        },
+        error: (error) => {
+          console.error('Error eliminando propiedad:', error);
+          alert('Error al eliminar la propiedad');
+        }
+      });
+    }
   }
 }

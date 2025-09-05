@@ -21,6 +21,10 @@ export const routes: Routes = [
       {
         path: 'titulares',
         loadComponent: () => import('./features/titulares/components/titular-list.component').then(m => m.TitularesMinerosComponent)
+      },
+      {
+        path: 'alertas',
+        loadComponent: () => import('./features/alertas/components/alertas-global-list.component').then(m => m.AlertasGlobalListComponent)
       }
     ]
   }

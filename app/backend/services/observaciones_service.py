@@ -20,3 +20,6 @@ class ObservacionesService:
 
     def get_all_observaciones(self):
         return self.repo.get_all()
+
+    def get_observaciones_by_transaccion(self, id_transaccion: int):
+        return self.repo.get_all_by_transaccion(id_transaccion)

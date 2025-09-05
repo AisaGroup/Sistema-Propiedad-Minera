@@ -13,6 +13,10 @@ class AlertaRepositorie:
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Alerta]:
         return self.db.query(Alerta).order_by(Alerta.idAlerta).offset(skip).limit(limit).all()
 
+
+    def get_by_id_estado(self, id_estado: int) -> List[Alerta]:
+        return self.db.query(Alerta).filter(Alerta.IdEstado == id_estado).order_by(Alerta.idAlerta).all()
+
     def create(self, alerta: AlertaCreate) -> Alerta:
         db_obj = Alerta(**alerta.model_dump(exclude_unset=True))
         self.db.add(db_obj)

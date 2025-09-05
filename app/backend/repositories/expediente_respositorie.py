@@ -7,6 +7,7 @@ class ExpedienteRepository:
         self.db = db
 
     def get_all(self):
+        # Obtener todos los expedientes con todos los campos completos
         return self.db.query(Expediente).all()
 
     def get_by_id(self, id_expediente: int):

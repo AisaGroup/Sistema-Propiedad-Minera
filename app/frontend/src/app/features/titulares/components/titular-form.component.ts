@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { TitularMineroService } from '../services/titular.service';
+import { TitularMineroService, TitularMinero, TitularMineroCreate } from '../services/titular.service';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -106,9 +106,22 @@ export class TitularMineroFormComponent {
 
   onSubmit() {
     if (this.form.valid) {
-      // Aquí deberías llamar al método de alta en el servicio
-      // this.titularService.create(this.form.value).subscribe(...)
-      alert('Formulario válido. Implementar alta en el servicio.');
+      const titularData: TitularMineroCreate = this.form.value;
+      this.titularService.create(titularData).subscribe({
+        next: (response: TitularMinero) => {
+          console.log('Titular creado exitosamente:', response);
+          alert('Titular minero creado exitosamente');
+          this.form.reset();
+        },
+        error: (error: any) => {
+          console.error('Error al crear titular:', error);
+          alert('Error al crear el titular minero');
+        }
+      });
+    } else {
+      // Marcar todos los campos como tocados para mostrar errores
+      this.form.markAllAsTouched();
+      console.log('Formulario inválido:', this.form.errors);
     }
   }
 }

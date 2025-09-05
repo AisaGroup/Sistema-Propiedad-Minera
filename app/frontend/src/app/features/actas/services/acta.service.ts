@@ -11,6 +11,7 @@ export interface Alerta {
 
 export interface Acta {
   IdActa: number;
+  IdExpediente: number;
   Fecha: string;
   IdTipoActa: string;
   Descripcion: string;
@@ -18,12 +19,13 @@ export interface Acta {
   IdAutoridad: string;
   Obs?: string;
   AudFecha?: string;
-  AudUsuario?: string;
+  AudUsuario?: number;
   RepresentanteLegal?: string;
 }
 
 export interface ActaDetalleResponse extends Acta {
   alertas?: Alerta[];
+  IdTransaccion?: number; // Para evitar errores de tipado, agregamos IdTransaccion como opcional en ActaDetalleResponse
 }
 
 @Injectable({ providedIn: 'root' })
@@ -61,7 +63,10 @@ export class ActaService {
     const range = `[${pageIndex * pageSize},${(pageIndex + 1) * pageSize - 1}]`;
     return this.http.get<any>(
       `${this.apiUrl}?filter=${filter}&range=${range}`,
-      { observe: 'response' }
+      {
+        observe: 'response',
+        headers: { 'Cache-Control': 'no-cache' }
+      }
     );
   }
 }

@@ -47,9 +47,8 @@ export class ExpedienteService {
         
         // Mapear datos del backend al modelo frontend
         const mappedData = (response.body || []).map((item: any) => ({
-          ...item,
-          PrimerDueno: item.PrimerDueño, // Mapear PrimerDueño -> PrimerDueno
-          Ano: item.Año, // Mapear Año -> Ano
+          ...item
+          // Ya no es necesario mapear PrimerDueño ni Año, el backend envía PrimerDueno y Ano
         }));
         
         return {
@@ -65,18 +64,13 @@ export class ExpedienteService {
    * Obtiene un expediente por ID
    */
   getExpedienteById(id: number): Observable<Expediente> {
-  return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
-    map((response: any) => {
-      console.log('[ExpedienteService] Respuesta cruda del backend:', response);
-      const mapped = {
-        ...response,
-        PrimerDueno: response.PrimerDueno ?? response.PrimerDueño,
-        Ano: response.Ano ?? response.Año,
-      };
-      console.log('[ExpedienteService] Expediente mapeado:', mapped);
-      return mapped;
-    })
-  );
+    return this.http.get<any>(`${this.baseUrl}/${id}`).pipe(
+      map((response: any) => {
+        console.log('[ExpedienteService] Respuesta cruda del backend:', response);
+        // Ya no es necesario mapear PrimerDueño ni Año
+        return response;
+      })
+    );
   }
 
   /**

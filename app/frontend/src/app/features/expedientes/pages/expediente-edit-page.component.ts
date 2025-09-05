@@ -65,8 +65,6 @@ export class ExpedienteEditPageComponent implements OnInit {
               CodigoExpediente: expediente.CodigoExpediente ?? '',
               PrimerDueno: expediente.PrimerDueno ?? '',
               Ano: expediente.Ano ?? '',
-              FechaInicio: expediente.FechaInicio ?? '',
-              FechaFin: expediente.FechaFin ?? '',
               Estado: expediente.Estado ?? '',
               Dependencia: expediente.Dependencia ?? '',
               Caratula: expediente.Caratula ?? '',
@@ -75,6 +73,7 @@ export class ExpedienteEditPageComponent implements OnInit {
               IdPropiedadMinera: expediente.IdPropiedadMinera ?? null,
               IdTipoExpediente: expediente.IdTipoExpediente ?? null,
             });
+            // No patch de FechaInicio ni FechaFin, el hijo los maneja con date-fns
           }
           this.loading = false;
         },

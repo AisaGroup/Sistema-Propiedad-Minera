@@ -1,14 +1,17 @@
 from backend.models.expediente_model import Expediente
 from backend.models.acta_model import Acta
 from backend.models.resolucion_model import Resolucion
+from backend.models.transaccion_model import Transaccion
 
 from fastapi import APIRouter, Depends, HTTPException, Response, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from backend.services.alerta_service import AlertaService
 from backend.schemas.alerta_schema import AlertaCreate, AlertaUpdate, AlertaOut
+from backend.schemas.transaccion_schema import TransaccionOut
 from backend.database.connection import get_db
-from typing import List
+from typing import List, Any, Optional
 from backend.models.alerta_model import Alerta
+from fastapi.responses import JSONResponse
 # Endpoint flexible para traer alertas por el IdTransaccion del padre
 router = APIRouter(
     prefix="/alertas",
@@ -55,13 +58,24 @@ def get_alertas_by_parent(
 
 @router.get("/", response_model=List[AlertaOut])
 def list_alertas(
+    id_estado: Optional[int] = Query(None),
     db: Session = Depends(get_db),
     response: Response = None,
     range: str = Query(None, alias="range")
 ):
     service = AlertaService(db)
-    items = service.get_alertas()
-    total = len(items)
+    if id_estado is not None:
+        items = service.get_alertas_by_id_estado(id_estado)
+    else:
+        items = service.get_alertas()
+    # Mapear para incluir el nombre del estado
+    result = []
+    for alerta in items:
+        estado_nombre = alerta.estado.nombre if alerta.estado else None
+        alerta_dict = alerta.__dict__.copy()
+        alerta_dict['estado_nombre'] = estado_nombre
+        result.append(alerta_dict)
+    total = len(result)
     start, end = 0, total - 1
     if range:
         import json
@@ -69,7 +83,7 @@ def list_alertas(
             start, end = json.loads(range)
         except Exception:
             pass
-    paginated_items = items[start:end+1]
+    paginated_items = result[start:end+1]
     if response is not None:
         response.headers["Content-Range"] = f"alertas {start}-{end}/{total}"
     return paginated_items
@@ -102,3 +116,25 @@ def delete_alerta(id: int, db: Session = Depends(get_db)):
     if not obj:
         raise HTTPException(status_code=404, detail="Alerta not found")
     return obj
+
+@router.get("/by-transaccion/{id_transaccion}", response_model=List[AlertaOut])
+def get_alertas_by_transaccion(
+    id_transaccion: int,
+    db: Session = Depends(get_db),
+    response: Response = None,
+    range: str = Query(None, alias="range")
+):
+    query = db.query(Alerta).filter(Alerta.IdTransaccion == id_transaccion)
+    items = query.order_by(Alerta.idAlerta).all()
+    total = len(items)
+    start, end = 0, total - 1
+    if range:
+        import json
+        try:
+            start, end = json.loads(range)
+        except Exception:
+            pass
+    paginated_items = items[start:end+1]
+    if response is not None:
+        response.headers["Content-Range"] = f"alertas {start}-{end}/{total}"
+    return paginated_items

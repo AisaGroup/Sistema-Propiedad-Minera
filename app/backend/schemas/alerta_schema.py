@@ -5,7 +5,7 @@ from datetime import datetime
 class AlertaBase(BaseModel):
     IdTransaccion: Optional[int] = None
     IdTipoAlerta: Optional[int] = None
-    Estado: Optional[str] = None
+    IdEstado: Optional[int] = None
     Asunto: Optional[str] = None
     Mensaje: Optional[str] = None
     Medio: Optional[str] = None
@@ -22,8 +22,11 @@ class AlertaCreate(AlertaBase):
 class AlertaUpdate(AlertaBase):
     pass
 
+from backend.schemas.estado_alerta_schema import EstadoAlertaOut
+
 class AlertaOut(AlertaBase):
     idAlerta: int
+    estado_nombre: str | None = None
 
     class Config:
         from_attributes = True

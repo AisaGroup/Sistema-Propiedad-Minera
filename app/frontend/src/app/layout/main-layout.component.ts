@@ -116,11 +116,12 @@ import { MatMenuModule } from '@angular/material/menu';
       box-shadow: 2px 0 8px rgba(65, 103, 89, 0.08);
     }
 
-    .sidenav-header {
+    .sidenav-header, .sidenav-header[_ngcontent-ng-c894228337] {
       padding: 8px 8px 10px 8px;
-      background: linear-gradient(135deg, #416759 0%, #335248 100%);
+      background: linear-gradient(135deg, #3f6859 0%, #3f6859 100%); /* Actualizado a verde corporativo */
       color: white;
       text-align: center;
+      overflow: hidden;
     }
 
     .sidenav-header h2 {
@@ -247,13 +248,14 @@ import { MatMenuModule } from '@angular/material/menu';
       display: block;
       margin: 0 auto;
       max-width: 98%;
-      max-height: 110px;
-      width: 100%;
+      max-height: 70px;
+      width: auto;
       height: auto;
       object-fit: contain;
       border-radius: 6px;
-      background: white;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+      background: #3F6858; /* Verde corporativo actualizado */
+      box-shadow: none;
+      padding: 10px; /* Opcional: para separar el logo del borde verde */
     }
 
     .mat-mdc-nav-list .mdc-list-item,

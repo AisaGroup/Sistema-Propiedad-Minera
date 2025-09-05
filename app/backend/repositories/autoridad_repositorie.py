@@ -4,6 +4,8 @@ from backend.models.autoridad_model import Autoridad
 from backend.schemas.autoridad_schema import AutoridadCreate, AutoridadUpdate
 
 class AutoridadRepositorie:
+    def search_by_nombre(self, nombre: str):
+        return self.db.query(Autoridad).filter(Autoridad.Nombre.ilike(f"%{nombre}%")).all()
     def __init__(self, db: Session):
         self.db = db
 

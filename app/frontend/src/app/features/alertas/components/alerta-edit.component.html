@@ -1,0 +1,59 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()" class="alerta-form">
+  <div class="row-fields">
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Tipo de Alerta</mat-label>
+      <mat-select formControlName="IdTipoAlerta" required>
+        <mat-option *ngFor="let tipo of tiposAlerta" [value]="tipo.IdTipoAlerta">{{ tipo.Descripcion }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Asunto</mat-label>
+      <input matInput formControlName="Asunto" required>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Mensaje</mat-label>
+      <textarea matInput formControlName="Mensaje" required></textarea>
+    </mat-form-field>
+  </div>
+  <div class="row-fields">
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Estado</mat-label>
+      <mat-select formControlName="IdEstado" required>
+        <mat-option *ngFor="let estado of estadosAlerta" [value]="estado.IdEstado">{{ estado.nombre }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Medio</mat-label>
+      <input matInput formControlName="Medio">
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Periodicidad</mat-label>
+      <input matInput formControlName="Periodicidad">
+    </mat-form-field>
+  </div>
+  <div class="row-fields">
+    <mat-form-field appearance="fill" class="third-width">
+      <div class="date-field-wrapper">
+        <mat-label>Fecha Inicio</mat-label>
+        <div class="date-input-row">
+          <input matInput [matDatepicker]="pickerInicio" formControlName="FechaInicio" appDateFormat>
+          <mat-datepicker-toggle matSuffix [for]="pickerInicio"></mat-datepicker-toggle>
+        </div>
+        <mat-datepicker #pickerInicio></mat-datepicker>
+      </div>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Fecha Fin</mat-label>
+      <input matInput [matDatepicker]="pickerFin" formControlName="FechaFin" appDateFormat>
+      <mat-datepicker-toggle matSuffix [for]="pickerFin"></mat-datepicker-toggle>
+      <mat-datepicker #pickerFin></mat-datepicker>
+    </mat-form-field>
+    <mat-form-field appearance="fill" class="third-width">
+      <mat-label>Observaciones</mat-label>
+      <textarea matInput formControlName="Obs"></textarea>
+    </mat-form-field>
+  </div>
+  <div class="button-row">
+    <button mat-raised-button color="primary" type="submit">Guardar Cambios</button>
+  </div>
+</form>

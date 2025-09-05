@@ -1,18 +1,63 @@
-<div class="observaciones-tab">
-  <h3>Observaciones</h3>
-  <ng-container *ngIf="observaciones?.length; else noObs">
-    <ul>
-      <li *ngFor="let obs of observaciones">
-        <strong>{{ obs.Descripcion }}</strong><br>
-        <span>{{ obs.Observaciones }}</span>
-        <div class="meta">
-          <span *ngIf="obs.AudFecha">Fecha: {{ obs.AudFecha | date:'short' }}</span>
-          <span *ngIf="obs.AudUsuario">Usuario: {{ obs.AudUsuario }}</span>
-        </div>
-      </li>
-    </ul>
-  </ng-container>
-  <ng-template #noObs>
-    <p>No hay observaciones para este expediente.</p>
-  </ng-template>
+<div>
+  <div class="header-row">
+    <span class="section-title">Observaciones Asociadas</span>
+    <mat-chip *ngIf="!mostrarFormulario && observaciones.length > 0" class="count-chip">{{ observaciones.length }}</mat-chip>
+    <span class="spacer"></span>
+    <button mat-raised-button color="primary" *ngIf="!mostrarFormulario" (click)="onNuevaObservacion()">
+      <mat-icon>add_comment</mat-icon> Nueva Observación
+    </button>
+  </div>
+  <button *ngIf="mostrarFormulario" mat-stroked-button class="close-btn" (click)="mostrarFormulario = false; editando = false; observacionEdit = null;" aria-label="Cerrar">
+    Cerrar
+  </button>
+  <div *ngIf="mostrarFormulario && !editando">
+    <app-observacion-create [idTransaccion]="idTransaccion" (create)="onCrearObservacion($event)" (cancelar)="mostrarFormulario = false; editando = false; observacionEdit = null;"></app-observacion-create>
+  </div>
+  <div *ngIf="mostrarFormulario && editando">
+    <app-observacion-edit [observacion]="observacionEdit" (update)="onActualizarObservacion($event)" (cancelar)="mostrarFormulario = false; editando = false; observacionEdit = null;"></app-observacion-edit>
+  </div>
+  <div *ngIf="!mostrarFormulario">
+    <div *ngIf="loading" class="loading-container">
+      <mat-spinner diameter="32"></mat-spinner>
+      <p>Cargando observaciones...</p>
+    </div>
+    <div class="table-container" *ngIf="observaciones.length > 0 && !loading">
+      <table mat-table [dataSource]="observaciones" class="observaciones-table mat-elevation-4">
+        <ng-container matColumnDef="IdTransaccion">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let obs">{{ obs.IdTransaccion }}</td>
+        </ng-container>
+        <ng-container matColumnDef="Descripcion">
+          <th mat-header-cell *matHeaderCellDef>Descripción</th>
+          <td mat-cell *matCellDef="let obs">{{ obs.Descripcion }}</td>
+        </ng-container>
+        <ng-container matColumnDef="Observaciones">
+          <th mat-header-cell *matHeaderCellDef>Observaciones</th>
+          <td mat-cell *matCellDef="let obs">{{ obs.Observaciones }}</td>
+        </ng-container>
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef>Acciones</th>
+          <td mat-cell *matCellDef="let obs">
+            <button mat-icon-button color="primary" matTooltip="Editar" (click)="onEditarObservacion(obs)">
+              <mat-icon>edit</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+        <tr mat-header-row *matHeaderRowDef="['IdTransaccion', 'Descripcion', 'Observaciones', 'actions']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['IdTransaccion', 'Descripcion', 'Observaciones', 'actions']"></tr>
+      </table>
+      <mat-paginator
+        [length]="totalObservaciones"
+        [pageSize]="pageSize"
+        [pageIndex]="currentPage"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        (page)="onPageChange($event)"
+        showFirstLastButtons>
+      </mat-paginator>
+    </div>
+    <div *ngIf="observaciones.length === 0 && !loading" class="no-data">
+      <mat-icon>info</mat-icon>
+      <p>No hay observaciones asociadas a este expediente.</p>
+    </div>
+  </div>
 </div>

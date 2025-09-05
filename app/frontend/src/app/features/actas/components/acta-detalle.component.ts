@@ -11,11 +11,18 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
+import { AlertaService } from '../../alertas/services/alerta.service';
+import { ObservacionesService } from '../../observaciones/services/observaciones.service';
+import { AlertasListComponent } from '../../alertas/components/alertas-list.component';
+import { ObservacionesTabComponent } from '../../observaciones/components/observaciones-tab.component';
 
 @Component({
   selector: 'app-acta-detalle',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatChipsModule, MatProgressSpinnerModule, MatListModule, MatIconModule, MatDividerModule],
+  imports: [
+    CommonModule, MatCardModule, MatButtonModule, MatChipsModule, MatProgressSpinnerModule, MatListModule, MatIconModule, MatDividerModule,
+    AlertasListComponent, ObservacionesTabComponent
+  ],
   template: `
     <div class="acta-detail-container">
       <div *ngIf="loading" class="loading-container">
@@ -91,30 +98,13 @@ import { MatDividerModule } from '@angular/material/divider';
               <!-- Alertas -->
               <ng-container *ngSwitchCase="1">
                 <div class="tab-content">
-                  <div *ngIf="acta.alertas && acta.alertas.length > 0" class="alertas-section">
-                    <mat-list>
-                      <mat-list-item *ngFor="let alerta of acta.alertas">
-                        <mat-icon matListIcon color="primary">warning</mat-icon>
-                        <div matLine><b>{{ alerta.Asunto || 'Alerta' }}</b></div>
-                        <div matLine>{{ alerta.Mensaje }}</div>
-                        <mat-chip color="primary" *ngIf="alerta.Estado">{{ alerta.Estado }}</mat-chip>
-                      </mat-list-item>
-                    </mat-list>
-                  </div>
-                  <div *ngIf="!acta.alertas || acta.alertas.length === 0" class="alertas-section">
-                    <em>No hay alertas asociadas a esta acta.</em>
-                  </div>
+                  <app-alertas-list [idTransaccion]="acta.IdTransaccion ?? null"></app-alertas-list>
                 </div>
               </ng-container>
               <!-- Observaciones -->
               <ng-container *ngSwitchCase="2">
                 <div class="tab-content">
-                  <mat-card>
-                    <mat-card-content>
-                      <div><b>Observaciones:</b></div>
-                      <div>{{ acta.Obs || 'Sin observaciones' }}</div>
-                    </mat-card-content>
-                  </mat-card>
+                  <app-observaciones-tab [idTransaccion]="acta.IdTransaccion ?? null"></app-observaciones-tab>
                 </div>
               </ng-container>
               <!-- Archivos -->
@@ -145,13 +135,34 @@ import { MatDividerModule } from '@angular/material/divider';
     .custom-tab-label.active { background: #fff; color: #416759; z-index: 2; }
     .custom-tab-label:not(.active):hover { background: #e8f0ec; }
     .custom-tab-underline { position: absolute; left: 0; bottom: 0; height: 3px; background: #416759; transition: transform 0.4s cubic-bezier(.35,0,.25,1), width 0.4s cubic-bezier(.35,0,.25,1); will-change: transform, width; z-index: 3; }
-    .custom-tab-content-wrapper { min-height: 200px; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); overflow: hidden; position: relative; }
+    .custom-tab-content-wrapper { min-height: 300px; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
     .custom-tab-content-wrapper > div { width: 100%; height: 100%; }
     .tab-content { padding: 24px 0; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
     .alertas-section { margin-top: 16px; }
+    .observacion-item { margin-top: 8px; }
     mat-chip { margin-left: 8px; background: #416759; color: #fff; }
+    mat-chip.count-chip, .mdc-evolution-chip__action {
+      align-items: center;
+      background: #fff;
+      border: 1.5px solid #3F6858;
+      box-sizing: border-box;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      outline: none;
+      padding: 0 8px;
+      text-decoration: none;
+      color: #3F6858;
+      font-weight: 600;
+      border-radius: 8px;
+      font-size: 1.1em;
+      height: 32px;
+      min-width: 32px;
+      width: auto;
+      max-width: 40px;
+    }
     mat-list-item { margin-bottom: 8px; }
     em { color: #888; }
   `],
@@ -174,6 +185,9 @@ export class ActaDetalleComponent implements OnInit, AfterViewInit {
   underlineLeft = 0;
   acta: ActaDetalleResponse | null = null;
   loading = true;
+  alertas: any[] = [];
+  totalAlertas = 0;
+  observaciones: any[] = [];
   tabs = [
     { label: 'Información General', icon: 'info', chip: false },
     { label: 'Alertas', icon: 'warning', chip: true, chipValue: 0 },
@@ -185,25 +199,56 @@ export class ActaDetalleComponent implements OnInit, AfterViewInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private actaService: ActaService
+    private actaService: ActaService,
+    private alertaService: AlertaService,
+    private observacionesService: ObservacionesService
   ) {}
 
   ngOnInit() {
-    const id = Number(this.route.snapshot.paramMap.get('actaId'));
-    if (id) {
-      this.actaService.getActaById(id).subscribe({
-        next: (resp: ActaDetalleResponse) => {
-          this.acta = resp;
-          this.tabs[1].chipValue = resp.alertas?.length || 0;
-          this.loading = false;
-          setTimeout(() => this.updateUnderline(), 10);
-        },
-        error: () => {
-          this.acta = null;
-          this.loading = false;
+    this.route.paramMap.subscribe(params => {
+      const id = Number(params.get('actaId'));
+      if (id) {
+        this.loading = true;
+        this.actaService.getActaById(id).subscribe({
+          next: (resp: ActaDetalleResponse) => {
+            this.acta = resp;
+            this.loading = false;
+            setTimeout(() => this.updateUnderline(), 10);
+            if (resp && (resp as any).IdTransaccion) {
+              this.loadAlertas(id); // Usar id de acta para alertas
+              this.loadObservaciones((resp as any).IdTransaccion);
+            }
+          },
+          error: () => {
+            this.acta = null;
+            this.loading = false;
+          }
+        });
+      }
+    });
+  }
+
+  loadAlertas(idActa: number) {
+    this.alertaService.getByActaId(idActa, 0, 5).subscribe(resp => {
+      this.alertas = resp.data || [];
+      this.totalAlertas = resp.total || 0;
+      this.tabs[1].chipValue = this.totalAlertas;
+    });
+  }
+
+  loadObservaciones(idTransaccion: number) {
+    this.observacionesService.getByTransaccion(idTransaccion).subscribe({
+      next: obs => {
+        this.observaciones = obs ? (Array.isArray(obs) ? obs : [obs]) : [];
+      },
+      error: err => {
+        if (err.status === 404) {
+          this.observaciones = [];
+        } else {
+          console.error('Error cargando observaciones:', err);
         }
-      });
-    }
+      }
+    });
   }
 
   ngAfterViewInit(): void {
@@ -226,6 +271,10 @@ export class ActaDetalleComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    this.router.navigate(['/expedientes']);
+    if (this.acta && this.acta.IdExpediente) {
+      this.router.navigate(['/expedientes', this.acta.IdExpediente]);
+    } else {
+      this.router.navigate(['/expedientes']);
+    }
   }
 }

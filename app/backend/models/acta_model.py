@@ -7,7 +7,7 @@ class Acta(Base):
 
     IdActa = Column(Integer, primary_key=True, index=True, nullable=True)
     IdTransaccion = Column(Integer, nullable=True)
-    IdExpediente = Column(Integer, nullable=False)
+    IdExpediente = Column(Integer, nullable=False)  # único requerido
     IdTipoActa = Column(String(100), nullable=True)
     Fecha = Column(Date, nullable=True)
     Lugar = Column(String(150), nullable=True)

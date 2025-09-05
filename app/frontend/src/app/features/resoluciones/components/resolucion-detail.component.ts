@@ -11,11 +11,15 @@ import { MatListModule } from '@angular/material/list';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { ResolucionService, ResolucionDetalleResponse } from '../services/resolucion.service';
+import { AlertasListComponent } from '../../alertas/components/alertas-list.component';
+import { ObservacionesTabComponent } from '../../observaciones/components/observaciones-tab.component';
+import { AlertaService } from '../../alertas/services/alerta.service';
+import { ObservacionesService } from '../../observaciones/services/observaciones.service';
 
 @Component({
   selector: 'app-resolucion-detalle',
   standalone: true,
-  imports: [CommonModule, MatCardModule, MatButtonModule, MatChipsModule, MatProgressSpinnerModule, MatListModule, MatIconModule, MatDividerModule],
+  imports: [CommonModule, MatCardModule, MatButtonModule, MatChipsModule, MatProgressSpinnerModule, MatListModule, MatIconModule, MatDividerModule, AlertasListComponent, ObservacionesTabComponent],
   template: `
     <div class="resolucion-detail-container">
       <div *ngIf="loading" class="loading-container">
@@ -75,30 +79,13 @@ import { ResolucionService, ResolucionDetalleResponse } from '../services/resolu
               <!-- Alertas -->
               <ng-container *ngSwitchCase="1">
                 <div class="tab-content">
-                  <div *ngIf="resolucion.alertas && resolucion.alertas.length > 0" class="alertas-section">
-                    <mat-list>
-                      <mat-list-item *ngFor="let alerta of resolucion.alertas">
-                        <mat-icon matListIcon color="primary">warning</mat-icon>
-                        <div matLine><b>{{ alerta.Asunto || 'Alerta' }}</b></div>
-                        <div matLine>{{ alerta.Mensaje }}</div>
-                        <mat-chip color="primary" *ngIf="alerta.Estado">{{ alerta.Estado }}</mat-chip>
-                      </mat-list-item>
-                    </mat-list>
-                  </div>
-                  <div *ngIf="!resolucion.alertas || resolucion.alertas.length === 0" class="alertas-section">
-                    <em>No hay alertas asociadas a esta resolución.</em>
-                  </div>
+                  <app-alertas-list [idTransaccion]="resolucion.IdTransaccion ?? null"></app-alertas-list>
                 </div>
               </ng-container>
               <!-- Observaciones -->
               <ng-container *ngSwitchCase="2">
                 <div class="tab-content">
-                  <mat-card>
-                    <mat-card-content>
-                      <div><b>Observaciones:</b></div>
-                      <div>{{ resolucion.Observaciones || 'Sin observaciones' }}</div>
-                    </mat-card-content>
-                  </mat-card>
+                  <app-observaciones-tab [idTransaccion]="resolucion.IdTransaccion ?? null"></app-observaciones-tab>
                 </div>
               </ng-container>
               <!-- Archivos -->
@@ -129,13 +116,30 @@ import { ResolucionService, ResolucionDetalleResponse } from '../services/resolu
     .custom-tab-label.active { background: #fff; color: #416759; z-index: 2; }
     .custom-tab-label:not(.active):hover { background: #e8f0ec; }
     .custom-tab-underline { position: absolute; left: 0; bottom: 0; height: 3px; background: #416759; transition: transform 0.4s cubic-bezier(.35,0,.25,1), width 0.4s cubic-bezier(.35,0,.25,1); will-change: transform, width; z-index: 3; }
-    .custom-tab-content-wrapper { min-height: 200px; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); overflow: hidden; position: relative; }
+    .custom-tab-content-wrapper { min-height: 300px; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
     .custom-tab-content-wrapper > div { width: 100%; height: 100%; }
     .tab-content { padding: 24px 0; }
     .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
     .info-item { display: flex; flex-direction: column; gap: 4px; }
     .alertas-section { margin-top: 16px; }
     mat-chip { margin-left: 8px; background: #416759; color: #fff; }
+    mat-chip.count-chip {
+      background: #fff;
+      color: #3F6858;
+      border: 1.5px solid #3F6858;
+      font-weight: 600;
+      border-radius: 8px;
+      font-size: 1.1em;
+      padding: 0 8px;
+      height: 32px;
+      min-width: 32px;
+      width: auto;
+      max-width: 40px;
+      display: inline-flex;
+      align-items: center;
+      box-sizing: border-box;
+      justify-content: center;
+    }
     mat-list-item { margin-bottom: 8px; }
     em { color: #888; }
   `],
@@ -165,11 +169,16 @@ export class ResolucionDetalleComponent implements OnInit, AfterViewInit {
     { label: 'Archivos', icon: 'attach_file', chip: false }
   ];
   selectedTabIndex = 0;
+  alertas: any[] = [];
+  totalAlertas = 0;
+  observaciones: any[] = [];
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private resolucionService: ResolucionService
+    private resolucionService: ResolucionService,
+    private alertaService: AlertaService,
+    private observacionesService: ObservacionesService
   ) {}
 
   ngOnInit() {
@@ -178,7 +187,24 @@ export class ResolucionDetalleComponent implements OnInit, AfterViewInit {
       this.resolucionService.getResolucionById(id).subscribe({
         next: (resp: ResolucionDetalleResponse) => {
           this.resolucion = resp;
-          this.tabs[1].chipValue = resp.alertas?.length || 0;
+          this.tabs[1].chipValue = 0;
+          this.alertas = [];
+          this.totalAlertas = 0;
+          this.observaciones = [];
+          if (resp.IdTransaccion) {
+            this.alertaService
+              .getByResolucionId(resp.IdResolucion, 0, 5)
+              .subscribe(result => {
+                this.alertas = result.data;
+                this.totalAlertas = result.total;
+                this.tabs[1].chipValue = this.totalAlertas;
+              });
+            this.observacionesService
+              .getByTransaccion(resp.IdTransaccion)
+              .subscribe(obs => {
+                this.observaciones = Array.isArray(obs) ? obs : (obs ? [obs] : []);
+              });
+          }
           this.loading = false;
           setTimeout(() => this.updateUnderline(), 10);
         },
@@ -210,6 +236,10 @@ export class ResolucionDetalleComponent implements OnInit, AfterViewInit {
   }
 
   goBack() {
-    this.router.navigate(['/expedientes']);
+    if (this.resolucion && this.resolucion.IdExpediente) {
+      this.router.navigate(['/expedientes', this.resolucion.IdExpediente]);
+    } else {
+      this.router.navigate(['/expedientes']);
+    }
   }
 }

@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from backend.schemas.autoridad_schema import Autoridad, AutoridadCreate, AutoridadUpdate
 from backend.services import autoridad_service
 from backend.database.connection import get_db
@@ -9,6 +9,13 @@ router = APIRouter(
     prefix="/autoridades",
     tags=["autoridades"]
 )
+
+@router.get("/search", response_model=List[Autoridad])
+def search_autoridades(
+    nombre: str = Query(..., min_length=1),
+    db: Session = Depends(get_db)
+):
+    return autoridad_service.search_autoridades_by_nombre(db, nombre)
 
 @router.get("", response_model=List[Autoridad])
 def read_autoridades(

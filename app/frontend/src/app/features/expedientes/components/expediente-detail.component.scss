@@ -1,7 +1,8 @@
 .expediente-detail-container {
-  padding: 20px;
+  padding: 32px 40px 32px 40px; // Más espacio lateral
   max-width: 1200px;
   margin: 0 auto;
+  box-sizing: border-box;
 }
 
 .detail-header {
@@ -86,8 +87,11 @@
   background: #fff;
   border-radius: 0 0 8px 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  overflow: hidden;
   position: relative;
+  width: 100%;
+  box-sizing: border-box;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .custom-tab-content-wrapper > div {
@@ -265,6 +269,9 @@ mat-chip {
 
 .tab-content {
   background-color: #fcfcfc;
+  padding: 24px 12px;
+  overflow-y: auto;
+  max-height: 70vh;
 }
 
 .loading-container {
@@ -290,6 +297,18 @@ mat-chip {
 
 .mat-spinner circle {
   stroke: #416759 !important;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 @media (max-width: 768px) {
@@ -345,5 +364,15 @@ mat-chip {
   .action-buttons button {
     width: 32px;
     height: 32px;
+  }
+}
+
+@media (max-width: 900px) {
+  .expediente-detail-container {
+    padding: 20px 8px 20px 8px;
+  }
+  .custom-tab-content-wrapper {
+    padding-left: 0;
+    padding-right: 0;
   }
 }

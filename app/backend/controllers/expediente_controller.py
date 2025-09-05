@@ -35,7 +35,8 @@ def listar_expedientes(
 
     paginated_items = items[start:end+1]
     response.headers["Content-Range"] = f"expedientes {start}-{end}/{total}"
-    return paginated_items
+    # Serializar cada expediente usando Pydantic para asegurar nombres y valores correctos
+    return [ExpedienteRead.from_orm(e).dict() for e in paginated_items]
 
 
 

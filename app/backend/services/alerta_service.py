@@ -12,6 +12,9 @@ class AlertaService:
     def get_alertas(self, skip: int = 0, limit: int = 100):
         return self.repo.get_all(skip, limit)
 
+    def get_alertas_by_id_estado(self, id_estado: int):
+        return self.repo.get_by_id_estado(id_estado)
+
     def create_alerta(self, alerta: AlertaCreate):
         return self.repo.create(alerta)
 

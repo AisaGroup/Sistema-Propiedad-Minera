@@ -1,0 +1,36 @@
+.mat-select-panel {
+	background: #fff !important;
+	z-index: 9999 !important;
+	position: fixed !important;
+	box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.mat-select-panel {
+	background: #fff !important;
+	z-index: 1000 !important;
+	box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+/* Fondo blanco para todas las opciones del select Estado */
+.mat-select-panel {
+	background: #fff !important;
+}
+.mat-option {
+	background: #fff !important;
+}
+/* Fondo blanco solo para la opción seleccionada en el select de Estado */
+.mat-select-value {
+	background: #fff !important;
+	border-radius: 4px;
+	padding: 2px 8px;
+}
+.alerta-form { display: flex; flex-direction: column; gap: 1.5rem; max-width: 900px; margin: 0 auto; position: relative; }
+.row-fields { display: flex; gap: 1rem; }
+.mat-form-field.third-width {
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.third-width { width: 33%; min-width: 180px; }
+.date-field-wrapper { display: flex; flex-direction: column; gap: 0.3rem; }
+.date-input-row { display: flex; align-items: center; gap: 0.5rem; }
+.button-row { display: flex; justify-content: center; margin-top: 2rem; }
+.close-btn { display: block; margin: 1.5rem auto 1.5rem auto; position: static; background: #fff; border-radius: 6px; z-index: 2; }
