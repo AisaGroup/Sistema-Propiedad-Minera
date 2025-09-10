@@ -2,6 +2,7 @@ export interface PropiedadMinera {
   IdPropiedadMinera: number;
   IdTransaccion?: number;
   IdTitular?: number;
+  TitularNombre?: string;  // Nombre del titular
   Nombre?: string;
   Solicitud?: Date;
   Registro?: Date;
@@ -9,7 +10,6 @@ export interface PropiedadMinera {
   Provincia?: string;
   Mensura?: Date;
   AreaHectareas?: number;
-  LaborLegal?: string;
   DescubrimientoDirecto?: string;
 }
 
@@ -23,7 +23,6 @@ export interface PropiedadMineraCreate {
   Provincia?: string;
   Mensura?: Date;
   AreaHectareas?: number;
-  LaborLegal?: string;
   DescubrimientoDirecto?: string;
 }
 

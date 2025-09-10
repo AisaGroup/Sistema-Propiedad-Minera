@@ -13,7 +13,7 @@ class PropiedadMineraRepositorie:
         return self.db.query(PropiedadMinera).filter(PropiedadMinera.IdPropiedadMinera == id_propiedad).first()
 
     def create(self, propiedad_data: PropiedadMineraCreate):
-        propiedad = PropiedadMinera(**propiedad_data.dict())
+        propiedad = PropiedadMinera(**propiedad_data.model_dump())
         self.db.add(propiedad)
         self.db.commit()
         self.db.refresh(propiedad)

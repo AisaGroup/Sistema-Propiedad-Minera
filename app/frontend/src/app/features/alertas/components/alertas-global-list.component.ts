@@ -1,17 +1,51 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
 import { AlertaGlobalService } from '../services/alerta-global.service';
+import { EstadoAlertaService } from '../services/estado-alerta.service';
+import { EstadoAlerta } from '../models/estado-alerta.model';
 
 @Component({
   selector: 'app-alertas-global-list',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatPaginatorModule, MatProgressSpinnerModule],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    MatTableModule, 
+    MatPaginatorModule, 
+    MatProgressSpinnerModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    MatButtonModule,
+    MatIconModule
+  ],
   template: `
-    <div>
+    <div class="alertas-container">
       <h2>Alertas del Sistema</h2>
+      
+      <!-- Filtros -->
+      <div class="filters-container">
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Estado</mat-label>
+          <mat-select [(value)]="selectedEstado" (selectionChange)="onFilterChange()">
+            <mat-option value="">Todos los estados</mat-option>
+            <mat-option *ngFor="let estado of estadosAlerta" [value]="estado.IdEstado">
+              {{ estado.nombre }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        <button mat-icon-button (click)="clearFilter()" title="Limpiar filtro" class="clear-filter-btn">
+          <mat-icon>clear</mat-icon>
+        </button>
+      </div>
+      
       <div *ngIf="loading" class="loading-container">
         <mat-spinner diameter="32"></mat-spinner>
         <p>Cargando alertas...</p>
@@ -22,10 +56,10 @@ import { AlertaGlobalService } from '../services/alerta-global.service';
             <th mat-header-cell *matHeaderCellDef>ID</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.idAlerta }}</td>
           </ng-container>
-            <ng-container matColumnDef="Estado">
-              <th mat-header-cell *matHeaderCellDef>Estado</th>
-              <td mat-cell *matCellDef="let alerta">{{ alerta.estado_nombre }}</td>
-            </ng-container>
+          <ng-container matColumnDef="Estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let alerta">{{ alerta.estado_nombre }}</td>
+          </ng-container>
           <ng-container matColumnDef="Asunto">
             <th mat-header-cell *matHeaderCellDef>Asunto</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.Asunto }}</td>
@@ -34,7 +68,6 @@ import { AlertaGlobalService } from '../services/alerta-global.service';
             <th mat-header-cell *matHeaderCellDef>Mensaje</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.Mensaje }}</td>
           </ng-container>
-  displayedColumns: string[] = ['idAlerta', 'Estado', 'Asunto', 'Mensaje'];
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
@@ -53,6 +86,18 @@ import { AlertaGlobalService } from '../services/alerta-global.service';
       border-radius: 8px;
       padding: 24px;
     }
+    .filters-container {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 24px;
+      align-items: center;
+    }
+    .filter-field {
+      min-width: 200px;
+    }
+    .clear-filter-btn {
+      color: #666;
+    }
     .loading-container { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
     .table-container { overflow-x: auto; margin-top: 1rem; }
     .no-data { color: #888; font-style: italic; margin-top: 16px; }
@@ -65,16 +110,39 @@ export class AlertasGlobalListComponent implements OnInit {
   currentPage = 0;
   loading = false;
   displayedColumns: string[] = ['idAlerta', 'Estado', 'Asunto', 'Mensaje'];
+  
+  // Filtro por estado
+  estadosAlerta: any[] = [];
+  selectedEstado: number | string = 1; // Pendiente por defecto
 
-  constructor(private alertaGlobalService: AlertaGlobalService) {}
+  constructor(
+    private alertaGlobalService: AlertaGlobalService,
+    private estadoAlertaService: EstadoAlertaService
+  ) {}
 
   ngOnInit() {
+    this.loadEstadosAlerta();
     this.loadAlertas();
+  }
+
+  loadEstadosAlerta() {
+    this.estadoAlertaService.getEstadosAlerta().subscribe({
+      next: (estados) => {
+        this.estadosAlerta = estados;
+      },
+      error: (error) => {
+        console.error('Error cargando estados de alerta:', error);
+      }
+    });
   }
 
   loadAlertas(page: number = 0, size: number = this.pageSize) {
     this.loading = true;
-    this.alertaGlobalService.getAllPaginated(page, size).subscribe({
+    
+    // Convertir a string si es necesario
+    const estadoParam = this.selectedEstado ? this.selectedEstado.toString() : '';
+    
+    this.alertaGlobalService.getAllPaginated(page, size, estadoParam).subscribe({
       next: (resp) => {
         this.alertas = resp.data;
         this.totalAlertas = resp.total;
@@ -86,6 +154,16 @@ export class AlertasGlobalListComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  onFilterChange() {
+    this.currentPage = 0;
+    this.loadAlertas(0, this.pageSize);
+  }
+
+  clearFilter() {
+    this.selectedEstado = '';
+    this.onFilterChange();
   }
 
   onPageChange(event: PageEvent) {

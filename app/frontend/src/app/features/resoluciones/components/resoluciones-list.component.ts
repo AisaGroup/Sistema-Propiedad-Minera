@@ -39,21 +39,21 @@ import { ResolucionEditComponent } from './resolucion-edit.component';
       <div class="table-container" *ngIf="resoluciones && resoluciones.length > 0 && !loadingResoluciones && !mostrarFormulario">
         <table mat-table [dataSource]="resoluciones" class="resoluciones-table mat-elevation-4">
           <!-- Columnas -->
-          <ng-container matColumnDef="IdResolucion">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let resolucion">{{ resolucion.IdResolucion }}</td>
+          <ng-container matColumnDef="Numero">
+            <th mat-header-cell *matHeaderCellDef>Número</th>
+            <td mat-cell *matCellDef="let resolucion">{{ resolucion.Numero }}</td>
           </ng-container>
-          <ng-container matColumnDef="Fecha">
-            <th mat-header-cell *matHeaderCellDef>Fecha</th>
-            <td mat-cell *matCellDef="let resolucion">{{ resolucion.Fecha_emision | date:'dd/MM/yyyy' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="Tipo">
-            <th mat-header-cell *matHeaderCellDef>Tipo</th>
+          <ng-container matColumnDef="Titulo">
+            <th mat-header-cell *matHeaderCellDef>Título</th>
             <td mat-cell *matCellDef="let resolucion">{{ resolucion.Titulo }}</td>
           </ng-container>
-          <ng-container matColumnDef="Descripcion">
-            <th mat-header-cell *matHeaderCellDef>Descripción</th>
-            <td mat-cell *matCellDef="let resolucion">{{ resolucion.Descripcion }}</td>
+          <ng-container matColumnDef="Estado">
+            <th mat-header-cell *matHeaderCellDef>Estado</th>
+            <td mat-cell *matCellDef="let resolucion">{{ resolucion.Estado }}</td>
+          </ng-container>
+          <ng-container matColumnDef="Fecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha de Emisión</th>
+            <td mat-cell *matCellDef="let resolucion">{{ resolucion.Fecha_emision | date:'dd/MM/yyyy' }}</td>
           </ng-container>
           <ng-container matColumnDef="actions">
             <th mat-header-cell *matHeaderCellDef>Acciones</th>
@@ -92,7 +92,7 @@ export class ResolucionesListComponent implements OnInit {
   @Input() idExpediente!: number;
   resoluciones: Resolucion[] = [];
   loadingResoluciones = false;
-  displayedColumns = ['IdResolucion', 'Fecha', 'Tipo', 'Descripcion', 'actions'];
+  displayedColumns = ['Numero', 'Titulo', 'Estado', 'Fecha', 'actions'];
   totalResoluciones = 0;
   pageSize = 10;
   pageIndex = 0;

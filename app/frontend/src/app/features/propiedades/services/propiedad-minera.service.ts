@@ -16,9 +16,21 @@ export class PropiedadMineraService {
     let params = new HttpParams();
     
     if (filters) {
+      // Crear objeto de filtros
+      const filterObj: any = {};
+      
       // Manejar filtro de nombre
-      if (filters.Nombre) {
-        const filterObj = { Nombre: filters.Nombre };
+      if (filters.Nombre && filters.Nombre.trim()) {
+        filterObj.Nombre = filters.Nombre.trim();
+      }
+      
+      // Manejar filtro de provincia
+      if (filters.Provincia && filters.Provincia.trim()) {
+        filterObj.Provincia = filters.Provincia.trim();
+      }
+      
+      // Solo agregar el parámetro filter si hay algún filtro activo
+      if (Object.keys(filterObj).length > 0) {
         params = params.append('filter', JSON.stringify(filterObj));
       }
       
@@ -71,9 +83,5 @@ export class PropiedadMineraService {
   // Métodos auxiliares para las opciones de filtros
   getProvincias(): string[] {
     return ['Buenos Aires', 'Córdoba', 'Santa Fe', 'Mendoza', 'Tucumán', 'Entre Ríos', 'Salta', 'Misiones', 'Chaco', 'Corrientes', 'Santiago del Estero', 'San Juan', 'Jujuy', 'Río Negro', 'Formosa', 'Neuquén', 'Chubut', 'San Luis', 'Catamarca', 'La Rioja', 'La Pampa', 'Santa Cruz', 'Tierra del Fuego'];
-  }
-
-  getLaboresLegales(): string[] {
-    return ['Exploración', 'Explotación', 'Cateo', 'Prospección', 'Desarrollo'];
   }
 }

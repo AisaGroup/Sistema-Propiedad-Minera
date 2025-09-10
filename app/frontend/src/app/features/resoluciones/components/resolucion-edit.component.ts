@@ -102,13 +102,39 @@ export class ResolucionEditComponent implements OnChanges {
     });
   }
 
+  parseDate(dateString: any): Date | null {
+    if (!dateString) return null;
+    
+    // Si ya es un objeto Date, devolverlo tal como está
+    if (dateString instanceof Date) {
+      return dateString;
+    }
+    
+    // Si es un string, convertirlo a Date manteniendo la zona horaria local
+    if (typeof dateString === 'string') {
+      // Asegurarse de que el formato sea YYYY-MM-DD
+      const dateOnly = dateString.split('T')[0]; // Quitar la hora si existe
+      const parts = dateOnly.split('-');
+      
+      if (parts.length !== 3) {
+        return null;
+      }
+      
+      const [year, month, day] = parts;
+      // Crear la fecha en zona horaria local (no UTC)
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    return null;
+  }
+
   ngOnChanges() {
     if (this.resolucion) {
       this.form.patchValue({
         Numero: this.resolucion.Numero,
         Titulo: this.resolucion.Titulo,
-        Fecha_emision: this.resolucion.Fecha_emision,
-        Fecha_publicacion: this.resolucion.Fecha_publicacion,
+        Fecha_emision: this.parseDate(this.resolucion.Fecha_emision),
+        Fecha_publicacion: this.parseDate(this.resolucion.Fecha_publicacion),
         Organismo_emisor: this.resolucion.Organismo_emisor,
         Estado: this.resolucion.Estado,
         Contenido: this.resolucion.Contenido,
@@ -120,19 +146,27 @@ export class ResolucionEditComponent implements OnChanges {
 
   onSubmit() {
     if (!this.resolucion) return;
+    
+    const formValue = { ...this.form.value };
+    
+    // Convertir las fechas a string ISO si son objetos Date
+    if (formValue.Fecha_emision instanceof Date) {
+      formValue.Fecha_emision = this.formatDateToISO(formValue.Fecha_emision);
+    }
+    if (formValue.Fecha_publicacion instanceof Date) {
+      formValue.Fecha_publicacion = this.formatDateToISO(formValue.Fecha_publicacion);
+    }
+    
     const value: Resolucion = {
       ...this.resolucion,
-      ...this.form.value,
-      Fecha_emision: this.form.value.Fecha_emision ? this.formatDate(this.form.value.Fecha_emision) : undefined,
-      Fecha_publicacion: this.form.value.Fecha_publicacion ? this.formatDate(this.form.value.Fecha_publicacion) : undefined
+      ...formValue
     };
+    
     this.update.emit(value);
     this.form.reset();
   }
 
-  private formatDate(date: any): string {
-    if (!date) return '';
-    if (typeof date === 'string') return date.substring(0, 10);
-    return date.toISOString().substring(0, 10);
+  formatDateToISO(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 }

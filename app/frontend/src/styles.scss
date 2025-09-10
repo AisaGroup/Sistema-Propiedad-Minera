@@ -252,8 +252,23 @@ th[_ngcontent-ng-c2596952125],
 }
 
 ::ng-deep .mat-mdc-select .mat-mdc-select-value {
-  background: #fff !important;
+  background: transparent !important;
   color: #111 !important;
+}
+
+/* Selectores más específicos para forzar transparencia */
+html body ::ng-deep .mat-mdc-select-value,
+html body ::ng-deep .mat-mdc-select .mat-mdc-select-value,
+html body ::ng-deep .mat-mdc-select-placeholder {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Forzar transparencia con máxima especificidad */
+html body div.mat-mdc-select-value,
+html body span.mat-mdc-select-placeholder {
+  background: rgba(255, 255, 255, 0) !important;
+  background-color: rgba(255, 255, 255, 0) !important;
 }
 
 /* ESTILOS EQUIVALENTES PARA DATEPICKERS COMO LOS SELECTORES */
@@ -338,7 +353,7 @@ th[_ngcontent-ng-c2596952125],
 }
 
 ::ng-deep .mat-select-value-text {
-  background: #fff !important;
+  background: #ffffff00 !important;
   color: #111 !important;
 }
 

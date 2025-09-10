@@ -3,6 +3,7 @@ import { trigger, transition, style, animate } from '@angular/animations';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ActaService, ActaDetalleResponse } from '../services/acta.service';
+import { AutoridadService, Autoridad } from '../../autoridades/services/autoridad.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatChipsModule } from '@angular/material/chips';
@@ -15,6 +16,8 @@ import { AlertaService } from '../../alertas/services/alerta.service';
 import { ObservacionesService } from '../../observaciones/services/observaciones.service';
 import { AlertasListComponent } from '../../alertas/components/alertas-list.component';
 import { ObservacionesTabComponent } from '../../observaciones/components/observaciones-tab.component';
+import { MAT_DATE_LOCALE, MAT_DATE_FORMATS } from '@angular/material/core';
+import { MY_DATE_FORMATS } from '../../../core/date-formats';
 
 @Component({
   selector: 'app-acta-detalle',
@@ -34,7 +37,7 @@ import { ObservacionesTabComponent } from '../../observaciones/components/observ
           <button mat-icon-button (click)="goBack()" class="back-button">
             <mat-icon>arrow_back</mat-icon>
           </button>
-          <h1>{{ acta.Descripcion || 'Acta' }}</h1>
+          <h1>Acta {{ acta.Descripcion || 'Acta' }}</h1>
         </div>
         <!-- Custom Tabs Header (fixed) -->
         <div class="custom-tab-header-wrapper">
@@ -67,24 +70,20 @@ import { ObservacionesTabComponent } from '../../observaciones/components/observ
                     <mat-card-content>
                       <div class="info-grid">
                         <div class="info-item">
-                          <label>ID Acta:</label>
-                          <span>{{ acta.IdActa }}</span>
-                        </div>
-                        <div class="info-item">
-                          <label>Fecha:</label>
+                          <label>Fecha del Acta:</label>
                           <span>{{ acta.Fecha ? (acta.Fecha | date:'dd/MM/yyyy') : 'Sin fecha' }}</span>
                         </div>
                         <div class="info-item">
-                          <label>Tipo:</label>
+                          <label>Tipo de Acta:</label>
                           <span>{{ acta.IdTipoActa || 'Sin tipo' }}</span>
                         </div>
                         <div class="info-item">
-                          <label>Lugar:</label>
+                          <label>Lugar de Reunión:</label>
                           <span>{{ acta.Lugar || 'Sin lugar' }}</span>
                         </div>
                         <div class="info-item">
-                          <label>Autoridad:</label>
-                          <span>{{ acta.IdAutoridad || 'Sin autoridad' }}</span>
+                          <label>Autoridad Responsable:</label>
+                          <span>{{ autoridadNombre || 'Cargando...' }}</span>
                         </div>
                         <div class="info-item">
                           <label>Descripción:</label>
@@ -138,8 +137,53 @@ import { ObservacionesTabComponent } from '../../observaciones/components/observ
     .custom-tab-content-wrapper { min-height: 300px; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
     .custom-tab-content-wrapper > div { width: 100%; height: 100%; }
     .tab-content { padding: 24px 0; }
-    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+    .info-item { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fffe 0%, #f1f8f6 100%);
+      border-radius: 12px;
+      border: 1px solid #e1f0ec;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .info-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #416759 0%, #5a8070 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .info-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+      border-color: #c8e0d7;
+    }
+    .info-item:hover::before {
+      opacity: 1;
+    }
+    .info-item label { 
+      font-weight: 600; 
+      color: #2d5a48; 
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      position: relative;
+    }
+    .info-item span { 
+      color: #1a4435; 
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
     .alertas-section { margin-top: 16px; }
     .observacion-item { margin-top: 8px; }
     mat-chip { margin-left: 8px; background: #416759; color: #fff; }
@@ -166,6 +210,10 @@ import { ObservacionesTabComponent } from '../../observaciones/components/observ
     mat-list-item { margin-bottom: 8px; }
     em { color: #888; }
   `],
+  providers: [
+    { provide: MAT_DATE_LOCALE, useValue: 'es' },
+    { provide: MAT_DATE_FORMATS, useValue: MY_DATE_FORMATS }
+  ],
   animations: [
     trigger('slideContent', [
       transition(':increment', [
@@ -188,6 +236,7 @@ export class ActaDetalleComponent implements OnInit, AfterViewInit {
   alertas: any[] = [];
   totalAlertas = 0;
   observaciones: any[] = [];
+  autoridadNombre: string = '';
   tabs = [
     { label: 'Información General', icon: 'info', chip: false },
     { label: 'Alertas', icon: 'warning', chip: true, chipValue: 0 },
@@ -201,31 +250,33 @@ export class ActaDetalleComponent implements OnInit, AfterViewInit {
     private router: Router,
     private actaService: ActaService,
     private alertaService: AlertaService,
-    private observacionesService: ObservacionesService
+    private observacionesService: ObservacionesService,
+    private autoridadService: AutoridadService
   ) {}
 
   ngOnInit() {
-    this.route.paramMap.subscribe(params => {
-      const id = Number(params.get('actaId'));
-      if (id) {
-        this.loading = true;
-        this.actaService.getActaById(id).subscribe({
-          next: (resp: ActaDetalleResponse) => {
-            this.acta = resp;
-            this.loading = false;
-            setTimeout(() => this.updateUnderline(), 10);
-            if (resp && (resp as any).IdTransaccion) {
-              this.loadAlertas(id); // Usar id de acta para alertas
-              this.loadObservaciones((resp as any).IdTransaccion);
-            }
-          },
-          error: () => {
-            this.acta = null;
-            this.loading = false;
+    const id = Number(this.route.snapshot.paramMap.get('actaId'));
+    if (id) {
+      this.actaService.getActaById(id).subscribe({
+        next: (resp: ActaDetalleResponse) => {
+          this.acta = resp;
+          this.loading = false;
+          setTimeout(() => this.updateUnderline(), 10);
+          if (resp && (resp as any).IdTransaccion) {
+            this.loadAlertas(id); // Usar id de acta para alertas
+            this.loadObservaciones((resp as any).IdTransaccion);
           }
-        });
-      }
-    });
+          // Cargar nombre de autoridad
+          if (resp.IdAutoridad) {
+            this.cargarAutoridad(resp.IdAutoridad);
+          }
+        },
+        error: () => {
+          this.acta = null;
+          this.loading = false;
+        }
+      });
+    }
   }
 
   loadAlertas(idActa: number) {
@@ -268,6 +319,18 @@ export class ActaDetalleComponent implements OnInit, AfterViewInit {
     const el = this.tabLabels.toArray()[this.selectedTabIndex].nativeElement as HTMLElement;
     this.underlineWidth = el.offsetWidth;
     this.underlineLeft = el.offsetLeft;
+  }
+
+  cargarAutoridad(idAutoridad: string) {
+    this.autoridadService.getAll().subscribe({
+      next: (autoridades) => {
+        const autoridad = autoridades.find(a => a.IdAutoridad === idAutoridad);
+        this.autoridadNombre = autoridad ? autoridad.Nombre : 'Autoridad no encontrada';
+      },
+      error: () => {
+        this.autoridadNombre = 'Error al cargar autoridad';
+      }
+    });
   }
 
   goBack() {

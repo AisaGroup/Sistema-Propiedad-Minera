@@ -31,7 +31,7 @@ import { ObservacionesService } from '../../observaciones/services/observaciones
           <button mat-icon-button (click)="goBack()" class="back-button">
             <mat-icon>arrow_back</mat-icon>
           </button>
-          <h1>{{ resolucion.Titulo || 'Resolución' }}</h1>
+          <h1>Resolución {{ resolucion.Titulo || 'Resolución' }}</h1>
         </div>
         <!-- Custom Tabs Header (fixed) -->
         <div class="custom-tab-header-wrapper">
@@ -63,12 +63,11 @@ import { ObservacionesService } from '../../observaciones/services/observaciones
                     </mat-card-header>
                     <mat-card-content>
                       <div class="info-grid">
-                        <div class="info-item"><label>ID Resolución:</label><span>{{ resolucion.IdResolucion }}</span></div>
-                        <div class="info-item"><label>Número:</label><span>{{ resolucion.Numero || 'Sin número' }}</span></div>
+                        <div class="info-item"><label>N° Resolución:</label><span>{{ resolucion.Numero || 'Sin número' }}</span></div>
                         <div class="info-item"><label>Título:</label><span>{{ resolucion.Titulo || 'Sin título' }}</span></div>
-                        <div class="info-item"><label>Fecha Emisión:</label><span>{{ resolucion.Fecha_emision ? (resolucion.Fecha_emision | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
-                        <div class="info-item"><label>Fecha Publicación:</label><span>{{ resolucion.Fecha_publicacion ? (resolucion.Fecha_publicacion | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
-                        <div class="info-item"><label>Estado:</label><span>{{ resolucion.Estado || 'Sin estado' }}</span></div>
+                        <div class="info-item"><label>Fecha de Emisión:</label><span>{{ resolucion.Fecha_emision ? (resolucion.Fecha_emision | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
+                        <div class="info-item"><label>Fecha de Publicación:</label><span>{{ resolucion.Fecha_publicacion ? (resolucion.Fecha_publicacion | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
+                        <div class="info-item"><label>Estado Actual:</label><span>{{ resolucion.Estado || 'Sin estado' }}</span></div>
                         <div class="info-item"><label>Organismo Emisor:</label><span>{{ resolucion.Organismo_emisor || 'Sin organismo' }}</span></div>
                         <div class="info-item"><label>Descripción:</label><span>{{ resolucion.Descripcion || 'Sin descripción' }}</span></div>
                       </div>
@@ -119,8 +118,53 @@ import { ObservacionesService } from '../../observaciones/services/observaciones
     .custom-tab-content-wrapper { min-height: 300px; background: #fff; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); position: relative; }
     .custom-tab-content-wrapper > div { width: 100%; height: 100%; }
     .tab-content { padding: 24px 0; }
-    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin-top: 16px; }
-    .info-item { display: flex; flex-direction: column; gap: 4px; }
+    .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
+    .info-item { 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+      padding: 16px;
+      background: linear-gradient(135deg, #f8fffe 0%, #f1f8f6 100%);
+      border-radius: 12px;
+      border: 1px solid #e1f0ec;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .info-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: linear-gradient(180deg, #416759 0%, #5a8070 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .info-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+      border-color: #c8e0d7;
+    }
+    .info-item:hover::before {
+      opacity: 1;
+    }
+    .info-item label { 
+      font-weight: 600; 
+      color: #2d5a48; 
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+      position: relative;
+    }
+    .info-item span { 
+      color: #1a4435; 
+      font-size: 1rem;
+      font-weight: 500;
+      line-height: 1.4;
+    }
     .alertas-section { margin-top: 16px; }
     mat-chip { margin-left: 8px; background: #416759; color: #fff; }
     mat-chip.count-chip {

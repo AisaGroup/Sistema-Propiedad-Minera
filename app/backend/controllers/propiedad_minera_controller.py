@@ -23,8 +23,13 @@ def listar_propiedades(
     if filter:
         filters = json.loads(filter)
         nombre = filters.get("Nombre")
+        provincia = filters.get("Provincia")
+        
         if nombre:
             items = [item for item in items if nombre.lower() in (item.Nombre or "").lower()]
+        
+        if provincia:
+            items = [item for item in items if item.Provincia == provincia]
 
     total = len(items)
     start, end = 0, total - 1

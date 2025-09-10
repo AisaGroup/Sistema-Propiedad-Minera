@@ -34,8 +34,46 @@ import { MatButtonModule } from '@angular/material/button';
     .section-title { font-size: 1.2rem; font-weight: 600; }
     .spacer { flex: 1 1 auto; }
     .count-chip { margin-left: 0.5rem; }
-    .table-container { margin-top: 1rem; }
+    .table-container { 
+      margin-top: 1rem; 
+      overflow: hidden !important;
+      width: 100% !important;
+    }
     .no-data { color: #888; text-align: center; margin-top: 2rem; }
+    .observaciones-table {
+      width: 100% !important;
+      table-layout: fixed !important;
+    }
+    .observaciones-table td {
+      word-wrap: break-word !important;
+      word-break: break-word !important;
+      white-space: normal !important;
+      max-width: 300px !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis;
+      vertical-align: top !important;
+      padding: 8px !important;
+    }
+    .observaciones-table th {
+      word-wrap: break-word !important;
+      padding: 8px !important;
+    }
+    .observaciones-table .mat-column-Descripcion {
+      width: 30% !important;
+      max-width: 250px !important;
+    }
+    .observaciones-table .mat-column-Observaciones {
+      width: 50% !important;
+      max-width: 350px !important;
+    }
+    .observaciones-table .mat-column-IdTransaccion {
+      width: 10% !important;
+      max-width: 80px !important;
+    }
+    .observaciones-table .mat-column-actions {
+      width: 10% !important;
+      max-width: 80px !important;
+    }
   `]
 })
 export class ObservacionesTabComponent implements OnInit, OnChanges {

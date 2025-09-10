@@ -12,10 +12,17 @@ class PropiedadMineraService:
         self.repository = PropiedadMineraRepositorie(db)
 
     def get_all(self):
-        return self.repository.get_all()
+        propiedades = self.repository.get_all()
+        # Agregar nombre del titular a cada propiedad
+        for propiedad in propiedades:
+            propiedad.TitularNombre = propiedad.get_titular_nombre(self.repository.db)
+        return propiedades
 
     def get_by_id(self, id_propiedad: int):
-        return self.repository.get_by_id(id_propiedad)
+        propiedad = self.repository.get_by_id(id_propiedad)
+        if propiedad:
+            propiedad.TitularNombre = propiedad.get_titular_nombre(self.repository.db)
+        return propiedad
 
 
     def create(self, propiedad_data: PropiedadMineraCreate):

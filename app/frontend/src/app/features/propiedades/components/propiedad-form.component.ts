@@ -51,28 +51,13 @@ import { TitularMineroService, TitularMinero } from '../../titulares/services/ti
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="fill">
-          <mat-label>ID Transacción</mat-label>
-          <input matInput formControlName="IdTransaccion" type="number" placeholder="ID de transacción">
-        </mat-form-field>
-
-        <!-- Fila 2: Provincia, Labor Legal, Área -->
+        <!-- Fila 2: Provincia, Área -->
         <mat-form-field appearance="fill">
           <mat-label>Provincia</mat-label>
           <mat-select formControlName="Provincia">
             <mat-option value="">Seleccione una provincia</mat-option>
             <mat-option *ngFor="let provincia of provincias" [value]="provincia">
               {{provincia}}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="fill">
-          <mat-label>Labor Legal</mat-label>
-          <mat-select formControlName="LaborLegal">
-            <mat-option value="">Seleccione una labor</mat-option>
-            <mat-option *ngFor="let labor of laboresLegales" [value]="labor">
-              {{labor}}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -176,7 +161,6 @@ export class PropiedadFormComponent implements OnInit, OnChanges {
   form: FormGroup;
   titulares: TitularMinero[] = [];
   provincias: string[] = [];
-  laboresLegales: string[] = [];
 
   constructor(
     private fb: FormBuilder,
@@ -184,7 +168,6 @@ export class PropiedadFormComponent implements OnInit, OnChanges {
     private titularService: TitularMineroService
   ) {
     this.form = this.fb.group({
-      IdTransaccion: [null],
       IdTitular: [null],
       Nombre: ['', Validators.required],
       Solicitud: [null],
@@ -193,7 +176,6 @@ export class PropiedadFormComponent implements OnInit, OnChanges {
       Provincia: [''],
       Mensura: [null],
       AreaHectareas: [null],
-      LaborLegal: [''],
       DescubrimientoDirecto: ['']
     });
   }
@@ -201,7 +183,6 @@ export class PropiedadFormComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.loadTitulares();
     this.loadProvincias();
-    this.loadLaboresLegales();
     
     if (this.modo === 'editar' && this.propiedad) {
       this.loadPropiedadData();
@@ -231,14 +212,9 @@ export class PropiedadFormComponent implements OnInit, OnChanges {
     this.provincias = this.propiedadService.getProvincias();
   }
 
-  private loadLaboresLegales() {
-    this.laboresLegales = this.propiedadService.getLaboresLegales();
-  }
-
   private loadPropiedadData() {
     if (this.propiedad) {
       this.form.patchValue({
-        IdTransaccion: this.propiedad.IdTransaccion,
         IdTitular: this.propiedad.IdTitular,
         Nombre: this.propiedad.Nombre,
         Solicitud: this.propiedad.Solicitud,
@@ -247,7 +223,6 @@ export class PropiedadFormComponent implements OnInit, OnChanges {
         Provincia: this.propiedad.Provincia,
         Mensura: this.propiedad.Mensura,
         AreaHectareas: this.propiedad.AreaHectareas,
-        LaborLegal: this.propiedad.LaborLegal,
         DescubrimientoDirecto: this.propiedad.DescubrimientoDirecto
       });
     }

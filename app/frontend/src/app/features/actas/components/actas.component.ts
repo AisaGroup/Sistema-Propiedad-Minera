@@ -43,10 +43,6 @@ import { Router } from '@angular/router';
   <div class="table-container" *ngIf="actas && actas.length > 0 && !loadingActas && !mostrarFormulario">
         <table mat-table [dataSource]="actas" class="actas-table mat-elevation-4">
           <!-- Columnas -->
-          <ng-container matColumnDef="IdActa">
-            <th mat-header-cell *matHeaderCellDef>ID</th>
-            <td mat-cell *matCellDef="let acta">{{ acta.IdActa }}</td>
-          </ng-container>
           <ng-container matColumnDef="Fecha">
             <th mat-header-cell *matHeaderCellDef>Fecha</th>
             <td mat-cell *matCellDef="let acta">{{ acta.Fecha | date:'dd/MM/yyyy' }}</td>
@@ -94,7 +90,7 @@ export class ActasComponent implements OnInit {
   @Input() idExpediente!: number;
   actas: Acta[] = [];
   loadingActas = false;
-  displayedColumns = ['IdActa', 'Fecha', 'Descripcion', 'actions'];
+  displayedColumns = ['Fecha', 'Descripcion', 'actions'];
   totalActas = 0;
   pageSize = 10;
   pageIndex = 0;

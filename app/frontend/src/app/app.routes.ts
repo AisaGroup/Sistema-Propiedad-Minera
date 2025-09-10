@@ -12,7 +12,7 @@ export const routes: Routes = [
       },
       {
         path: 'propiedades',
-        loadComponent: () => import('./features/propiedades/propiedades-list.component').then(m => m.PropiedadesListComponent)
+        loadChildren: () => import('./features/propiedades/propiedades.routes').then(r => r.PROPIEDADES_ROUTES)
       },
       {
         path: 'expedientes',
@@ -20,7 +20,7 @@ export const routes: Routes = [
       },
       {
         path: 'titulares',
-        loadComponent: () => import('./features/titulares/components/titular-list.component').then(m => m.TitularesMinerosComponent)
+        loadChildren: () => import('./features/titulares/titulares.routes').then(r => r.TITULARES_ROUTES)
       },
       {
         path: 'alertas',

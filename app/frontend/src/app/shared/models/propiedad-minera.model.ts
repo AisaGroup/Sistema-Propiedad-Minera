@@ -9,7 +9,6 @@ export interface PropiedadMinera {
   Provincia?: string;
   Mensura?: Date;
   AreaHectareas?: number;
-  LaborLegal?: string;
   DescubrimientoDirecto?: string;
 }
 
@@ -23,7 +22,6 @@ export interface PropiedadMineraCreate {
   Provincia?: string;
   Mensura?: Date;
   AreaHectareas?: number;
-  LaborLegal?: string;
   DescubrimientoDirecto?: string;
 }
 

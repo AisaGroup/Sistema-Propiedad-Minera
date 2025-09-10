@@ -46,8 +46,8 @@ import { DateFormatDirective } from '../../../shared/directives/date-format.dire
         <mat-form-field appearance="fill" class="half-width" style="background: #ffffffff;">
           <mat-label>Autoridad*</mat-label>
           <input type="text" matInput [matAutocomplete]="auto" [matAutocompletePosition]="'below'" formControlName="IdAutoridad" (input)="filtrarAutoridades()">
-          <mat-autocomplete #auto="matAutocomplete">
-            <mat-option *ngFor="let autoridad of autoridadesFiltradas" [value]="autoridad.IdAutoridad">
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAutoridad">
+            <mat-option *ngFor="let autoridad of autoridadesFiltradas" [value]="autoridad">
               {{ autoridad.Nombre }}
             </mat-option>
           </mat-autocomplete>
@@ -114,6 +114,10 @@ export class ActaCreateComponent {
     return date.toISOString().split('T')[0];
   }
 
+  displayAutoridad(autoridad: Autoridad): string {
+    return autoridad ? autoridad.Nombre : '';
+  }
+
   onSubmit() {
     console.log('=== ACTA onSubmit ===');
     console.log('Form valid:', this.form.valid);
@@ -143,7 +147,9 @@ export class ActaCreateComponent {
     const value: Acta = {
       IdExpediente: this.idExpediente,
       ...this.form.value,
-      IdAutoridad: this.form.value.IdAutoridad ? Number(this.form.value.IdAutoridad) : null,
+      IdAutoridad: this.form.value.IdAutoridad && typeof this.form.value.IdAutoridad === 'object' 
+        ? this.form.value.IdAutoridad.IdAutoridad 
+        : this.form.value.IdAutoridad,
       IdTipoActa: this.form.value.IdTipoActa ? String(this.form.value.IdTipoActa) : null,
       Fecha: this.form.value.Fecha ? this.formatDateToISO(this.form.value.Fecha) : null
     };
@@ -163,7 +169,13 @@ export class ActaCreateComponent {
   }
 
   filtrarAutoridades() {
-    const valor = this.form.get('IdAutoridad')?.value?.toLowerCase() || '';
-    this.autoridadesFiltradas = this.autoridades.filter(a => a.Nombre.toLowerCase().includes(valor));
+    const valor = this.form.get('IdAutoridad')?.value;
+    if (typeof valor === 'string' && valor.length > 0) {
+      this.autoridadesFiltradas = this.autoridades.filter(a => 
+        a.Nombre.toLowerCase().includes(valor.toLowerCase())
+      );
+    } else {
+      this.autoridadesFiltradas = this.autoridades;
+    }
   }
 }

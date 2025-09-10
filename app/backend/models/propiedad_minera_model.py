@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, DateTime, Float
+from sqlalchemy import Column, Integer, String, DateTime, Float, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
 from backend.database.connection import Base
 
@@ -15,5 +16,14 @@ class PropiedadMinera(Base):
     Provincia = Column(String(100), nullable=True)
     Mensura = Column(DateTime, nullable=True)
     AreaHectareas = Column(Float, nullable=True)
-    LaborLegal = Column(String(50), nullable=True)
     DescubrimientoDirecto = Column(String(50), nullable=True)
+    
+    # Relación con TitularMinero (sin foreign key constraint para evitar problemas)
+    def get_titular_nombre(self, db):
+        """Método para obtener el nombre del titular"""
+        if self.IdTitular:
+            from backend.models.titular_minero_model import TitularMinero
+            titular = db.query(TitularMinero).filter(TitularMinero.IdTitular == self.IdTitular).first()
+            if titular:
+                return titular.Nombre
+        return None

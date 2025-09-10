@@ -36,8 +36,6 @@ export interface ExpedienteCreate {
 
 export interface ExpedienteFilter {
   CodigoExpediente?: string;
-  Estado?: string;
-  Dependencia?: string;
 }
 
 export interface Alerta {

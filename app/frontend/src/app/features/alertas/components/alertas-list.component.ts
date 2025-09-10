@@ -10,6 +10,8 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { AlertaCreateComponent } from '../components/alerta-create.component';
 import { AlertaEditComponent } from './alerta-edit.component';
 import { AlertaService } from '../services/alerta.service';
+import { EstadoAlertaService } from '../services/estado-alerta.service';
+import type { EstadoAlerta } from '../models/estado-alerta.model';
 
 @Component({
   selector: 'app-alertas-list',
@@ -52,13 +54,9 @@ import { AlertaService } from '../services/alerta.service';
         </div>
         <div class="table-container" *ngIf="alertas.length > 0 && !loading">
           <table mat-table [dataSource]="alertas" class="alertas-table mat-elevation-4">
-            <ng-container matColumnDef="idAlerta">
-              <th mat-header-cell *matHeaderCellDef>ID</th>
-              <td mat-cell *matCellDef="let alerta">{{ alerta.idAlerta }}</td>
-            </ng-container>
             <ng-container matColumnDef="Estado">
               <th mat-header-cell *matHeaderCellDef>Estado</th>
-              <td mat-cell *matCellDef="let alerta">{{ alerta.Estado }}</td>
+              <td mat-cell *matCellDef="let alerta">{{ getEstadoNombre(alerta.IdEstado) }}</td>
             </ng-container>
             <ng-container matColumnDef="Asunto">
               <th mat-header-cell *matHeaderCellDef>Asunto</th>
@@ -112,16 +110,23 @@ export class AlertasListComponent implements OnInit, OnChanges {
   pageSize = 5;
   currentPage = 0;
   loading = false;
+  estadosAlerta: EstadoAlerta[] = [];
   @Input() idTransaccion: number | null = null;
   @Input() tipoPadre: string = 'acta'; // Por defecto 'acta', pero puede ser 'expediente', 'resolucion', etc.
   mostrarFormulario = false;
   editando = false;
   alertaEdit: any = null;
-  displayedColumns: string[] = ['idAlerta', 'Estado', 'Asunto', 'Mensaje', 'actions'];
+  displayedColumns: string[] = ['Estado', 'Asunto', 'Mensaje', 'actions'];
 
-  constructor(private alertaService: AlertaService) {}
+  constructor(
+    private alertaService: AlertaService,
+    private estadoAlertaService: EstadoAlertaService
+  ) {}
 
   ngOnInit() {
+    this.estadoAlertaService.getEstadosAlerta().subscribe(estados => {
+      this.estadosAlerta = estados;
+    });
     if (this.idTransaccion) {
       this.loadAlertas();
     }
@@ -190,5 +195,11 @@ export class AlertasListComponent implements OnInit, OnChanges {
     this.alertaEdit = { ...alerta };
     this.editando = true;
     this.mostrarFormulario = true;
+  }
+
+  getEstadoNombre(idEstado: number): string {
+    if (!idEstado || !this.estadosAlerta.length) return '';
+    const estado = this.estadosAlerta.find(e => e.IdEstado === idEstado);
+    return estado ? estado.nombre : '';
   }
 }

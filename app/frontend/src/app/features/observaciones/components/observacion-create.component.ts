@@ -52,11 +52,42 @@ export class ObservacionCreateComponent {
   }
 
   onSubmit() {
-    if (!this.idTransaccion) return;
+    if (!this.idTransaccion || this.form.invalid) {
+      console.log('Formulario inválido o falta IdTransaccion');
+      return;
+    }
+    
+    const formValue = this.form.value;
+    
+    // Validaciones más estrictas
+    if (!formValue.Descripcion || formValue.Descripcion.trim().length === 0) {
+      console.warn('Descripción vacía');
+      return;
+    }
+    
+    // Validar que la descripción no contenga mensajes de error de la consola
+    const descripcion = formValue.Descripcion.trim();
+    const invalidKeywords = ['ERROR', 'XMLHttpRequest', 'CORS', 'TypeError', 'console.', 'stack trace'];
+    
+    if (invalidKeywords.some(keyword => descripcion.includes(keyword))) {
+      console.warn('Datos inválidos detectados en descripción, cancelando operación');
+      alert('Error: Se detectaron datos inválidos en el formulario. Por favor, revise los campos.');
+      return;
+    }
+    
+    // Limitar longitud de descripción
+    if (descripcion.length > 200) {
+      alert('La descripción no puede exceder 200 caracteres');
+      return;
+    }
+    
     const value: Observacion = {
       IdTransaccion: this.idTransaccion,
-      ...this.form.value
+      Descripcion: descripcion,
+      Observaciones: formValue.Observaciones?.trim() || ''
     };
+    
+    console.log('Creando observación válida:', value);
     this.create.emit(value);
     this.form.reset();
   }

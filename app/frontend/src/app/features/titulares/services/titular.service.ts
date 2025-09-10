@@ -19,16 +19,15 @@ export interface TitularMinero {
 }
 
 export interface TitularMineroCreate {
-  IdTransaccion?: number;
   TipoPersona: string;
   Nombre: string;
   DniCuit: string;
-  Domicilio?: string;
-  Telefono?: string;
-  Email?: string;
-  FechaAsignacion?: string;
-  Estado?: string;
-  RepresentanteLegal?: string;
+  Domicilio: string;
+  Telefono: string;
+  Email: string;
+  FechaAsignacion: string;
+  Estado: string;
+  RepresentanteLegal: string;
   Observaciones?: string;
   Descripcion?: string;
 }

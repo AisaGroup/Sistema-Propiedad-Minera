@@ -66,14 +66,13 @@
                   </mat-card-header>
                   <mat-card-content>
                     <div class="info-grid">
-                      <div class="info-item"><label>ID Expediente:</label><span>{{ expediente.IdExpediente }}</span></div>
-                      <div class="info-item"><label>Código:</label><span>{{ expediente.CodigoExpediente || 'Sin código' }}</span></div>
-                      <div class="info-item"><label>Primer Dueño:</label><span>{{ expediente.PrimerDueno || 'Sin especificar' }}</span></div>
-                      <div class="info-item"><label>Estado:</label><span>{{ expediente.Estado || 'Sin estado' }}</span></div>
-                      <div class="info-item"><label>Dependencia:</label><span>{{ expediente.Dependencia || 'Sin dependencia' }}</span></div>
-                      <div class="info-item"><label>Año:</label><span>{{ expediente.Ano || 'Sin año' }}</span></div>
-                      <div class="info-item"><label>Fecha Inicio:</label><span>{{ expediente.FechaInicio ? (expediente.FechaInicio | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
-                      <div class="info-item"><label>Fecha Fin:</label><span>{{ expediente.FechaFin ? (expediente.FechaFin | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
+                      <div class="info-item"><label>Código de Expediente:</label><span>{{ expediente.CodigoExpediente || 'Sin código' }}</span></div>
+                      <div class="info-item"><label>Primer Propietario:</label><span>{{ expediente.PrimerDueno || 'Sin especificar' }}</span></div>
+                      <div class="info-item"><label>Estado Actual:</label><span>{{ expediente.Estado || 'Sin estado' }}</span></div>
+                      <div class="info-item"><label>Dependencia Responsable:</label><span>{{ expediente.Dependencia || 'Sin dependencia' }}</span></div>
+                      <div class="info-item"><label>Año de Creación:</label><span>{{ expediente.Ano || 'Sin año' }}</span></div>
+                      <div class="info-item"><label>Fecha de Inicio:</label><span>{{ expediente.FechaInicio ? (expediente.FechaInicio | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
+                      <div class="info-item"><label>Fecha de Finalización:</label><span>{{ expediente.FechaFin ? (expediente.FechaFin | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
                       <div class="info-item"><label>Carátula:</label><span>{{ expediente.Caratula || 'Sin carátula' }}</span></div>
                       <div class="info-item"><label>Descripción:</label><span>{{ expediente.Descripcion || 'Sin descripción' }}</span></div>
                       <div class="info-item"><label>Observaciones:</label><span>{{ expediente.Observaciones || 'Sin observaciones' }}</span></div>

@@ -44,8 +44,8 @@ import { DateFormatDirective } from '../../../shared/directives/date-format.dire
       <div class="row-fields">
         <mat-form-field appearance="fill" class="half-width" style="background: #fff;">
           <mat-label>Autoridad*</mat-label>
-          <input type="text" matInput [matAutocomplete]="auto" [matAutocompletePosition]="'below'" formControlName="IdAutoridad" (input)="filtrarAutoridades()">
-          <mat-autocomplete #auto="matAutocomplete">
+          <input type="text" matInput [matAutocomplete]="auto" [matAutocompletePosition]="'below'" formControlName="IdAutoridad" (input)="filtrarAutoridades($event)">
+          <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayAutoridad" (optionSelected)="onAutoridadSelected($event)">
             <mat-option *ngFor="let autoridad of autoridadesFiltradas" [value]="autoridad.IdAutoridad">
               {{ autoridad.Nombre }}
             </mat-option>
@@ -85,19 +85,6 @@ export class ActaEditComponent {
   autoridades: Autoridad[] = [];
   autoridadesFiltradas: Autoridad[] = [];
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['acta'] && this.acta) {
-      this.form.patchValue({
-        Descripcion: this.acta.Descripcion,
-        Obs: this.acta.Obs,
-        Fecha: this.acta.Fecha,
-        IdTipoActa: this.acta.IdTipoActa,
-        Lugar: this.acta.Lugar,
-        IdAutoridad: this.acta.IdAutoridad
-      });
-    }
-  }
-
   constructor(
     private fb: FormBuilder,
     private location: Location,
@@ -113,32 +100,112 @@ export class ActaEditComponent {
     });
   }
 
+  parseDate(dateString: any): Date | null {
+    if (!dateString) return null;
+    
+    // Si ya es un objeto Date, devolverlo tal como está
+    if (dateString instanceof Date) {
+      return dateString;
+    }
+    
+    // Si es un string, convertirlo a Date manteniendo la zona horaria local
+    if (typeof dateString === 'string') {
+      // Asegurarse de que el formato sea YYYY-MM-DD
+      const dateOnly = dateString.split('T')[0]; // Quitar la hora si existe
+      const parts = dateOnly.split('-');
+      
+      if (parts.length !== 3) {
+        return null;
+      }
+      
+      const [year, month, day] = parts;
+      // Crear la fecha en zona horaria local (no UTC)
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    return null;
+  }
+
   ngOnInit() {
     this.autoridadService.getAll().subscribe((autoridades) => {
       this.autoridades = autoridades;
       this.autoridadesFiltradas = autoridades;
-    });
-    this.form.get('IdAutoridad')?.valueChanges.subscribe(valor => {
-      if (typeof valor === 'string' && valor.length > 0) {
-        this.autoridadService.searchByNombre(valor).subscribe((autoridades) => {
-          this.autoridadesFiltradas = autoridades;
+      
+      // Actualizar el formulario después de cargar las autoridades
+      if (this.acta) {
+        this.form.patchValue({
+          Descripcion: this.acta.Descripcion,
+          Obs: this.acta.Obs,
+          Fecha: this.parseDate(this.acta.Fecha),
+          IdTipoActa: this.acta.IdTipoActa,
+          Lugar: this.acta.Lugar,
+          IdAutoridad: this.acta.IdAutoridad
         });
-      } else {
-        this.autoridadesFiltradas = this.autoridades;
       }
     });
   }
 
-  filtrarAutoridades() {
-  // Ya no se usa, el filtro ahora es reactivo y consulta al backend
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['acta'] && this.acta && this.autoridades.length > 0) {
+      this.form.patchValue({
+        Descripcion: this.acta.Descripcion,
+        Obs: this.acta.Obs,
+        Fecha: this.parseDate(this.acta.Fecha),
+        IdTipoActa: this.acta.IdTipoActa,
+        Lugar: this.acta.Lugar,
+        IdAutoridad: this.acta.IdAutoridad
+      });
+    }
+  }
+
+  filtrarAutoridades(event: Event) {
+    const inputValue = (event.target as HTMLInputElement).value;
+    if (inputValue) {
+      this.autoridadesFiltradas = this.autoridades.filter(a => 
+        a.Nombre.toLowerCase().includes(inputValue.toLowerCase())
+      );
+    } else {
+      this.autoridadesFiltradas = this.autoridades;
+    }
+  }
+
+  displayAutoridad = (idAutoridad: any): string => {
+    if (!idAutoridad || !this.autoridades) return '';
+    const id = typeof idAutoridad === 'string' ? parseInt(idAutoridad) : idAutoridad;
+    const autoridad = this.autoridades.find(a => a.IdAutoridad === id);
+    return autoridad ? autoridad.Nombre : '';
+  }
+
+  onAutoridadSelected(event: any) {
+    // El evento contiene la opción seleccionada
+    const selectedValue = event.option.value;
+    console.log('Autoridad seleccionada:', selectedValue);
+    
+    // Actualizar el valor del formulario
+    this.form.patchValue({
+      IdAutoridad: selectedValue
+    });
+  }
+
+  formatDateToISO(date: Date): string {
+    return date.toISOString().split('T')[0];
   }
 
   onSubmit() {
     if (!this.acta) return;
+    
+    const formValue = { ...this.form.value };
+    
+    // Convertir la fecha a string ISO si es un objeto Date
+    if (formValue.Fecha instanceof Date) {
+      formValue.Fecha = this.formatDateToISO(formValue.Fecha);
+    }
+    
     const value: Acta = {
       ...this.acta,
-      ...this.form.value
+      ...formValue
     };
+    
     this.update.emit(value);
     this.form.reset();
   }

@@ -30,7 +30,12 @@ def get_observaciones_by_transaccion(
 
 @router.post("/", response_model=ObservacionesOut)
 def create_observacion(observacion: ObservacionesCreate, db: Session = Depends(get_db)):
-    return ObservacionesService(db).create_observacion(observacion)
+    try:
+        return ObservacionesService(db).create_observacion(observacion)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error interno del servidor")
 
 @router.put("/{id_transaccion}", response_model=ObservacionesOut)
 def update_observacion(id_transaccion: int, observacion: ObservacionesUpdate, db: Session = Depends(get_db)):

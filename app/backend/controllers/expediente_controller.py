@@ -18,10 +18,16 @@ router = APIRouter(prefix="/expedientes", tags=["Expedientes"])
 def listar_expedientes(
     db: Session = Depends(get_db),
     response: Response = None,
-    range: str = Query(None, alias="range")
+    range: str = Query(None, alias="range"),
+    CodigoExpediente: str = Query(None)
 ):
     service = ExpedienteService(db)
     items = service.get_all()
+    
+    # Aplicar filtro de código expediente si se proporciona
+    if CodigoExpediente:
+        items = [item for item in items if CodigoExpediente.lower() in (item.CodigoExpediente or "").lower()]
+    
     total = len(items)
 
     # Parse range param (ejemplo: '[0,9]')

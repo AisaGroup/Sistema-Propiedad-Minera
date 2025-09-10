@@ -1,7 +1,5 @@
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
+from backend.database.connection import Base
 
 class Transaccion(Base):
     __tablename__ = 'Transaccion'

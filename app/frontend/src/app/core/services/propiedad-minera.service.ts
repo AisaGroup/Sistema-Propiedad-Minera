@@ -72,8 +72,4 @@ export class PropiedadMineraService {
   getProvincias(): string[] {
     return ['Buenos Aires', 'Córdoba', 'Santa Fe', 'Mendoza', 'Tucumán', 'Entre Ríos', 'Salta', 'Misiones', 'Chaco', 'Corrientes', 'Santiago del Estero', 'San Juan', 'Jujuy', 'Río Negro', 'Formosa', 'Neuquén', 'Chubut', 'San Luis', 'Catamarca', 'La Rioja', 'La Pampa', 'Santa Cruz', 'Tierra del Fuego'];
   }
-
-  getLaboresLegales(): string[] {
-    return ['Exploración', 'Explotación', 'Cateo', 'Prospección', 'Desarrollo'];
-  }
 }

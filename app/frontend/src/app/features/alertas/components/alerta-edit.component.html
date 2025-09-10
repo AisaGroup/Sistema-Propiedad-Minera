@@ -28,7 +28,17 @@
     </mat-form-field>
     <mat-form-field appearance="fill" class="third-width">
       <mat-label>Periodicidad</mat-label>
-      <input matInput formControlName="Periodicidad">
+      <mat-select formControlName="IdPeriodicidad" required>
+        <mat-option *ngFor="let periodicidad of periodicidades" [value]="periodicidad.IdPeriodicidad">
+          {{ periodicidad.Nombre }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <div class="row-fields">
+    <mat-form-field appearance="fill" class="full-width">
+      <mat-label>Destinatarios</mat-label>
+      <textarea matInput formControlName="Destinatarios" rows="3"></textarea>
     </mat-form-field>
   </div>
   <div class="row-fields">

@@ -17,6 +17,13 @@ export class DateFormatDirective implements OnInit, OnDestroy {
     this.renderer.listen(this.el.nativeElement, 'input', () => {
       this.formatInputValue();
     });
+    
+    // Escuchar también el evento change para datepickers
+    this.renderer.listen(this.el.nativeElement, 'change', () => {
+      setTimeout(() => this.formatInputValue(), 10);
+      setTimeout(() => this.formatInputValue(), 50);
+      setTimeout(() => this.formatInputValue(), 100);
+    });
 
     // Formatear valor inicial con múltiples intentos
     setTimeout(() => this.formatInputValue(), 0);

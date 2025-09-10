@@ -3,7 +3,6 @@ from typing import Optional
 from datetime import date
 
 class TitularMineroBase(BaseModel):
-    IdTransaccion: int
     TipoPersona: str
     Nombre: str
     DniCuit: str
@@ -17,14 +16,15 @@ class TitularMineroBase(BaseModel):
     Descripcion: Optional[str] = None
 
 class TitularMineroCreate(TitularMineroBase):
-    IdTitular: int
+    IdTransaccion: Optional[int] = None
 
 class TitularMineroUpdate(TitularMineroBase):
-    pass
+    IdTransaccion: Optional[int] = None
 
 
 class TitularMineroRead(TitularMineroBase):
     IdTitular: int
+    IdTransaccion: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True

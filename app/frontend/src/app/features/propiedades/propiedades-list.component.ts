@@ -56,8 +56,8 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
           <form [formGroup]="filterForm" class="filters-form">
             <div class="filter-row">
               <mat-form-field appearance="outline">
-                <mat-label>Buscar por Nombre</mat-label>
-                <input matInput formControlName="Nombre" placeholder="Nombre de la propiedad...">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="Nombre" placeholder="Buscar propiedad...">
                 <mat-icon matSuffix>search</mat-icon>
               </mat-form-field>
 
@@ -67,16 +67,6 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
                   <mat-option value="">Todas</mat-option>
                   <mat-option *ngFor="let provincia of provincias" [value]="provincia">
                     {{provincia}}
-                  </mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>Labor Legal</mat-label>
-                <mat-select formControlName="LaborLegal">
-                  <mat-option value="">Todas</mat-option>
-                  <mat-option *ngFor="let labor of laboresLegales" [value]="labor">
-                    {{labor}}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -106,21 +96,14 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
         <mat-card-content>
           <div class="table-container">
             <table mat-table [dataSource]="propiedades" class="propiedades-table" matSort>
-              <!-- ID Column -->
-              <ng-container matColumnDef="IdPropiedadMinera">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
-                <td mat-cell *matCellDef="let propiedad">
-                  <span class="id-number">{{propiedad.IdPropiedadMinera}}</span>
-                </td>
-              </ng-container>
-
               <!-- Nombre Column -->
               <ng-container matColumnDef="Nombre">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
                 <td mat-cell *matCellDef="let propiedad">
                   <div class="cell-content">
                     <span class="primary-text">{{propiedad.Nombre || 'Sin nombre'}}</span>
-                    <span class="secondary-text" *ngIf="propiedad.IdTitular">Titular ID: {{propiedad.IdTitular}}</span>
+                    <span class="secondary-text" *ngIf="propiedad.TitularNombre">Titular: {{propiedad.TitularNombre}}</span>
+                    <span class="secondary-text" *ngIf="!propiedad.TitularNombre && propiedad.IdTitular">Titular ID: {{propiedad.IdTitular}}</span>
                   </div>
                 </td>
               </ng-container>
@@ -142,18 +125,6 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
                   <div class="area-info">
                     <span>{{propiedad.AreaHectareas || 0}} ha</span>
                   </div>
-                </td>
-              </ng-container>
-
-              <!-- Labor Legal Column -->
-              <ng-container matColumnDef="LaborLegal">
-                <th mat-header-cell *matHeaderCellDef mat-sort-header>Labor Legal</th>
-                <td mat-cell *matCellDef="let propiedad">
-                  <mat-chip-set>
-                    <mat-chip class="labor-chip">
-                      {{propiedad.LaborLegal || 'No especificada'}}
-                    </mat-chip>
-                  </mat-chip-set>
                 </td>
               </ng-container>
 
@@ -364,17 +335,14 @@ export class PropiedadesListComponent implements OnInit {
   propiedades: PropiedadMinera[] = [];
   filterForm: FormGroup;
   displayedColumns: string[] = [
-    'IdPropiedadMinera',
     'Nombre',
     'Provincia',
     'AreaHectareas',
-    'LaborLegal',
     'Solicitud',
     'actions'
   ];
 
   provincias: string[] = [];
-  laboresLegales: string[] = [];
 
   // Propiedades de paginación
   totalRecords = 0;
@@ -389,8 +357,7 @@ export class PropiedadesListComponent implements OnInit {
   ) {
     this.filterForm = this.fb.group({
       Nombre: [''],
-      Provincia: [''],
-      LaborLegal: ['']
+      Provincia: ['']
     });
   }
 
@@ -401,7 +368,6 @@ export class PropiedadesListComponent implements OnInit {
 
   loadDropdownData() {
     this.provincias = this.propiedadService.getProvincias();
-    this.laboresLegales = this.propiedadService.getLaboresLegales();
   }
 
   loadPropiedades(filters?: PropiedadMineraFilter) {
@@ -451,8 +417,7 @@ export class PropiedadesListComponent implements OnInit {
 
   viewPropiedad(propiedad: PropiedadMinera) {
     console.log('Ver propiedad:', propiedad);
-    // TODO: Implementar navegación a detalle cuando esté creado
-    // this.router.navigate(['/propiedades', propiedad.IdPropiedadMinera]);
+    this.router.navigate(['/propiedades', propiedad.IdPropiedadMinera, 'detalle']);
   }
 
   editPropiedad(propiedad: PropiedadMinera) {

@@ -10,6 +10,10 @@ export const PROPIEDADES_ROUTES: Routes = [
     loadComponent: () => import('./components/propiedad-create.component').then(m => m.PropiedadCreateComponent)
   },
   {
+    path: ':id/detalle',
+    loadComponent: () => import('./components/propiedad-detail.component').then(m => m.PropiedadDetailComponent)
+  },
+  {
     path: ':id/editar',
     loadComponent: () => import('./components/propiedad-edit.component').then(m => m.PropiedadEditComponent)
   }
