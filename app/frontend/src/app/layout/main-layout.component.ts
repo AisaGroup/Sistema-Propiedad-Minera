@@ -26,7 +26,7 @@ import { MatMenuModule } from '@angular/material/menu';
       <!-- Sidebar -->
       <mat-sidenav #drawer mode="side" opened class="sidenav">
         <div class="sidenav-header">
-          <img src="assets/logo.jpeg" alt="Minas Argentinas S.A." class="sidebar-logo" />
+          <img src="assets/logochico.jpg" alt="Minas Argentinas S.A." class="sidebar-logo" />
          
         </div>
         
