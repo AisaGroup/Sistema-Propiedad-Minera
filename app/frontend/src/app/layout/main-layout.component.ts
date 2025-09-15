@@ -53,6 +53,22 @@ import { MatMenuModule } from '@angular/material/menu';
               <mat-icon>people</mat-icon>
               <span>Titulares Mineros</span>
             </button>
+            <button mat-menu-item routerLink="/titulares">
+              <mat-icon>people</mat-icon>
+              <span>Autoridad Minera</span>
+            </button>
+            <button mat-menu-item routerLink="/titulares">
+              <mat-icon matListItemIcon>folder</mat-icon>
+              <span>Expediente Tipo</span>
+            </button>            
+            <button mat-menu-item routerLink="/titulares">
+              <mat-icon matListItemIcon>folder</mat-icon>
+              <span>Notificación Tipo</span>
+            </button>     
+            <button mat-menu-item routerLink="/titulares">
+              <mat-icon matListItemIcon>folder</mat-icon>
+              <span>Alerta Tipo</span>
+            </button>                                    
             <button mat-menu-item routerLink="/auditoria">
               <mat-icon>history</mat-icon>
               <span>Auditoría</span>
