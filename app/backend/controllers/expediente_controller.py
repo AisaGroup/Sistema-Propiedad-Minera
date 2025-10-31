@@ -1,3 +1,5 @@
+from backend.repositories.expediente_respositorie import ExpedienteRepository
+from backend.services.expediente_report_service import render_expedientes_html
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 from backend.services.expediente_service import ExpedienteService
@@ -124,3 +126,10 @@ def listar_expedientes_por_propiedad_minera(id_propiedad: int, db: Session = Dep
     service = ExpedienteService(db)
     items = service.get_by_propiedad_minera(id_propiedad)
     return [ExpedienteRead.from_orm(e).dict() for e in items]
+
+# Endpoint para reporte HTML de expedientes
+@router.get("/reporte/html")
+def reporte_expedientes_html(db: Session = Depends(get_db)):
+    expedientes = ExpedienteRepository(db).get_all()
+    html_content = render_expedientes_html(expedientes)
+    return Response(content=html_content, media_type="text/html")

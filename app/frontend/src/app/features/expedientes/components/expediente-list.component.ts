@@ -1,4 +1,8 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { HttpClient } from '@angular/common/http';
+import html2pdf from 'html2pdf.js';
+import { API_BASE_URL } from '../../../core/api.constants';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -46,6 +50,10 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
             <button mat-raised-button color="primary" (click)="crearExpediente()">
               <mat-icon>add</mat-icon>
               Nuevo Expediente
+            </button>
+            <button mat-raised-button color="accent" (click)="descargarPDF()">
+              <mat-icon>print</mat-icon>
+              Imprimir
             </button>
           </div>
         </mat-card-header>
@@ -296,8 +304,31 @@ export class ExpedientesListComponent implements OnInit {
 
   constructor(
     private expedienteService: ExpedienteService,
-    private router: Router
+    private router: Router,
+    private http: HttpClient,
+    private sanitizer: DomSanitizer
   ) {}
+  descargarPDF() {
+    // Llama al endpoint del backend que devuelve el HTML del reporte
+    this.http.get(`${API_BASE_URL}/expedientes/reporte/html`, { responseType: 'text' }).subscribe({
+      next: (html) => {
+        const ventana = window.open('', '_blank');
+        if (ventana) {
+          ventana.document.write(html);
+          ventana.document.close();
+          // Espera a que cargue y convierte a PDF
+          ventana.onload = () => {
+            html2pdf().from(ventana.document.body).set({ filename: 'expedientes.pdf' }).save().then(() => {
+              ventana.close(); // Cierra la ventana después de descargar
+            });
+          };
+        }
+      },
+      error: (err) => {
+        console.error('Error al obtener el reporte HTML:', err);
+      }
+    });
+  }
 
   ngOnInit(): void {
     this.loadExpedientes();
