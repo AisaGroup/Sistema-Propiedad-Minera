@@ -13,7 +13,7 @@ import logging
 from backend.services.auth_jwt import get_current_user
 
 router = APIRouter(prefix="/archivos", tags=["archivos"])
-BASE_UPLOAD_DIR = r"C:\Users\SebastianCarlosFerna\Documents\Sistema-Propiedad-Minera\app\backend\uploads"
+BASE_UPLOAD_DIR = r"D:\Proyectos\Sistema-Propiedad-Minera\app\backend\uploads"
 os.makedirs(BASE_UPLOAD_DIR, exist_ok=True)
 
 # Endpoint genérico para subir archivos por entidad

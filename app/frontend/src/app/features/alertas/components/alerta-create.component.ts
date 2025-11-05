@@ -132,7 +132,7 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
   // Opciones para el menú desplegable de Medio
   opcionesMedio = [
     { value: 'Email', label: 'Email', disabled: false },
-    { value: 'Whatsapp', label: 'Whatsapp (no disponible)', disabled: true }
+    { value: 'Whatsapp', label: 'Whatsapp', disabled: false }
   ];
 
   constructor(
@@ -304,6 +304,7 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
   /**
    * Formatea el mensaje agregando la jerarquía de transacciones y la URL al final
    * Patrón: {Mensaje usuario}\n\nAlerta generada en /{Tabla2}{Detalle2}/{Tabla1}{Detalle1}/{Tabla}{Detalle}\nURL: [link]
+   * Si el medio es Whatsapp, formatea como texto plano. Si es Email, formatea como HTML.
    */
   private formatearMensaje(mensajeUsuario: string): string {
     if (!this.transaccionInfo || this.transaccionInfo.length === 0) {
@@ -317,8 +318,18 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
     
     // Generar la URL actual usando Location service
     const urlContexto = this.generarUrlContexto();
-    // Agregar la ruta y la URL al final del mensaje
-    return `<strong>${mensajeUsuario}.</strong> <br/> Alerta generada en ${rutaJerarquia}<br/><a href="${urlContexto}" target="_blank">Link de alerta.</a>`;
+    
+    // Obtener el medio seleccionado
+    const medio = this.form.get('Medio')?.value;
+    
+    // Formatear según el medio
+    if (medio === 'Whatsapp') {
+      // Formato de texto plano para WhatsApp
+      return `${mensajeUsuario}.\n\nAlerta generada en ${rutaJerarquia}\n\nLink de alerta: ${urlContexto}`;
+    } else {
+      // Formato HTML para Email (comportamiento actual)
+      return `<strong>${mensajeUsuario}.</strong> <br/> Alerta generada en ${rutaJerarquia}<br/><a href="${urlContexto}" target="_blank">Link de alerta.</a>`;
+    }
   }
 
   /**
