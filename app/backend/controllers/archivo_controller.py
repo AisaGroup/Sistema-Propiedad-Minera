@@ -16,6 +16,12 @@ load_dotenv()
 
 router = APIRouter(prefix="/archivos", tags=["archivos"])
 BASE_UPLOAD_DIR = os.getenv("FILEROUTE")
+if BASE_UPLOAD_DIR:
+    # Normalizar la ruta para evitar problemas con secuencias de escape
+    BASE_UPLOAD_DIR = os.path.normpath(BASE_UPLOAD_DIR)
+else:
+    # Ruta por defecto si no está definida en .env
+    BASE_UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "uploads")
 os.makedirs(BASE_UPLOAD_DIR, exist_ok=True)
 
 # Endpoint genérico para subir archivos por entidad
