@@ -44,7 +44,7 @@ testem.log
 __pycache__/
 .DS_Store
 Thumbs.db
-node_modules/
+**/node_modules/
 
 **/__pycache__/
 *.pyc
@@ -61,3 +61,4 @@ __pycache__/
 /app/frontend/.angular/cache/
 .angular/
 backend/test/testinfotransaccion.py
+.env
