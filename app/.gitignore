@@ -62,3 +62,6 @@ __pycache__/
 .angular/
 backend/test/testinfotransaccion.py
 .env
+
+# Angular build output
+/app/chunk-*.js
