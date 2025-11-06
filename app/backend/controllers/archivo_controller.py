@@ -11,9 +11,11 @@ import pytz
 from fastapi.responses import FileResponse
 import logging
 from backend.services.auth_jwt import get_current_user
+from  dotenv import load_dotenv
+load_dotenv()
 
 router = APIRouter(prefix="/archivos", tags=["archivos"])
-BASE_UPLOAD_DIR = r"D:\Proyectos\Sistema-Propiedad-Minera\app\backend\uploads"
+BASE_UPLOAD_DIR = os.getenv("FILEROUTE")
 os.makedirs(BASE_UPLOAD_DIR, exist_ok=True)
 
 # Endpoint genérico para subir archivos por entidad
