@@ -8,6 +8,7 @@ from fastapi import Query
 from backend.models.alerta_model import Alerta
 from backend.schemas.alerta_schema import AlertaOut
 from backend.services.auth_jwt import get_current_user
+from backend.services.audit_logger import AuditLogger
 
 router = APIRouter(prefix="/actas", tags=["Actas"])
 
@@ -85,7 +86,13 @@ def obtener_acta(id_acta: int, db: Session = Depends(get_db), current_user=Depen
 @router.post("", response_model=ActaRead)
 def crear_acta(acta_data: ActaCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     service = ActaService(db)
-    return service.create(acta_data)
+    acta = service.create(acta_data)
+    AuditLogger(db, current_user).log_creation(
+        entidad="Acta",
+        entity_id=acta.IdActa,
+        payload=getattr(acta_data, "model_dump", lambda: acta_data.dict())(),
+    )
+    return acta
 
 @router.put("/{id_acta}", response_model=ActaRead)
 def actualizar_acta(id_acta: int, acta_data: dict, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
@@ -93,6 +100,11 @@ def actualizar_acta(id_acta: int, acta_data: dict, db: Session = Depends(get_db)
     updated = service.update(id_acta, acta_data)
     if not updated:
         raise HTTPException(status_code=404, detail="Acta no encontrada")
+    AuditLogger(db, current_user).log_update(
+        entidad="Acta",
+        entity_id=id_acta,
+        changes=acta_data,
+    )
     return updated
 
 @router.delete("/{id_acta}")
@@ -101,4 +113,8 @@ def borrar_acta(id_acta: int, db: Session = Depends(get_db), current_user=Depend
     deleted = service.delete(id_acta)
     if not deleted:
         raise HTTPException(status_code=404, detail="Acta no encontrada")
+    AuditLogger(db, current_user).log_deletion(
+        entidad="Acta",
+        entity_id=id_acta,
+    )
     return {"ok": True}
