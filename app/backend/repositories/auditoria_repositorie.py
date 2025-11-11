@@ -11,7 +11,12 @@ class AuditoriaRepositorie:
         return self.db.query(Auditoria).filter(Auditoria.IdAuditoria == id_auditoria).first()
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Auditoria]:
-        return self.db.query(Auditoria).offset(skip).limit(limit).all()
+        query = self.db.query(Auditoria).order_by(Auditoria.AudFecha.desc())
+        if skip:
+            query = query.offset(skip)
+        if limit:
+            query = query.limit(limit)
+        return query.all()
 
     def create(self, auditoria: AuditoriaCreate) -> Auditoria:
         db_obj = Auditoria(**auditoria.model_dump())

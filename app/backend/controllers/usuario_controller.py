@@ -10,12 +10,25 @@ from datetime import datetime, timedelta
 from fastapi import status
 from backend.services.auth_jwt import get_current_user
 from backend.services.auth_jwt import require_role
+from backend.services.audit_logger import AuditLogger
 from backend.config_jwt import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter(
     prefix="/usuarios",
     tags=["Usuarios"]
 )
+
+def _pydantic_to_dict(model, *, exclude_none: bool = False):
+    if model is None:
+        return {}
+    if hasattr(model, "model_dump"):
+        return model.model_dump(exclude_none=exclude_none)
+    if hasattr(model, "dict"):
+        return model.dict(exclude_none=exclude_none)
+    try:
+        return dict(model)
+    except TypeError:
+        return {"value": model}
 
 class CambiarPasswordRequest(BaseModel):
     password_actual: str
@@ -73,6 +86,11 @@ def obtener_usuario_por_username(nombre_usuario: str, db: Session = Depends(get_
 def crear_usuario(usuario: UsuarioCreate, db: Session = Depends(get_db), current_user=Depends(require_role('Administrador'))):
     try:
         nuevo_usuario = usuario_service.create_usuario(db, usuario)
+        AuditLogger(db, current_user).log_creation(
+            entidad="Usuario",
+            entity_id=nuevo_usuario.IdUsuario,
+            payload=_pydantic_to_dict(usuario),
+        )
         return nuevo_usuario
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -85,6 +103,11 @@ def actualizar_usuario(id_usuario: int, usuario: UsuarioUpdate, db: Session = De
         usuario_actualizado = usuario_service.update_usuario(db, id_usuario, usuario)
         if usuario_actualizado is None:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        AuditLogger(db, current_user).log_update(
+            entidad="Usuario",
+            entity_id=id_usuario,
+            changes=_pydantic_to_dict(usuario, exclude_none=True),
+        )
         return usuario_actualizado
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -97,6 +120,10 @@ def eliminar_usuario(id_usuario: int, db: Session = Depends(get_db), current_use
         resultado = usuario_service.delete_usuario(db, id_usuario)
         if not resultado:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        AuditLogger(db, current_user).log_deletion(
+            entidad="Usuario",
+            entity_id=id_usuario,
+        )
         return {"message": "Usuario eliminado correctamente"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -112,12 +139,14 @@ def login_usuario(usuario_login: UsuarioLogin, db: Session = Depends(get_db)):
             "sub": usuario.NombreUsuario,
             "rol": usuario.Rol,
             "nombre": usuario.NombreCompleto,
+            "id": usuario.IdUsuario,
             "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         }
         access_token = jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
         return {"access_token": access_token, "token_type": "bearer", "user": {
             "nombre": usuario.NombreCompleto,
-            "rol": usuario.Rol
+            "rol": usuario.Rol,
+            "id": usuario.IdUsuario
         }}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Error de validación: {str(e)}")
@@ -142,6 +171,11 @@ def cambiar_password(
         )
         if usuario_actualizado is None:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        AuditLogger(db, current_user).log_update(
+            entidad="Usuario",
+            entity_id=id_usuario,
+            changes={"password_cambiada": True},
+        )
         return usuario_actualizado
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -161,6 +195,11 @@ def activar_desactivar_usuario(
         )
         if usuario_actualizado is None:
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        AuditLogger(db, current_user).log_update(
+            entidad="Usuario",
+            entity_id=id_usuario,
+            changes={"Activo": request.activo},
+        )
         return usuario_actualizado
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
