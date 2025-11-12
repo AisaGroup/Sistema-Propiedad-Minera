@@ -59,6 +59,7 @@ def obtener_propiedad(id_propiedad: int, db: Session = Depends(get_db)):
 
 
 @router.post("/", response_model=PropiedadMineraRead)
+@router.post("", response_model=PropiedadMineraRead)
 def crear_propiedad(
     propiedad_data: PropiedadMineraCreate,
     db: Session = Depends(get_db),
