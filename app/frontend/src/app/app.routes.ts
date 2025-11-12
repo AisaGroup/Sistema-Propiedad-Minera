@@ -55,6 +55,10 @@ export const routes: Routes = [
       {
         path: 'notificaciones',
         loadChildren: () => import('./features/notificaciones/routes/notificaciones.routes').then(r => r.NOTIFICACIONES_ROUTES)
+      },
+      {
+        path: 'auditorias',
+        loadChildren: () => import('./features/auditorias/routes/auditorias.routes').then(r => r.AUDITORIAS_ROUTES)
       }
     ]
   }
