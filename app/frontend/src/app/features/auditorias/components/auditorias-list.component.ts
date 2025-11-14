@@ -24,13 +24,20 @@ type AuditoriaView = AuditoriaRaw & {
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    MatButtonModule
+    MatButtonModule,
   ],
   templateUrl: './auditorias-list.component.html',
-  styleUrls: ['./auditorias-list.component.scss']
+  styleUrls: ['./auditorias-list.component.scss'],
 })
 export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy {
-  displayedColumns: string[] = ['IdAuditoria', 'Accion', 'Entidad', 'AudFecha', 'AudUsuario', 'Descripcion'];
+  displayedColumns: string[] = [
+    'IdAuditoria',
+    'Accion',
+    'Entidad',
+    'AudFecha',
+    'AudUsuario',
+    'Descripcion',
+  ];
   dataSource = new MatTableDataSource<AuditoriaView>([]);
 
   loading = false;
@@ -70,7 +77,7 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
         console.error('Error al cargar auditorías:', err);
         this.error = 'Ocurrió un error al cargar las auditorías.';
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -89,7 +96,7 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
   private toViewModel(raw: AuditoriaRaw): AuditoriaView {
     return {
       ...raw,
-      descripcionEntries: this.parseDescripcion(raw.Descripcion)
+      descripcionEntries: this.parseDescripcion(raw.Descripcion),
     };
   }
 
@@ -106,26 +113,30 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
       return [
         {
           label: 'Detalle',
-          value: descripcion
-        }
+          value: descripcion,
+        },
       ];
     }
   }
 
   private flattenDescripcion(value: unknown, prefix = ''): AuditoriaDescripcionEntry[] {
     if (value === null || value === undefined) {
-      return [{
-        label: this.cleanLabel(prefix) || 'Valor',
-        value: 'Sin datos'
-      }];
+      return [
+        {
+          label: this.cleanLabel(prefix) || 'Valor',
+          value: 'Sin datos',
+        },
+      ];
     }
 
     if (Array.isArray(value)) {
       if (value.length === 0) {
-        return [{
-          label: this.cleanLabel(prefix) || 'Valor',
-          value: '[]'
-        }];
+        return [
+          {
+            label: this.cleanLabel(prefix) || 'Valor',
+            value: '[]',
+          },
+        ];
       }
 
       return value.flatMap((item, index) =>
@@ -140,10 +151,12 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
       });
     }
 
-    return [{
-      label: this.cleanLabel(prefix) || 'Valor',
-      value: String(value)
-    }];
+    return [
+      {
+        label: this.cleanLabel(prefix) || 'Valor',
+        value: String(value),
+      },
+    ];
   }
 
   private cleanLabel(label: string): string {
@@ -151,4 +164,3 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
     return label.replace(/^(data|changes)\./i, '');
   }
 }
-
