@@ -14,6 +14,7 @@ from typing import List
 from fastapi import Query
 from typing import Dict, Any
 from backend.services.auth_jwt import get_current_user
+from backend.services.audit_logger import AuditLogger
 from backend.repositories.propiedad_minera_repositorie import PropiedadMineraRepositorie
 from backend.models.tipo_expediente_model import TipoExpediente
 
@@ -100,25 +101,53 @@ def obtener_expediente(id_expediente: int, db: Session = Depends(get_db)):
     return expediente_data
 
 @router.post("/", response_model=ExpedienteRead)
-def crear_expediente(expediente_data: ExpedienteCreate, db: Session = Depends(get_db)):
+def crear_expediente(
+    expediente_data: ExpedienteCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     print('DEBUG Expediente recibido:', expediente_data)
     service = ExpedienteService(db)
-    return service.create(expediente_data)
+    expediente = service.create(expediente_data)
+    AuditLogger(db, current_user).log_creation(
+        entidad="Expediente",
+        entity_id=expediente.IdExpediente,
+        payload=expediente_data.model_dump(),
+    )
+    return expediente
 
 @router.put("/{id_expediente}", response_model=ExpedienteRead)
-def actualizar_expediente(id_expediente: int, expediente_data: dict, db: Session = Depends(get_db)):
+def actualizar_expediente(
+    id_expediente: int,
+    expediente_data: dict,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     service = ExpedienteService(db)
     updated = service.update(id_expediente, expediente_data)
     if not updated:
         raise HTTPException(status_code=404, detail="Expediente no encontrado")
+    AuditLogger(db, current_user).log_update(
+        entidad="Expediente",
+        entity_id=id_expediente,
+        changes=expediente_data,
+    )
     return updated
 
 @router.delete("/{id_expediente}")
-def borrar_expediente(id_expediente: int, db: Session = Depends(get_db)):
+def borrar_expediente(
+    id_expediente: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     service = ExpedienteService(db)
     deleted = service.delete(id_expediente)
     if not deleted:
         raise HTTPException(status_code=404, detail="Expediente no encontrado")
+    AuditLogger(db, current_user).log_deletion(
+        entidad="Expediente",
+        entity_id=id_expediente,
+    )
     return {"ok": True}
 
 @router.get("/propiedad-minera/{id_propiedad}", response_model=List[ExpedienteRead])
