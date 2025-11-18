@@ -5,10 +5,10 @@ export interface AuditoriaRaw {
   Descripcion: string | null;
   AudFecha: string | null;
   AudUsuario: number | null;
+  UsuarioNombre: string | null;
 }
 
 export type AuditoriaDescripcionEntry = {
   label: string;
   value: string;
 };
-
