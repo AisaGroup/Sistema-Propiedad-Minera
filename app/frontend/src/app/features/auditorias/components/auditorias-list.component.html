@@ -59,11 +59,15 @@
         <ng-container matColumnDef="AudUsuario">
           <th mat-header-cell *matHeaderCellDef>Usuario</th>
           <td mat-cell *matCellDef="let auditoria">
-            {{
-              auditoria.AudUsuario !== null && auditoria.AudUsuario !== undefined
-                ? auditoria.AudUsuario
-                : 'Sin dato'
-            }}
+            @if (auditoria.AudUsuario !== null && auditoria.AudUsuario !== undefined) {
+              @if (auditoria.UsuarioNombre) {
+                <span>{{ auditoria.UsuarioNombre }} (ID: {{ auditoria.AudUsuario }})</span>
+              } @else {
+                <span>ID: {{ auditoria.AudUsuario }}</span>
+              }
+            } @else {
+              <span>Sin dato</span>
+            }
           </td>
         </ng-container>
 

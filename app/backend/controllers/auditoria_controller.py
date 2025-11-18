@@ -31,7 +31,8 @@ def list_auditorias(
     paginated_items = items[start:end+1]
     if response is not None:
         response.headers["Content-Range"] = f"auditorias {start}-{end}/{total}"
-    return paginated_items
+    # Convierte los diccionarios a modelos Pydantic para la serialización correcta
+    return [AuditoriaOut(**item) for item in paginated_items]
 
 @router.get("/{id}", response_model=AuditoriaOut)
 def get_auditoria(id: int, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):
