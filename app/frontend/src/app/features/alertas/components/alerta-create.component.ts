@@ -65,10 +65,23 @@ import { TransaccionService, TransaccionInfo } from '../../transacciones/service
       </div>
       <div class="row-fields">
         <mat-form-field appearance="fill" class="full-width">
-          <mat-label>Destinatarios</mat-label>
-          <textarea matInput formControlName="Destinatarios" rows="3" maxlength="5000" required></textarea>
-          <mat-error *ngIf="form.get('Destinatarios')?.invalid && form.get('Destinatarios')?.touched">
-            El destinatario es requerido.
+          <mat-label>{{ getLabelDestinatarios() }}</mat-label>
+          <textarea 
+            matInput 
+            formControlName="Destinatarios" 
+            rows="3" 
+            maxlength="5000" 
+            required
+            [placeholder]="getPlaceholderDestinatarios()">
+          </textarea>
+          <mat-hint *ngIf="form.get('Destinatarios')?.valid && form.get('Medio')?.value === 'Whatsapp'">
+            Ingrese un único número con código de país
+          </mat-hint>
+          <mat-hint *ngIf="form.get('Destinatarios')?.valid && form.get('Medio')?.value === 'Email'">
+            Puede ingresar múltiples emails separados por comas
+          </mat-hint>
+          <mat-error *ngIf="form.get('Destinatarios')?.invalid">
+            {{ getErrorDestinatarios() }}
           </mat-error>
         </mat-form-field>
       </div>
@@ -105,6 +118,24 @@ import { TransaccionService, TransaccionInfo } from '../../transacciones/service
     .full-width { width: 100%; }
     .button-row { display: flex; justify-content: center; margin-top: 2rem; }
     .close-btn { display: block; margin: 1.5rem auto 1.5rem auto; position: static; background: #fff; border-radius: 6px; z-index: 2; }
+    
+    /* Estilos para errores visibles */
+    mat-error {
+      display: block !important;
+      color: #f44336 !important;
+      font-size: 0.75rem !important;
+      margin-top: 4px !important;
+    }
+    
+    mat-hint {
+      color: #666 !important;
+      font-size: 0.75rem !important;
+    }
+    
+    /* Resaltar campo con error */
+    .mat-mdc-form-field.mat-form-field-invalid .mat-mdc-text-field-wrapper {
+      border-color: #f44336 !important;
+    }
   `],
   animations: [
     trigger('fadeInUp', [
@@ -167,18 +198,18 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
     this.estadoAlertaService.getEstadosAlerta().subscribe(estados => this.estadosAlerta = estados);
     this.periodicidadAlertaService.getPeriodicidades().subscribe(periodicidades => this.periodicidades = periodicidades);
     
+    // Aplicar validaciones iniciales según el medio por defecto
+    const medioInicial = this.form.get('Medio')?.value || 'Email';
+    this.actualizarValidacionesDestinatarios(medioInicial);
+    
     // Escuchar cambios en el campo de periodicidad para validaciones dinámicas
     this.form.get('IdPeriodicidad')?.valueChanges.subscribe(value => {
       this.actualizarValidacionesDiasPers(value);
     });
     
-    // Validación para el campo Destinatarios
-    this.form.get('Destinatarios')?.valueChanges.subscribe(value => {
-      if (!value) {
-        this.form.get('Destinatarios')?.setErrors({ required: true });
-      } else {
-        this.form.get('Destinatarios')?.setErrors(null);
-      }
+    // Cambios en Medio (Email/Whatsapp) para validaciones dinámicas
+    this.form.get('Medio')?.valueChanges.subscribe(medio => {
+      this.actualizarValidacionesDestinatarios(medio);
     });
     
     if (this.idTransaccion) {
@@ -366,6 +397,13 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
     
     if (this.form.invalid) {
       console.log('Formulario de alerta inválido - deteniendo');
+      console.log('Errores por campo:');
+      Object.keys(this.form.controls).forEach(key => {
+        const control = this.form.get(key);
+        if (control?.invalid) {
+          console.log(`  ${key}:`, control.errors);
+        }
+      });
       this.form.markAllAsTouched();
       return;
     }
@@ -437,6 +475,7 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
       });
     }
   }
+  
 
   // Función para determinar si se debe mostrar el campo de días personalizados
   mostrarDiasPersonalizados(): boolean {
@@ -458,5 +497,79 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
     }
     
     diasPersControl?.updateValueAndValidity();
+  }
+
+  /**
+   * Actualiza las validaciones del campo Destinatarios según el medio seleccionado
+   */
+  actualizarValidacionesDestinatarios(medio: string): void {
+    const destinatariosControl = this.form.get('Destinatarios');
+    console.log('[DEBUG] Actualizando validaciones para medio:', medio);
+    console.log('[DEBUG] Valor actual de Destinatarios:', destinatariosControl?.value);
+    
+    if (medio === 'Whatsapp') {
+      // Para WhatsApp, validar formato de un único número telefónico
+      // Formato esperado: +549XXXXXXXXXX (un solo número, sin espacios ni letras)
+      destinatariosControl?.setValidators([
+        Validators.required,
+        Validators.pattern(/^\+?\d{10,15}$/)
+      ]);
+    } else {
+      // Para Email, validar formato de correos electrónicos (uno o múltiples separados por comas)
+      // Formato esperado: email@dominio.com o email1@dominio.com, email2@dominio.com
+      // Regex más estricto: requiere usuario, @, dominio y extensión válida
+      destinatariosControl?.setValidators([
+        Validators.required,
+        Validators.pattern(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(\s*,\s*[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})*$/)
+      ]);
+    }
+    
+    // Marcar el campo como touched y dirty para mostrar errores inmediatamente
+    destinatariosControl?.markAsTouched();
+    destinatariosControl?.markAsDirty();
+    destinatariosControl?.updateValueAndValidity();
+    
+    console.log('[DEBUG] Validaciones aplicadas. Campo válido:', destinatariosControl?.valid);
+    console.log('[DEBUG] Errores:', destinatariosControl?.errors);
+  }
+
+  /**
+   * Obtiene el label dinámico para el campo Destinatarios según el medio
+   */
+  getLabelDestinatarios(): string {
+    const medio = this.form.get('Medio')?.value;
+    return medio === 'Whatsapp' ? 'Número de WhatsApp' : 'Destinatarios (Email)';
+  }
+
+  /**
+   * Obtiene el placeholder dinámico para el campo Destinatarios según el medio
+   */
+  getPlaceholderDestinatarios(): string {
+    const medio = this.form.get('Medio')?.value;
+    return medio === 'Whatsapp' 
+      ? 'Ej: +5493515123456' 
+      : 'Ej: usuario@ejemplo.com, otro@ejemplo.com';
+  }
+
+  /**
+   * Obtiene el mensaje de error dinámico para el campo Destinatarios
+   */
+  getErrorDestinatarios(): string {
+    const destinatariosControl = this.form.get('Destinatarios');
+    const medio = this.form.get('Medio')?.value;
+    
+    if (destinatariosControl?.hasError('required')) {
+      return medio === 'Whatsapp' 
+        ? 'El número de WhatsApp es requerido' 
+        : 'Los correos electrónicos son requeridos';
+    }
+    
+    if (destinatariosControl?.hasError('pattern')) {
+      return medio === 'Whatsapp'
+        ? 'Formato inválido. Use un número con código de país (Ej: +5493515123456)'
+        : 'Formato de email inválido. Use formato válido (Ej: usuario@ejemplo.com, otro@ejemplo.com)';
+    }
+    
+    return 'El destinatario es requerido.';
   }
 }
