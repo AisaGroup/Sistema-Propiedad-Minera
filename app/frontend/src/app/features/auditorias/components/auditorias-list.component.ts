@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -29,7 +29,7 @@ type AuditoriaView = AuditoriaRaw & {
   templateUrl: './auditorias-list.component.html',
   styleUrls: ['./auditorias-list.component.scss'],
 })
-export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy {
+export class AuditoriasListComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = [
     'IdAuditoria',
     'Accion',
@@ -46,16 +46,20 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
 
   private subscription?: Subscription;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  private _paginator?: MatPaginator;
+
+  @ViewChild(MatPaginator)
+  set paginator(paginator: MatPaginator | undefined) {
+    if (paginator) {
+      this._paginator = paginator;
+      this.dataSource.paginator = paginator;
+    }
+  }
 
   constructor(private auditoriaService: AuditoriaService) {}
 
   ngOnInit(): void {
     this.fetchAuditorias();
-  }
-
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
   }
 
   ngOnDestroy(): void {
