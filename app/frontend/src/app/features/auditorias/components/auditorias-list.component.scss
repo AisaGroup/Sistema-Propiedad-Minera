@@ -175,6 +175,22 @@
   gap: 12px;
 }
 
+.detalle-contenedor {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(8px);
+  overflow: hidden;
+  transition: max-height 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    opacity 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.detalle-contenedor.is-visible {
+  max-height: 500px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .detalle-toggle {
   align-self: flex-start;
   display: inline-flex;
@@ -206,4 +222,3 @@
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   }
 }
-
