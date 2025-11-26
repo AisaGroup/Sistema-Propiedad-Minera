@@ -56,13 +56,9 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <th mat-header-cell *matHeaderCellDef>ID</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.idAlerta }}</td>
           </ng-container> -->
-          <ng-container matColumnDef="FechaInicio">
-            <th mat-header-cell *matHeaderCellDef>Fecha de inicio</th>
-            <td mat-cell *matCellDef="let alerta">{{ alerta.FechaInicio ? (alerta.FechaInicio | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="FechaFin">
-            <th mat-header-cell *matHeaderCellDef>Fecha fin</th>
-            <td mat-cell *matCellDef="let alerta">{{ alerta.FechaFin ? (alerta.FechaFin | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
+          <ng-container matColumnDef="AudFecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
+            <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha ? (alerta.AudFecha | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
           </ng-container>
           <ng-container matColumnDef="Estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -117,7 +113,7 @@ export class AlertasGlobalListComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
   loading = false;
-  displayedColumns: string[] = ['FechaInicio', 'FechaFin', 'Estado', 'Asunto', 'Mensaje'];
+  displayedColumns: string[] = ['AudFecha', 'Estado', 'Asunto', 'Mensaje'];
   
   // Filtro por estado
   estadosAlerta: any[] = [];
@@ -152,7 +148,14 @@ export class AlertasGlobalListComponent implements OnInit {
     
     this.alertaGlobalService.getAllPaginated(page, size, estadoParam).subscribe({
       next: (resp) => {
-        this.alertas = resp.data;
+        // Ordenar alertas por fecha de auditoría descendente (más reciente primero)
+        const datosOrdenados = resp.data.sort((a: any, b: any) => {
+          const fechaA = new Date(a.AudFecha).getTime();
+          const fechaB = new Date(b.AudFecha).getTime();
+          return fechaB - fechaA; // Descendente: más reciente primero
+        });
+        
+        this.alertas = datosOrdenados;
         this.totalAlertas = resp.total;
         this.loading = false;
       },

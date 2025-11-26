@@ -1,6 +1,6 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
@@ -52,8 +52,8 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
           <mat-spinner diameter="32"></mat-spinner>
           <p>Cargando alertas...</p>
         </div>
-        <div class="table-container" *ngIf="alertas.length > 0 && !loading">
-          <table mat-table [dataSource]="alertas" class="alertas-table mat-elevation-4">
+        <div class="table-container" *ngIf="dataSource.data.length > 0 && !loading">
+          <table mat-table [dataSource]="dataSource" class="alertas-table mat-elevation-4">
             <ng-container matColumnDef="Fecha de Creación">
               <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
               <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha | date: 'short' }}</td>
@@ -85,7 +85,7 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
           </table>
         </div>
-        <div *ngIf="alertas.length === 0 && !loading" class="no-data">
+        <div *ngIf="dataSource.data.length === 0 && !loading" class="no-data">
           <mat-icon>info</mat-icon>
           <p>No hay alertas asociadas a este expediente.</p>
         </div>
@@ -110,6 +110,7 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
 })
 export class AlertasListComponent implements OnInit, OnChanges {
   alertas: any[] = [];
+  dataSource = new MatTableDataSource<any>([]);
   totalAlertas = 0;
   pageSize = 5;
   currentPage = 0;
@@ -149,12 +150,21 @@ export class AlertasListComponent implements OnInit, OnChanges {
     this.loading = true;
     this.alertaService.getByTransaccion(this.idTransaccion, page, size).subscribe({
       next: (resp) => {
-        this.alertas = resp.data;
+        // Ordenar por fecha descendente (más recientes primero)
+        const datosOrdenados = resp.data.sort((a: any, b: any) => {
+          const fechaA = new Date(a.AudFecha).getTime();
+          const fechaB = new Date(b.AudFecha).getTime();
+          return fechaB - fechaA;
+        });
+        
+        this.alertas = datosOrdenados;
+        this.dataSource.data = datosOrdenados;
         this.totalAlertas = resp.total;
         this.loading = false;
       },
       error: () => {
         this.alertas = [];
+        this.dataSource.data = [];
         this.totalAlertas = 0;
         this.loading = false;
       }
