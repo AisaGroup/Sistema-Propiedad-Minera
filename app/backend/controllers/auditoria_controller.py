@@ -40,7 +40,7 @@ def get_auditoria(id: int, db: Session = Depends(get_db), current_user: int = De
     obj = service.get_auditoria(id)
     if not obj:
         raise HTTPException(status_code=404, detail="Auditoria not found")
-    return obj
+    return AuditoriaOut(**obj)
 
 @router.post("/", response_model=AuditoriaOut)
 def create_auditoria(auditoria: AuditoriaCreate, db: Session = Depends(get_db), current_user: int = Depends(get_current_user)):

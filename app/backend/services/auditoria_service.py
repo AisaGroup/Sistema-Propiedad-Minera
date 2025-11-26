@@ -7,7 +7,7 @@ class AuditoriaService:
     def __init__(self, db: Session):
         self.repo = AuditoriaRepositorie(db)
 
-    def get_auditoria(self, id_auditoria: int):
+    def get_auditoria(self, id_auditoria: int) -> Dict[str, Any]:
         return self.repo.get(id_auditoria)
 
     def get_auditorias(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:

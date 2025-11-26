@@ -8,8 +8,28 @@ class AuditoriaRepositorie:
     def __init__(self, db: Session):
         self.db = db
 
-    def get(self, id_auditoria: int) -> Optional[Auditoria]:
-        return self.db.query(Auditoria).filter(Auditoria.IdAuditoria == id_auditoria).first()
+    def get(self, id_auditoria: int) -> Optional[Dict[str, Any]]:
+        query = (
+            self.db.query(
+                Auditoria,
+                Usuario.NombreCompleto.label("UsuarioNombre")
+            )
+            .outerjoin(Usuario, Auditoria.AudUsuario == Usuario.IdUsuario)
+            .filter(Auditoria.IdAuditoria == id_auditoria)
+        )
+        result = query.first()
+        if not result:
+            return None
+        aud, nombre = result
+        return {
+            "IdAuditoria": aud.IdAuditoria,
+            "Accion": aud.Accion,
+            "Entidad": aud.Entidad,
+            "Descripcion": aud.Descripcion,
+            "AudFecha": aud.AudFecha,
+            "AudUsuario": aud.AudUsuario,
+            "UsuarioNombre": nombre if nombre else None
+        }
 
     def get_all(self, skip: int = 0, limit: int = 100) -> List[Dict[str, Any]]:
         """
