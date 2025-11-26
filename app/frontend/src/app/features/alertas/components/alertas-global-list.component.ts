@@ -72,6 +72,14 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <th mat-header-cell *matHeaderCellDef>Mensaje</th>
             <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Mensaje"></td>
           </ng-container>
+          <ng-container matColumnDef="Medio">
+              <th mat-header-cell *matHeaderCellDef>Medio</th>
+              <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Medio"></td>
+            </ng-container>
+            <ng-container matColumnDef="Destinatarios">
+              <th mat-header-cell *matHeaderCellDef>Destinatarios</th>
+              <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Destinatarios"></td>
+            </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
@@ -113,7 +121,7 @@ export class AlertasGlobalListComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
   loading = false;
-  displayedColumns: string[] = ['AudFecha', 'Estado', 'Asunto', 'Mensaje'];
+  displayedColumns: string[] = ['AudFecha', 'Estado', 'Asunto', 'Mensaje','Medio','Destinatarios'];
   
   // Filtro por estado
   estadosAlerta: any[] = [];
