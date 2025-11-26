@@ -42,6 +42,7 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
 
   loading = false;
   error: string | null = null;
+  expandedAuditoriaId: number | null = null;
 
   private subscription?: Subscription;
 
@@ -91,6 +92,16 @@ export class AuditoriasListComponent implements OnInit, AfterViewInit, OnDestroy
 
   trackByEntry(_: number, entry: AuditoriaDescripcionEntry): string {
     return `${entry.label}-${entry.value}`;
+  }
+
+  isDetalleVisible(auditoria: AuditoriaView): boolean {
+    return this.expandedAuditoriaId === auditoria.IdAuditoria;
+  }
+
+  toggleDetalle(auditoria: AuditoriaView, event: MouseEvent): void {
+    event.stopPropagation();
+    this.expandedAuditoriaId =
+      this.expandedAuditoriaId === auditoria.IdAuditoria ? null : auditoria.IdAuditoria;
   }
 
   private toViewModel(raw: AuditoriaRaw): AuditoriaView {
