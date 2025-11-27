@@ -40,6 +40,7 @@
 .table-wrapper {
   position: relative;
   overflow: hidden;
+  margin-top: 8px;
 
   table {
     width: 100%;
@@ -100,6 +101,43 @@
       color: #416759;
     }
   }
+}
+
+.filters-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  margin-bottom: 8px;
+  border-radius: 12px;
+  border: 1px solid #e0ece7;
+  background-color: #d1fae5;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-spacer {
+  flex: 1;
+}
+
+.results-counter {
+  font-weight: 600;
+  color: #1f4136;
+}
+
+.date-range-field .mat-date-range-input {
+  --mat-date-range-input-separator-color: #6a7d74;
 }
 
 .id-pill {
@@ -221,6 +259,10 @@
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+  }
+
+  .filters-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 
   .descripcion-grid {

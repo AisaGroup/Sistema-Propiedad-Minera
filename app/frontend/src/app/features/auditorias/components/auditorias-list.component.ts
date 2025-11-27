@@ -1,12 +1,19 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { AuditoriaService } from '../services/auditoria.service';
 import { AuditoriaDescripcionEntry, AuditoriaRaw } from '../models/auditoria.model';
 
@@ -15,17 +22,31 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
   descripcionEntries: AuditoriaDescripcionEntry[];
 };
 
+type FilterFormValue = {
+  usuario: string;
+  entidad: string;
+  accion: string;
+  fechaDesde: Date | null;
+  fechaHasta: Date | null;
+};
+
 @Component({
   selector: 'app-auditorias-list',
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
   templateUrl: './auditorias-list.component.html',
   styleUrls: ['./auditorias-list.component.scss'],
@@ -41,11 +62,17 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   ];
   dataSource = new MatTableDataSource<AuditoriaView>([]);
 
+  filterForm: FormGroup;
+  availableAcciones: string[] = [];
+  totalItems = 0;
+
   loading = false;
   error: string | null = null;
   expandedAuditoriaId: number | null = null;
 
-  private subscription?: Subscription;
+  private dataSubscription?: Subscription;
+  private filterSubscription?: Subscription;
+  private allAuditorias: AuditoriaView[] = [];
 
   private _paginator?: MatPaginator;
 
@@ -57,23 +84,40 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private auditoriaService: AuditoriaService) {}
+  get paginator(): MatPaginator | undefined {
+    return this._paginator;
+  }
+
+  constructor(private auditoriaService: AuditoriaService, private fb: FormBuilder) {
+    this.filterForm = this.fb.group({
+      usuario: [''],
+      entidad: [''],
+      accion: [''],
+      fechaDesde: [null],
+      fechaHasta: [null],
+    });
+  }
 
   ngOnInit(): void {
+    this.setupFilterListener();
     this.fetchAuditorias();
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    this.dataSubscription?.unsubscribe();
+    this.filterSubscription?.unsubscribe();
   }
 
   fetchAuditorias(): void {
     this.loading = true;
     this.error = null;
 
-    this.subscription = this.auditoriaService.getAuditorias().subscribe({
+    this.dataSubscription = this.auditoriaService.getAuditorias().subscribe({
       next: (auditorias) => {
-        this.dataSource.data = auditorias.map((item) => this.toViewModel(item));
+        this.allAuditorias = auditorias.map((item) => this.toViewModel(item));
+        this.totalItems = this.allAuditorias.length;
+        this.updateAvailableAcciones();
+        this.applyFilters(false);
         if (this.paginator) {
           this.paginator.firstPage();
         }
@@ -85,6 +129,28 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
     });
+  }
+
+  clearFilters(): void {
+    this.filterForm.reset({
+      usuario: '',
+      entidad: '',
+      accion: '',
+      fechaDesde: null,
+      fechaHasta: null,
+    });
+  }
+
+  get hasActiveFilters(): boolean {
+    const { usuario, entidad, accion, fechaDesde, fechaHasta } = this.filterForm
+      .value as FilterFormValue;
+    return Boolean(
+      (usuario && usuario.trim()) ||
+        (entidad && entidad.trim()) ||
+        accion ||
+        fechaDesde ||
+        fechaHasta
+    );
   }
 
   getAccionClass(accion: string | null | undefined): string {
@@ -107,6 +173,91 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.expandedAuditoriaId =
       this.expandedAuditoriaId === auditoria.IdAuditoria ? null : auditoria.IdAuditoria;
+  }
+
+  private setupFilterListener(): void {
+    this.filterSubscription = this.filterForm.valueChanges
+      .pipe(debounceTime(250))
+      .subscribe(() => this.applyFilters());
+  }
+
+  private applyFilters(resetPaginator = true): void {
+    const filteredData = this.filterAuditorias();
+    this.dataSource.data = filteredData;
+    if (resetPaginator && this.paginator) {
+      this.paginator.firstPage();
+    }
+  }
+
+  private filterAuditorias(): AuditoriaView[] {
+    if (!this.allAuditorias.length) {
+      return [];
+    }
+
+    const { usuario, entidad, accion, fechaDesde, fechaHasta } = this.filterForm
+      .value as FilterFormValue;
+    const usuarioFilter = (usuario || '').trim().toLowerCase();
+    const entidadFilter = (entidad || '').trim().toLowerCase();
+    const accionFilter = (accion || '').trim().toLowerCase();
+
+    const startDate = fechaDesde ? this.startOfDay(fechaDesde).getTime() : null;
+    const endDate = fechaHasta ? this.endOfDay(fechaHasta).getTime() : null;
+
+    return this.allAuditorias.filter((auditoria) => {
+      const matchesUsuario = usuarioFilter
+        ? this.matchesText(auditoria.UsuarioNombre, usuarioFilter) ||
+          this.matchesText(
+            auditoria.AudUsuario !== null && auditoria.AudUsuario !== undefined
+              ? String(auditoria.AudUsuario)
+              : null,
+            usuarioFilter
+          )
+        : true;
+
+      const matchesEntidad = entidadFilter
+        ? this.matchesText(auditoria.Entidad, entidadFilter)
+        : true;
+      const matchesAccion = accionFilter
+        ? (auditoria.Accion || '').toLowerCase() === accionFilter
+        : true;
+
+      const matchesFecha = this.matchesDateRange(auditoria.AudFecha, startDate, endDate);
+
+      return matchesUsuario && matchesEntidad && matchesAccion && matchesFecha;
+    });
+  }
+
+  private matchesText(value: string | null | undefined, filter: string): boolean {
+    return (value || '').toLowerCase().includes(filter);
+  }
+
+  private matchesDateRange(date: Date | null, start: number | null, end: number | null): boolean {
+    if (!start && !end) {
+      return true;
+    }
+    if (!date) {
+      return false;
+    }
+    const time = date.getTime();
+    if (start && time < start) {
+      return false;
+    }
+    if (end && time > end) {
+      return false;
+    }
+    return true;
+  }
+
+  private startOfDay(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
+  }
+
+  private endOfDay(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(23, 59, 59, 999);
+    return newDate;
   }
 
   private parseAudFecha(value: string | null): Date | null {
@@ -191,5 +342,16 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   private cleanLabel(label: string): string {
     // Saco el prefijo "data." o "changes." del principio de la etiqueta
     return label.replace(/^(data|changes)\./i, '');
+  }
+
+  private updateAvailableAcciones(): void {
+    const uniqueAcciones = new Set(
+      this.allAuditorias
+        .map((auditoria) => auditoria.Accion)
+        .filter((accion): accion is string => Boolean(accion))
+    );
+    this.availableAcciones = Array.from(uniqueAcciones).sort((a, b) =>
+      a.localeCompare(b, 'es', { sensitivity: 'base' })
+    );
   }
 }
