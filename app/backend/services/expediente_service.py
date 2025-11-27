@@ -54,5 +54,8 @@ class ExpedienteService:
         expediente = self.repository.update(id_expediente, expediente_data)
         return expediente
 
+    def delete(self, id_expediente: int):
+        return self.repository.delete(id_expediente)
+
     def get_by_propiedad_minera(self, id_propiedad: int):
         return self.repository.get_by_propiedad_minera(id_propiedad)

@@ -13,6 +13,8 @@ from typing import List, Any, Optional
 from backend.models.alerta_model import Alerta
 from fastapi.responses import JSONResponse
 from backend.services.auth_jwt import get_current_user
+from backend.services.audit_logger import AuditLogger
+
 # Endpoint flexible para traer alertas por el IdTransaccion del padre
 router = APIRouter(
     prefix="/alertas",
@@ -97,25 +99,58 @@ def get_alerta(id: int, db: Session = Depends(get_db), current_user: dict = Depe
     return obj
 
 @router.post("/", response_model=AlertaOut)
-def create_alerta(alerta: AlertaCreate, db: Session = Depends(get_db)):
+@router.post("", response_model=AlertaOut)
+def create_alerta(
+    alerta: AlertaCreate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     service = AlertaService(db)
-    return service.create_alerta(alerta)
+    created_alerta = service.create_alerta(alerta)
+    AuditLogger(db, current_user).log_creation(
+        entidad="Alerta",
+        entity_id=created_alerta.idAlerta,
+        payload=alerta.model_dump(),
+    )
+    return created_alerta
 
 @router.put("/{id}", response_model=AlertaOut)
-def update_alerta(id: int, alerta: AlertaUpdate, db: Session = Depends(get_db)):
+def update_alerta(
+    id: int,
+    alerta: AlertaUpdate,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     service = AlertaService(db)
     obj = service.update_alerta(id, alerta)
     if not obj:
         raise HTTPException(status_code=404, detail="Alerta not found")
+    AuditLogger(db, current_user).log_update(
+        entidad="Alerta",
+        entity_id=id,
+        changes=alerta.model_dump(exclude_unset=True),
+    )
     return obj
 
-@router.delete("/{id}", response_model=AlertaOut)
-def delete_alerta(id: int, db: Session = Depends(get_db)):
+@router.delete("/{id}")
+def delete_alerta(
+    id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user)
+):
     service = AlertaService(db)
-    obj = service.delete_alerta(id)
-    if not obj:
+    # Get de la alerta antes de eliminarla para loguearla
+    alerta = service.get_alerta(id)
+    if not alerta:
         raise HTTPException(status_code=404, detail="Alerta not found")
-    return obj
+    deleted = service.delete_alerta(id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Alerta not found")
+    AuditLogger(db, current_user).log_deletion(
+        entidad="Alerta",
+        entity_id=id,
+    )
+    return {"ok": True}
 
 @router.get("/by-transaccion/{id_transaccion}", response_model=List[AlertaOut])
 def get_alertas_by_transaccion(

@@ -77,7 +77,7 @@ import { MatIconModule } from '@angular/material/icon';
       align-items: stretch;
       justify-content: center;
       gap: 0;
-      background: rgba(255,255,255,0.98);
+      background: #FFFFFF; // color de la card
       border-radius: 24px;
       box-shadow: 0 8px 32px rgba(65, 103, 89, 0.18);
       padding: 0 0 32px 0;

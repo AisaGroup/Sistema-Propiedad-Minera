@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
 
 class AuditoriaBase(BaseModel):
     Accion: str
@@ -16,6 +17,7 @@ class AuditoriaUpdate(AuditoriaBase):
 
 class AuditoriaOut(AuditoriaBase):
     IdAuditoria: int
+    UsuarioNombre: Optional[str] = None  # nombre completo del usuario
 
     class Config:
         orm_mode = True
