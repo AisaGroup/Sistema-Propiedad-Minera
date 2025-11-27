@@ -70,7 +70,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
       <div *ngIf="!loading && propiedad" class="tabs-container">
         <mat-tab-group animationDuration="300ms">
           <!-- Tab 1: Datos de Propiedad Minera -->
-          <mat-tab label="Datos de Propiedad">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>info</mat-icon>
+              Datos de Propiedad
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -140,7 +144,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 2: Requerimientos Mineros -->
-          <mat-tab label="Requerimientos Mineros">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>assignment</mat-icon>
+              Requerimientos Mineros
+            </ng-template>
             <div class="tab-content">
               <!-- Formulario de creación (solo si está activo) -->
               <div *ngIf="mostrandoFormularioCreacion" class="formulario-container">
@@ -264,7 +272,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 3: Expediente -->
-          <mat-tab label="Expediente">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>folder_open</mat-icon>
+              Expedientes
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -313,7 +325,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 4: Alertas -->
-          <mat-tab label="Alertas">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>notifications</mat-icon>
+              Alertas
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -327,7 +343,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 5: Observaciones -->
-          <mat-tab label="Observaciones">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>note</mat-icon>
+              Observaciones
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -341,7 +361,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 6: Archivos -->
-          <mat-tab label="Archivos">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>attach_file</mat-icon>
+              Archivos
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -390,6 +414,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
       max-width: 1200px;
       margin: 0 auto;
       padding: 24px;
+      color: #000000ff;
     }
 
     .detail-header {
@@ -413,7 +438,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
 
     .header-info h1 {
       margin: 0;
-      color: #3f51b5;
+      color: #000000;
       font-size: 1.8rem;
       font-weight: 500;
     }
@@ -457,16 +482,59 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
     }
 
     .tabs-container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(65, 103, 89, 0.1);
-      overflow: hidden;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
       border: 1px solid #e1f0ec;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
     }
 
     .tabs-container:hover {
-      box-shadow: 0 8px 30px rgba(65, 103, 89, 0.15);
+      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+    }
+
+    /* Estilos personalizados para mat-tab-group */
+    .tabs-container ::ng-deep .mat-mdc-tab-labels {
+      background: #f5f7f6;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab {
+      color: #416759 !important;
+      font-weight: 500;
+      font-size: 16px;
+      opacity: 1 !important;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab:hover {
+      background: #e8f0ec;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab.mdc-tab--active {
+      background: #fff;
+      color: #416759 !important;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab .mdc-tab__text-label {
+      color: #416759;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab-label-container {
+      background: #f5f7f6;
+    }
+
+    .tabs-container ::ng-deep .mdc-tab-indicator__content--underline {
+      border-color: #416759 !important;
+      border-width: 3px;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab-body-wrapper {
+      background: #fff;
+      border-radius: 0 0 8px 8px;
     }
 
     .tab-content {
