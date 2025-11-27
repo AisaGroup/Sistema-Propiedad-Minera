@@ -1,3 +1,7 @@
+:host ::ng-deep .mat-mdc-form-field .mat-mdc-form-field-infix {
+  padding: 5px 0 !important;
+}
+
 .auditorias-card {
   display: block;
   background: #ffffff;
@@ -110,8 +114,8 @@
   padding: 16px;
   margin-bottom: 8px;
   border-radius: 12px;
-  border: 1px solid #e0ece7;
-  background-color: #d1fae5;
+  border: 1px solid #e5e5e5;
+  background-color: #f4f8f6;
 }
 
 .filters-grid {
@@ -120,6 +124,10 @@
   gap: 16px;
 }
 
+.max-height-form-field {
+  min-height: 56px;
+  max-height: 60px;
+}
 .filter-actions {
   display: flex;
   align-items: center;
