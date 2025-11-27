@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 from sqlalchemy.exc import IntegrityError
@@ -13,6 +13,24 @@ from backend.schemas.auditoria_schema import AuditoriaCreate
 from backend.services.auditoria_service import AuditoriaService
 
 logger = logging.getLogger(__name__)
+
+
+def _now_utc() -> datetime:
+    """Devuelve la hora actual en UTC, como datetime aware."""
+    return datetime.now(timezone.utc)
+
+
+def _normalize_to_utc(dt: datetime) -> datetime:
+    """
+    Normaliza un datetime a UTC.
+
+    - Si es naive (sin tzinfo), asumimos que ya está en UTC y solo seteamos tzinfo=UTC.
+      (# TODO: Podria hacer que largue un ValueError.)
+    - Si tiene tzinfo, lo convertimos a UTC con astimezone.
+    """
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
 
 
 class AuditLogger:
@@ -41,18 +59,24 @@ class AuditLogger:
         entidad: Entidad/tabla afectada.
         descripcion: Detalles sobre el cambio. Los diccionarios serán serializados a JSON.
         aud_usuario: Opcional override para el identificador de usuario. Si no se proporciona, intentamos inferirlo del payload JWT.
-        aud_fecha: Opcional override para la marca de tiempo del evento. Por defecto es utcnow.
-        IdAuditoria: Opcional override para el identificador de la auditoría. Si no se proporciona, se genera automáticamente.
+        aud_fecha: Opcional override para la marca de tiempo del evento.
+                   Si no se proporciona, se usa la hora actual en UTC.
+                   Siempre se normaliza y se almacena en UTC.
         """
 
         descripcion_str = self._serialize_descripcion(descripcion)
         usuario_id = aud_usuario or self._resolve_user_id()
 
+        # Normalizamos siempre a UTC para que lo que vaya a la DB sea consistente
+        aud_fecha_utc = (
+            _normalize_to_utc(aud_fecha) if aud_fecha is not None else _now_utc()
+        )
+
         auditoria = AuditoriaCreate(
             Accion=accion[:50],
             Entidad=entidad[:100],
             Descripcion=descripcion_str[:5000],
-            AudFecha=aud_fecha or datetime.utcnow(),
+            AudFecha=aud_fecha_utc,
             AudUsuario=usuario_id,
         )
         try:
@@ -73,7 +97,7 @@ class AuditLogger:
             # Capturar cualquier otro error inesperado en el registro de auditoría
             logger.error(
                 f"Error inesperado al crear el registro de auditoría para {accion} en {entidad}: {str(e)}",
-                exc_info=True
+                exc_info=True,
             )
 
     def log_creation(
@@ -138,4 +162,3 @@ class AuditLogger:
         usuario_repo = UsuarioRepositorie(self.db)
         usuario = usuario_repo.get_by_username(username)
         return getattr(usuario, "IdUsuario", 0) if usuario else 0
-

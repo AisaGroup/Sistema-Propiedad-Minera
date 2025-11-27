@@ -48,7 +48,8 @@
           <td mat-cell *matCellDef="let auditoria">
             {{
               auditoria.AudFecha
-                ? (auditoria.AudFecha | date : 'dd/MM/yyyy - HH:mm')
+                ? (auditoria.AudFecha
+                  | date : 'dd/MM/yyyy - HH:mm:ss' : 'America/Argentina/Buenos_Aires')
                 : 'Sin registro'
             }}
           </td>

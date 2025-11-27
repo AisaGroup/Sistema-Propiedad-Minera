@@ -10,7 +10,8 @@ import { Subscription } from 'rxjs';
 import { AuditoriaService } from '../services/auditoria.service';
 import { AuditoriaDescripcionEntry, AuditoriaRaw } from '../models/auditoria.model';
 
-type AuditoriaView = AuditoriaRaw & {
+type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
+  AudFecha: Date | null;
   descripcionEntries: AuditoriaDescripcionEntry[];
 };
 
@@ -88,7 +89,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
 
   getAccionClass(accion: string | null | undefined): string {
     const normalized = (accion || '').toLowerCase();
-    if (['create', 'update', 'delete'].includes(normalized)) {
+    if (['create', 'update', 'delete', 'login'].includes(normalized)) {
       return normalized;
     }
     return 'default';
@@ -108,10 +109,23 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
       this.expandedAuditoriaId === auditoria.IdAuditoria ? null : auditoria.IdAuditoria;
   }
 
+  private parseAudFecha(value: string | null): Date | null {
+    if (!value) return null;
+
+    // si viene con Z o con offset, devuelvo la fecha tal cual
+    if (/[zZ]$/.test(value) || /[+-]\d\d:\d\d$/.test(value)) {
+      return new Date(value);
+    }
+
+    // si viene sin zona, asumo que es UTC y la agrego
+    return new Date(value + 'Z');
+  }
+
   private toViewModel(raw: AuditoriaRaw): AuditoriaView {
     return {
       ...raw,
       descripcionEntries: this.parseDescripcion(raw.Descripcion),
+      AudFecha: this.parseAudFecha(raw.AudFecha),
     };
   }
 
