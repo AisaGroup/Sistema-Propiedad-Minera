@@ -58,7 +58,7 @@ import { APP_VERSION } from '../core/api.constants';
               <span>Áreas</span>
             </button>
             <button mat-menu-item routerLink="/auditorias">
-              <mat-icon>policy_alert</mat-icon>
+              <mat-icon aria-hidden="true">fact_check</mat-icon>
               <span>Auditorías</span>
             </button>
             <button mat-menu-item routerLink="/tipos-alerta">
