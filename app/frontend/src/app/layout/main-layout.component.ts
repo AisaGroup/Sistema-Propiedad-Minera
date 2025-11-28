@@ -53,17 +53,13 @@ import { APP_VERSION } from '../core/api.constants';
             <span matListItemTitle>Maestros</span>
           </mat-list-item>
           <mat-menu #maestrosMenu="matMenu" *ngIf="userRole === 'Administrador'">
-            <button mat-menu-item routerLink="/titulares">
-              <mat-icon>people</mat-icon>
-              <span>Titulares Mineros</span>
-            </button>
             <button mat-menu-item routerLink="/areas">
               <mat-icon>business</mat-icon>
               <span>Áreas</span>
             </button>
-            <button mat-menu-item routerLink="/tipos-notificacion">
-              <mat-icon>notifications</mat-icon>
-              <span>Tipos de Notificación</span>
+            <button mat-menu-item routerLink="/auditorias">
+              <mat-icon>policy_alert</mat-icon>
+              <span>Auditorías</span>
             </button>
             <button mat-menu-item routerLink="/tipos-alerta">
               <mat-icon>warning</mat-icon>
@@ -72,14 +68,18 @@ import { APP_VERSION } from '../core/api.constants';
             <button mat-menu-item routerLink="/tipos-expediente">
               <mat-icon matListItemIcon>folder</mat-icon>
               <span>Tipos de Expediente</span>
-            </button> 
+            </button>
+            <button mat-menu-item routerLink="/tipos-notificacion">
+              <mat-icon>notifications</mat-icon>
+              <span>Tipos de Notificación</span>
+            </button>
+            <button mat-menu-item routerLink="/titulares">
+              <mat-icon>people</mat-icon>
+              <span>Titulares Mineros</span>
+            </button>
             <button mat-menu-item routerLink="/usuarios">
               <mat-icon>people</mat-icon>
               <span>Usuarios</span>
-            </button>
-            <button mat-menu-item routerLink="/auditorias">
-              <mat-icon>policy_alert</mat-icon>
-              <span>Auditorías</span>
             </button>
           </mat-menu>
         </mat-nav-list>
