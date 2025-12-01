@@ -414,7 +414,6 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
       max-width: 1200px;
       margin: 0 auto;
       padding: 24px;
-      color: #000000ff;
     }
 
     .detail-header {
