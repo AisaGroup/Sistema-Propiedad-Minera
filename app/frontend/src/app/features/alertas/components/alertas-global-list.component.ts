@@ -87,7 +87,34 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
       <div *ngIf="!loading && alertas.length === 0" class="no-data">
         <p>No hay alertas en el sistema.</p>
       </div>
-      <mat-paginator *ngIf="totalAlertas > 0" [length]="totalAlertas" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25]" (page)="onPageChange($event)"></mat-paginator>
+      <div class="custom-pagination" *ngIf="totalAlertas > 0">
+        <div class="page-size-selector">
+          <span>Mostrar:</span>
+          <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+        </div>
+
+        <div class="pagination-info">
+          {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalAlertas) }} de {{ totalAlertas }}
+        </div>
+
+        <div class="pagination-controls">
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+            <mat-icon>first_page</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+            <mat-icon>last_page</mat-icon>
+          </button>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -126,6 +153,14 @@ export class AlertasGlobalListComponent implements OnInit {
   // Filtro por estado
   estadosAlerta: any[] = [];
   selectedEstado: number | string = 1; // Pendiente por defecto
+
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalAlertas / this.pageSize);
+  }
 
   constructor(
     private alertaGlobalService: AlertaGlobalService,
@@ -188,6 +223,37 @@ export class AlertasGlobalListComponent implements OnInit {
   onPageChange(event: PageEvent) {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.loadAlertas(this.currentPage, this.pageSize);
+  }
+
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.loadAlertas(this.currentPage, this.pageSize);
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.loadAlertas(this.currentPage, this.pageSize);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadAlertas(this.currentPage, this.pageSize);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadAlertas(this.currentPage, this.pageSize);
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
     this.loadAlertas(this.currentPage, this.pageSize);
   }
 }
