@@ -2,6 +2,14 @@
   padding: 5px 0 !important;
 }
 
+::ng-deep .mat-date-range-input-wrapper {
+  padding-top: 32px;
+}
+
+::ng-deep #mat-input-0 {
+  padding-top: 16px;
+}
+
 .auditorias-card {
   display: block;
   background: #ffffff;
@@ -128,7 +136,7 @@
 
 .max-height-form-field {
   min-height: 56px;
-  max-height: 60px;
+  max-height: 90px;
 }
 .filter-actions {
   display: flex;
@@ -239,7 +247,7 @@
 }
 
 .detalle-contenedor.is-visible {
-  max-height: 500px;
+  max-height: 650px;
   opacity: 1;
   transform: translateY(0);
 }

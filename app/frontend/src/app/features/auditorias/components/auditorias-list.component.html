@@ -39,19 +39,18 @@
 
         <mat-form-field appearance="outline" class="max-height-form-field">
           <mat-label>Entidad</mat-label>
-          <input
-            matInput
-            placeholder="Nombre de entidad"
-            formControlName="entidad"
-            autocomplete="off"
-          />
+          <mat-select formControlName="entidad" multiple>
+            <mat-option *ngFor="let entidad of availableEntidades" [value]="entidad">
+              {{ entidad }}
+            </mat-option>
+          </mat-select>
           <button
             mat-icon-button
             matSuffix
-            aria-label="Limpiar filtro de entidad"
+            aria-label="Limpiar filtro de acción"
             type="button"
-            *ngIf="filterForm.get('entidad')?.value"
-            (click)="filterForm.get('entidad')?.setValue('')"
+            *ngIf="(filterForm.get('entidad')?.value?.length || 0) > 0"
+            (click)="filterForm.get('entidad')?.setValue([])"
           >
             <mat-icon aria-hidden="true">close</mat-icon>
           </button>
@@ -59,8 +58,7 @@
 
         <mat-form-field appearance="outline" class="max-height-form-field">
           <mat-label>Acción</mat-label>
-          <mat-select formControlName="accion">
-            <mat-option value="">Todas</mat-option>
+          <mat-select formControlName="accion" multiple>
             <mat-option *ngFor="let accion of availableAcciones" [value]="accion">
               {{ accion }}
             </mat-option>
@@ -70,8 +68,8 @@
             matSuffix
             aria-label="Limpiar filtro de acción"
             type="button"
-            *ngIf="filterForm.get('accion')?.value"
-            (click)="filterForm.get('accion')?.setValue('')"
+            *ngIf="(filterForm.get('accion')?.value?.length || 0) > 0"
+            (click)="filterForm.get('accion')?.setValue([])"
           >
             <mat-icon aria-hidden="true">close</mat-icon>
           </button>

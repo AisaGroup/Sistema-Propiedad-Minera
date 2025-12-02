@@ -24,8 +24,8 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
 
 type FilterFormValue = {
   usuario: string;
-  entidad: string;
-  accion: string;
+  entidad: string[];
+  accion: string[];
   fechaDesde: Date | null;
   fechaHasta: Date | null;
 };
@@ -64,6 +64,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
 
   filterForm: FormGroup;
   availableAcciones: string[] = [];
+  availableEntidades: string[] = [];
   totalItems = 0;
 
   loading = false;
@@ -91,8 +92,8 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   constructor(private auditoriaService: AuditoriaService, private fb: FormBuilder) {
     this.filterForm = this.fb.group({
       usuario: [''],
-      entidad: [''],
-      accion: [''],
+      entidad: [[]],
+      accion: [[]],
       fechaDesde: [null],
       fechaHasta: [null],
     });
@@ -117,6 +118,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
         this.allAuditorias = auditorias.map((item) => this.toViewModel(item));
         this.totalItems = this.allAuditorias.length;
         this.updateAvailableAcciones();
+        this.updateAvailableEntidades();
         this.applyFilters(false);
         if (this.paginator) {
           this.paginator.firstPage();
@@ -134,8 +136,8 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   clearFilters(): void {
     this.filterForm.reset({
       usuario: '',
-      entidad: '',
-      accion: '',
+      entidad: [],
+      accion: [],
       fechaDesde: null,
       fechaHasta: null,
     });
@@ -146,8 +148,8 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
       .value as FilterFormValue;
     return Boolean(
       (usuario && usuario.trim()) ||
-        (entidad && entidad.trim()) ||
-        accion ||
+        (entidad && entidad.length) ||
+        (accion && accion.length) ||
         fechaDesde ||
         fechaHasta
     );
@@ -197,8 +199,8 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     const { usuario, entidad, accion, fechaDesde, fechaHasta } = this.filterForm
       .value as FilterFormValue;
     const usuarioFilter = (usuario || '').trim().toLowerCase();
-    const entidadFilter = (entidad || '').trim().toLowerCase();
-    const accionFilter = (accion || '').trim().toLowerCase();
+    const entidadFilter = (entidad || []).map((e) => e.toLowerCase());
+    const accionFilter = (accion || []).map((a) => a.toLowerCase());
 
     const startDate = fechaDesde ? this.startOfDay(fechaDesde).getTime() : null;
     const endDate = fechaHasta ? this.endOfDay(fechaHasta).getTime() : null;
@@ -214,12 +216,14 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
           )
         : true;
 
-      const matchesEntidad = entidadFilter
-        ? this.matchesText(auditoria.Entidad, entidadFilter)
-        : true;
-      const matchesAccion = accionFilter
-        ? (auditoria.Accion || '').toLowerCase() === accionFilter
-        : true;
+      const matchesEntidad =
+        entidadFilter.length > 0
+          ? entidadFilter.includes((auditoria.Entidad || '').toLowerCase())
+          : true;
+      const matchesAccion =
+        accionFilter.length > 0
+          ? accionFilter.includes((auditoria.Accion || '').toLowerCase())
+          : true;
 
       const matchesFecha = this.matchesDateRange(auditoria.AudFecha, startDate, endDate);
 
@@ -351,6 +355,17 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
         .filter((accion): accion is string => Boolean(accion))
     );
     this.availableAcciones = Array.from(uniqueAcciones).sort((a, b) =>
+      a.localeCompare(b, 'es', { sensitivity: 'base' })
+    );
+  }
+
+  private updateAvailableEntidades(): void {
+    const uniqueEntidades = new Set(
+      this.allAuditorias
+        .map((auditoria) => auditoria.Entidad)
+        .filter((entidad): entidad is string => Boolean(entidad))
+    );
+    this.availableEntidades = Array.from(uniqueEntidades).sort((a, b) =>
       a.localeCompare(b, 'es', { sensitivity: 'base' })
     );
   }
