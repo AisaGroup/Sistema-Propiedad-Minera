@@ -52,7 +52,11 @@ import { APP_VERSION } from '../core/api.constants';
             <mat-icon matListItemIcon>menu_book</mat-icon>
             <span matListItemTitle>Maestros</span>
           </mat-list-item>
-          <mat-menu #maestrosMenu="matMenu" *ngIf="userRole === 'Administrador'">
+          <mat-menu #maestrosMenu="matMenu" 
+                    *ngIf="userRole === 'Administrador'"
+                    [overlapTrigger]="false"
+                    yPosition="below"
+                    xPosition="after">
             <button mat-menu-item routerLink="/titulares">
               <mat-icon>people</mat-icon>
               <span>Titulares Mineros</span>
@@ -338,6 +342,17 @@ import { APP_VERSION } from '../core/api.constants';
       font-size: 1.02rem;
       font-weight: 500;
       letter-spacing: 0.5px;
+    }
+
+    /* Responsive para sidebar y contenido */
+    @media (max-width: 768px) {
+      .sidenav {
+        width: 200px;
+      }
+
+      .main-content {
+        padding: 16px;
+      }
     }
   `]
 })
