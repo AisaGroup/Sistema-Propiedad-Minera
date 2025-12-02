@@ -150,14 +150,16 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
           </div>
 
           <!-- Paginación -->
-          <mat-paginator 
-            #paginator
-            [length]="totalExpedientes"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="[5, 10, 25, 50]"
-            (page)="onPageChange($event)"
-            showFirstLastButtons>
-          </mat-paginator>
+          <div class="paginator-wrapper">
+            <mat-paginator 
+              #paginator
+              [length]="totalExpedientes"
+              [pageSize]="pageSize"
+              [pageSizeOptions]="[5, 10, 25, 50]"
+              (page)="onPageChange($event)"
+              showFirstLastButtons>
+            </mat-paginator>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>
@@ -268,6 +270,21 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
       color: #416759;
     }
 
+    /* Wrapper del paginador para controlar overflow */
+    .paginator-wrapper {
+      position: relative;
+      overflow: visible !important;
+      margin-top: 20px;
+      padding-bottom: 80px;
+      min-height: 80px;
+    }
+
+    /* Asegurar que el paginador tenga espacio para el dropdown */
+    mat-paginator {
+      position: relative;
+      overflow: visible !important;
+    }
+
     @media (max-width: 768px) {
       .filters-section {
         flex-direction: column;
@@ -277,6 +294,10 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
       .filters-section mat-form-field {
         min-width: unset;
         width: 100%;
+      }
+
+      .paginator-wrapper {
+        padding-bottom: 100px;
       }
     }
   `]

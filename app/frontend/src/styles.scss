@@ -1134,8 +1134,198 @@ html body .mat-form-field-infix {
   pointer-events: auto !important;
 }
 
-/* Asegurar que el backdrop no bloquee los clicks en el menú */
-.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop {
+/* Asegurar que el backdrop no bloquee los clicks en el menú pero sí funcione para selectores */
+.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop:not(.mat-mdc-select-backdrop) {
   pointer-events: none !important;
+}
+
+/* El backdrop del select debe permitir clicks para cerrar */
+.cdk-overlay-backdrop.mat-mdc-select-backdrop {
+  pointer-events: auto !important;
+}
+
+/* ===== ESTILOS GLOBALES PARA PAGINADOR ===== */
+/* Estilos base del paginador */
+.mat-mdc-paginator {
+  background: transparent !important;
+  margin-top: 16px !important;
+  border-top: 1px solid #e0e0e0 !important;
+  padding-top: 16px !important;
+}
+
+/* Contenedor del paginador */
+.mat-mdc-paginator-container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  padding: 0 8px !important;
+  flex-wrap: wrap !important;
+  min-height: 56px !important;
+}
+
+/* Selector de items por página */
+.mat-mdc-paginator-page-size {
+  display: flex !important;
+  align-items: center !important;
+  margin-right: 32px !important;
+}
+
+.mat-mdc-paginator-page-size-label {
+  margin: 0 8px 0 0 !important;
+}
+
+.mat-mdc-paginator-page-size-select {
+  margin: 0 8px !important;
+}
+
+/* SOLUCIÓN DEFINITIVA: Limitar altura del panel y habilitar scroll */
+.mat-mdc-select-panel {
+  max-height: 256px !important;
+  overflow-y: auto !important;
+  position: relative !important;
+}
+
+/* Para paneles en la parte inferior de la pantalla */
+.cdk-overlay-pane {
+  max-height: calc(100vh - 100px) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel {
+  max-height: 256px !important;
+  overflow-y: auto !important;
+}
+
+/* SOLUCIÓN ESPECÍFICA: Asegurar espacio para dropdown del paginador */
+mat-card-content:has(mat-paginator) {
+  overflow: visible !important;
+  padding-bottom: 100px !important;
+}
+
+mat-card:has(mat-paginator) {
+  overflow: visible !important;
+  margin-bottom: 100px !important;
+}
+
+/* Contenedor alternativo sin :has() */
+.expedientes-container mat-card,
+.usuarios-container mat-card,
+.titulares-container mat-card,
+.areas-container mat-card {
+  overflow: visible !important;
+  margin-bottom: 80px !important;
+}
+
+.expedientes-container mat-card-content,
+.usuarios-container mat-card-content,
+.titulares-container mat-card-content,
+.areas-container mat-card-content {
+  overflow: visible !important;
+  padding-bottom: 80px !important;
+}
+
+/* Panel desplegable del selector de página */
+.mat-mdc-select-panel.mat-mdc-paginator-page-size-select-panel {
+  min-width: 80px !important;
+  max-width: 120px !important;
+  max-height: 200px !important;
+  overflow-y: auto !important;
+  background: #ffffff !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e0e0e0 !important;
+  z-index: 1050 !important;
+}
+
+/* Asegurar que el backdrop del paginador funcione correctamente */
+.cdk-overlay-backdrop {
+  pointer-events: auto !important;
+}
+
+/* Backdrop específico del select del paginador */
+.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop.mat-mdc-select-backdrop {
+  pointer-events: auto !important;
+  opacity: 0 !important;
+}
+
+/* Asegurar que los clicks funcionen en el overlay del paginador */
+.cdk-overlay-pane:has(.mat-mdc-paginator-page-size-select-panel) {
+  pointer-events: auto !important;
+}
+
+/* Opciones del selector de página */
+.mat-mdc-paginator-page-size-select-panel .mat-mdc-option {
+  min-height: 48px !important;
+  height: auto !important;
+  padding: 12px 16px !important;
+  background: #ffffff !important;
+  color: #222222 !important;
+}
+
+.mat-mdc-paginator-page-size-select-panel .mat-mdc-option:hover {
+  background: #f5f5f5 !important;
+}
+
+.mat-mdc-paginator-page-size-select-panel .mat-mdc-option.mat-selected {
+  background: #e3f2fd !important;
+}
+
+/* Rango de páginas */
+.mat-mdc-paginator-range-label {
+  margin: 0 32px 0 24px !important;
+}
+
+/* Botones de navegación */
+.mat-mdc-paginator-navigation-previous,
+.mat-mdc-paginator-navigation-next,
+.mat-mdc-paginator-navigation-first,
+.mat-mdc-paginator-navigation-last {
+  color: #416759 !important;
+}
+
+.mat-mdc-paginator-navigation-previous:disabled,
+.mat-mdc-paginator-navigation-next:disabled,
+.mat-mdc-paginator-navigation-first:disabled,
+.mat-mdc-paginator-navigation-last:disabled {
+  color: rgba(0, 0, 0, 0.26) !important;
+}
+
+/* Responsive para paginador en tablets */
+@media (max-width: 768px) {
+  .mat-mdc-paginator {
+    font-size: 12px !important;
+    padding: 8px 4px !important;
+  }
+  
+  .mat-mdc-paginator-container {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 8px 4px !important;
+  }
+  
+  .mat-mdc-paginator-page-size {
+    margin-right: 0 !important;
+    margin-bottom: 8px !important;
+    flex-basis: 100% !important;
+    justify-content: center !important;
+  }
+  
+  .mat-mdc-paginator-range-label {
+    margin: 0 16px !important;
+  }
+}
+
+/* Responsive para paginador en móviles */
+@media (max-width: 480px) {
+  .mat-mdc-paginator-container {
+    gap: 4px !important;
+  }
+  
+  .mat-mdc-paginator-range-label {
+    display: none !important;
+  }
+  
+  .mat-mdc-paginator-page-size-label {
+    font-size: 11px !important;
+  }
 }
 
