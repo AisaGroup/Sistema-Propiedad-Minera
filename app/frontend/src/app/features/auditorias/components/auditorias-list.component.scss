@@ -10,6 +10,16 @@
   padding-top: 16px;
 }
 
+::ng-deep .id-transaccion-field {
+  .mat-mdc-input-element {
+    margin-top: 16px;
+  }
+
+  .mat-mdc-form-field-input-control {
+    margin-top: 16px;
+  }
+}
+
 .auditorias-card {
   display: block;
   background: #ffffff;
@@ -123,7 +133,7 @@
   margin-bottom: 8px;
   border-radius: 12px;
   border: 1px solid #e5e5e5;
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   box-shadow: 0 12px 24px rgba(65, 103, 89, 0.08);
   margin-bottom: 1.5rem;
 }
@@ -138,6 +148,7 @@
   min-height: 56px;
   max-height: 90px;
 }
+
 .filter-actions {
   display: flex;
   align-items: center;

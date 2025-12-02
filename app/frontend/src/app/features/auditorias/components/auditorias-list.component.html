@@ -95,6 +95,22 @@
           </button>
         </mat-form-field>
       </div>
+      <div class="filters-grid-right">
+        <mat-form-field appearance="outline" class="max-height-form-field id-transaccion-field">
+          <mat-label>ID Transacción</mat-label>
+          <input matInput formControlName="idTransaccion" autocomplete="off" />
+          <button
+            mat-icon-button
+            matSuffix
+            aria-label="Limpiar filtro de ID Transacción"
+            type="button"
+            *ngIf="filterForm.get('idTransaccion')?.value"
+            (click)="filterForm.get('idTransaccion')?.setValue('')"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
 
       <div class="filter-actions">
         <span class="results-counter">

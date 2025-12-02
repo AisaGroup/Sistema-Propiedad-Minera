@@ -26,6 +26,7 @@ type FilterFormValue = {
   usuario: string;
   entidad: string[];
   accion: string[];
+  idTransaccion: string;
   fechaDesde: Date | null;
   fechaHasta: Date | null;
 };
@@ -94,6 +95,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
       usuario: [''],
       entidad: [[]],
       accion: [[]],
+      idTransaccion: [''],
       fechaDesde: [null],
       fechaHasta: [null],
     });
@@ -138,18 +140,20 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
       usuario: '',
       entidad: [],
       accion: [],
+      idTransaccion: '',
       fechaDesde: null,
       fechaHasta: null,
     });
   }
 
   get hasActiveFilters(): boolean {
-    const { usuario, entidad, accion, fechaDesde, fechaHasta } = this.filterForm
+    const { usuario, entidad, accion, idTransaccion, fechaDesde, fechaHasta } = this.filterForm
       .value as FilterFormValue;
     return Boolean(
       (usuario && usuario.trim()) ||
         (entidad && entidad.length) ||
         (accion && accion.length) ||
+        (idTransaccion && idTransaccion.trim()) ||
         fechaDesde ||
         fechaHasta
     );
@@ -196,11 +200,12 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
       return [];
     }
 
-    const { usuario, entidad, accion, fechaDesde, fechaHasta } = this.filterForm
+    const { usuario, entidad, accion, idTransaccion, fechaDesde, fechaHasta } = this.filterForm
       .value as FilterFormValue;
     const usuarioFilter = (usuario || '').trim().toLowerCase();
     const entidadFilter = (entidad || []).map((e) => e.toLowerCase());
     const accionFilter = (accion || []).map((a) => a.toLowerCase());
+    const idTransaccionFilter = (idTransaccion || '').trim().toLowerCase();
 
     const startDate = fechaDesde ? this.startOfDay(fechaDesde).getTime() : null;
     const endDate = fechaHasta ? this.endOfDay(fechaHasta).getTime() : null;
@@ -225,14 +230,29 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
           ? accionFilter.includes((auditoria.Accion || '').toLowerCase())
           : true;
 
+      const matchesIdTransaccion = idTransaccionFilter
+        ? this.matchesIdTransaccion(auditoria, idTransaccionFilter)
+        : true;
+
       const matchesFecha = this.matchesDateRange(auditoria.AudFecha, startDate, endDate);
 
-      return matchesUsuario && matchesEntidad && matchesAccion && matchesFecha;
+      return matchesUsuario && matchesEntidad && matchesAccion && matchesIdTransaccion && matchesFecha;
     });
   }
 
   private matchesText(value: string | null | undefined, filter: string): boolean {
     return (value || '').toLowerCase().includes(filter);
+  }
+
+  private matchesIdTransaccion(auditoria: AuditoriaView, filter: string): boolean {
+    if (!auditoria.descripcionEntries || auditoria.descripcionEntries.length === 0) {
+      return false;
+    }
+    return auditoria.descripcionEntries.some(
+      (entry) =>
+        entry.label.toLowerCase().includes('idtransaccion') &&
+        entry.value.toLowerCase().includes(filter)
+    );
   }
 
   private matchesDateRange(date: Date | null, start: number | null, end: number | null): boolean {
