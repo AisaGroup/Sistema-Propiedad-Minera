@@ -200,6 +200,10 @@ import { APP_VERSION } from '../core/api.constants';
       background: var(--corporate-white, #fff);
       min-height: calc(100vh - 64px);
       color: var(--corporate-black, #222);
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
     }
 
     .mat-mdc-nav-list .mdc-list-item {
@@ -345,13 +349,65 @@ import { APP_VERSION } from '../core/api.constants';
     }
 
     /* Responsive para sidebar y contenido */
+    @media (max-width: 1024px) {
+      .sidenav {
+        width: 220px;
+      }
+
+      .main-content {
+        padding: 16px;
+        max-width: 100%;
+      }
+      
+      .company-name {
+        font-size: 1.1rem;
+      }
+    }
+    
     @media (max-width: 768px) {
       .sidenav {
         width: 200px;
       }
 
       .main-content {
-        padding: 16px;
+        padding: 12px;
+        max-width: 100%;
+      }
+      
+      .logo-container {
+        gap: 8px;
+      }
+      
+      .company-logo {
+        height: 32px;
+      }
+      
+      .company-name {
+        font-size: 1rem;
+      }
+      
+      .user-name-navbar {
+        display: none;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .sidenav {
+        width: 180px;
+      }
+
+      .main-content {
+        padding: 8px;
+        max-width: 100%;
+      }
+      
+      .company-name {
+        display: none;
+      }
+      
+      .app-version-navbar {
+        font-size: 0.9rem;
+        margin-left: 8px;
       }
     }
   `]
