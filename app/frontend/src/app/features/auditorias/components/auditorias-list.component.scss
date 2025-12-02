@@ -165,8 +165,18 @@
   color: #1f4136;
 }
 
-.date-range-field .mat-date-range-input {
-  --mat-date-range-input-separator-color: #6a7d74;
+.date-range-field {
+  .mat-date-range-input {
+    --mat-date-range-input-separator-color: #6a7d74;
+  }
+
+  ::ng-deep .mdc-floating-label {
+    width: max-content;
+  }
+
+  ::ng-deep .mat-mdc-floating-label {
+    width: max-content;
+  }
 }
 
 .id-pill {
