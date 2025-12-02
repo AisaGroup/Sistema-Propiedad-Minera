@@ -87,10 +87,13 @@ def obtener_acta(id_acta: int, db: Session = Depends(get_db), current_user=Depen
 def crear_acta(acta_data: ActaCreate, db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     service = ActaService(db)
     acta = service.create(acta_data)
+    # Usar el acta persistida (que ya tiene IdTransaccion) para el detalle de auditoría
+    from backend.schemas.acta_schema import ActaRead
+    acta_payload = ActaRead.from_orm(acta).model_dump()
     AuditLogger(db, current_user).log_creation(
         entidad="Acta",
         entity_id=acta.IdActa,
-        payload=getattr(acta_data, "model_dump", lambda: acta_data.dict())(),
+        payload=acta_payload,
     )
     return acta
 
