@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
@@ -19,7 +18,6 @@ import { Area } from '../models/area.model';
     CommonModule,
     RouterModule,
     MatTableModule,
-    MatPaginatorModule,
     MatButtonModule,
     MatIconModule,
     MatCardModule,
@@ -114,16 +112,36 @@ import { Area } from '../models/area.model';
             </div>
           </div>
 
-          <!-- Paginador -->
-          <mat-paginator 
-            *ngIf="!loading && dataSource.length > 0"
-            [length]="totalItems"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="[5, 10, 25, 50]"
-            [pageIndex]="currentPage"
-            (page)="onPageChange($event)"
-            showFirstLastButtons>
-          </mat-paginator>
+          <!-- Paginación personalizada -->
+          <div *ngIf="!loading && dataSource.length > 0" class="custom-pagination">
+            <div class="page-size-selector">
+              <span>Mostrar:</span>
+              <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+              <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+              <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+              <button mat-button [class.active]="pageSize === 50" (click)="changePageSize(50)">50</button>
+            </div>
+
+            <div class="pagination-info">
+              {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalItems) }} de {{ totalItems }}
+            </div>
+
+            <div class="pagination-controls">
+              <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+                <mat-icon>first_page</mat-icon>
+              </button>
+              <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+              <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+              <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+                <mat-icon>last_page</mat-icon>
+              </button>
+            </div>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>
@@ -140,6 +158,7 @@ export class AreasListComponent implements OnInit {
   totalItems = 0;
   pageSize = 10;
   currentPage = 0;
+  Math = Math;
 
   constructor(
     private areaService: AreaService,
@@ -148,6 +167,10 @@ export class AreasListComponent implements OnInit {
 
   ngOnInit(): void {
     this.cargarAreas();
+  }
+
+  get totalPages(): number {
+    return Math.ceil(this.totalItems / this.pageSize);
   }
 
   cargarAreas(): void {
@@ -168,9 +191,33 @@ export class AreasListComponent implements OnInit {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.cargarAreas();
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.cargarAreas();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.cargarAreas();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.cargarAreas();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
     this.cargarAreas();
   }
 
