@@ -48,6 +48,14 @@ export class NotificacionListComponent implements OnInit {
   currentPage = 0;
   pageSizeOptions = [5, 10, 25, 50];
 
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalRecords / this.pageSize);
+  }
+
   constructor(
     private notificacionService: NotificacionService,
     private router: Router
@@ -157,5 +165,36 @@ export class NotificacionListComponent implements OnInit {
       month: 'long',
       day: 'numeric'
     });
+  }
+
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.loadNotificaciones();
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.loadNotificaciones();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadNotificaciones();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadNotificaciones();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
+    this.loadNotificaciones();
   }
 }
