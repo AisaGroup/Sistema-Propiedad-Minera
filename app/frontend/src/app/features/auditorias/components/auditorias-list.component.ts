@@ -1,8 +1,7 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatTableModule } from '@angular/material/table';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -13,6 +12,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { AuditoriaService } from '../services/auditoria.service';
@@ -39,7 +39,6 @@ type FilterFormValue = {
     CommonModule,
     ReactiveFormsModule,
     MatTableModule,
-    MatPaginatorModule,
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -50,6 +49,7 @@ type FilterFormValue = {
     MatDatepickerModule,
     MatNativeDateModule,
     MatSnackBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './auditorias-list.component.html',
   styleUrls: ['./auditorias-list.component.scss'],
@@ -63,12 +63,20 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     'AudUsuario',
     'Descripcion',
   ];
-  dataSource = new MatTableDataSource<AuditoriaView>([]);
+  
+  allAuditorias: AuditoriaView[] = [];
+  filteredAuditorias: AuditoriaView[] = [];
+  paginatedAuditorias: AuditoriaView[] = [];
 
   filterForm: FormGroup;
   availableAcciones: string[] = [];
   availableEntidades: string[] = [];
   totalItems = 0;
+  
+  // Paginación
+  currentPage = 0;
+  pageSize = 10;
+  Math = Math;
 
   loading = false;
   error: string | null = null;
@@ -77,20 +85,9 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
 
   private dataSubscription?: Subscription;
   private filterSubscription?: Subscription;
-  private allAuditorias: AuditoriaView[] = [];
 
-  private _paginator?: MatPaginator;
-
-  @ViewChild(MatPaginator)
-  set paginator(paginator: MatPaginator | undefined) {
-    if (paginator) {
-      this._paginator = paginator;
-      this.dataSource.paginator = paginator;
-    }
-  }
-
-  get paginator(): MatPaginator | undefined {
-    return this._paginator;
+  get totalPages(): number {
+    return Math.ceil(this.filteredAuditorias.length / this.pageSize);
   }
 
   constructor(
@@ -177,9 +174,6 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
         this.updateAvailableAcciones();
         this.updateAvailableEntidades();
         this.applyFilters(false);
-        if (this.paginator) {
-          this.paginator.firstPage();
-        }
         this.loading = false;
       },
       error: (err) => {
@@ -243,11 +237,47 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   }
 
   private applyFilters(resetPaginator = true): void {
-    const filteredData = this.filterAuditorias();
-    this.dataSource.data = filteredData;
-    if (resetPaginator && this.paginator) {
-      this.paginator.firstPage();
+    this.filteredAuditorias = this.filterAuditorias();
+    if (resetPaginator) {
+      this.currentPage = 0;
     }
+    this.updatePaginatedData();
+  }
+
+  updatePaginatedData(): void {
+    const startIndex = this.currentPage * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    this.paginatedAuditorias = this.filteredAuditorias.slice(startIndex, endIndex);
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.updatePaginatedData();
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.updatePaginatedData();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.updatePaginatedData();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.updatePaginatedData();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
+    this.updatePaginatedData();
   }
 
   private filterAuditorias(): AuditoriaView[] {
