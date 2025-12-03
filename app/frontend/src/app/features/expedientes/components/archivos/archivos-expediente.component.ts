@@ -1,12 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ArchivoService, Archivo } from '../../../archivos/services/archivo.service';
 import { ArchivoCreateComponent } from './archivo-create.component';
 import { ArchivoEditComponent } from './archivo-edit.component';
@@ -22,9 +22,9 @@ import { ArchivoEditComponent } from './archivo-edit.component';
   MatIconModule,
   MatTableModule,
   MatProgressSpinnerModule,
+  MatTooltipModule,
   ArchivoCreateComponent,
-  ArchivoEditComponent,
-  MatPaginatorModule
+  ArchivoEditComponent
   ],
   template: `
     <div class="archivos-container">
@@ -114,17 +114,38 @@ import { ArchivoEditComponent } from './archivo-edit.component';
               <mat-icon>folder_open</mat-icon>
               <p>No hay archivos subidos para este expediente</p>
             </div>
-
-            <mat-paginator
-              [length]="totalItems"
-              [pageSize]="pageSize"
-              [pageSizeOptions]="[5, 10, 20, 50]"
-              [pageIndex]="paginaActual - 1"
-              (page)="onPageChange($event)"
-              showFirstLastButtons>
-            </mat-paginator>
           </mat-card-content>
         </mat-card>
+      </div>
+
+      <!-- Paginación personalizada -->
+      <div class="custom-pagination" *ngIf="totalItems > 0 && !mostrandoFormCreacion && !archivoEnEdicion">
+        <div class="page-size-selector">
+          <span>Mostrar:</span>
+          <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+        </div>
+
+        <div class="pagination-info">
+          {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalItems) }} de {{ totalItems }}
+        </div>
+
+        <div class="pagination-controls">
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+            <mat-icon>first_page</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPagesCalc }}</span>
+          <button mat-icon-button [disabled]="currentPage >= totalPagesCalc - 1" (click)="nextPage()" matTooltip="Siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage >= totalPagesCalc - 1" (click)="lastPage()" matTooltip="Última página">
+            <mat-icon>last_page</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
   `,
@@ -164,6 +185,52 @@ import { ArchivoEditComponent } from './archivo-edit.component';
       height: 48px;
       margin-bottom: 16px;
     }
+
+    /* Estilos de paginación personalizada */
+    .custom-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 8px;
+    }
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-size-selector span {
+      font-size: 14px;
+      color: #666;
+    }
+    .page-size-selector button {
+      min-width: 40px;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .page-size-selector button.active {
+      background-color: #416759;
+      color: white;
+    }
+    .pagination-info {
+      font-size: 14px;
+      color: #666;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .page-number {
+      margin: 0 8px;
+      font-size: 14px;
+      color: #333;
+    }
   `]
 })
 export class ArchivosExpedienteComponent implements OnInit {
@@ -177,10 +244,18 @@ export class ArchivosExpedienteComponent implements OnInit {
   displayedColumns: string[] = ['nombre', 'descripcion', 'fecha', 'acciones'];
 
   // Paginación
-  paginaActual: number = 1;
+  currentPage: number = 0;
   pageSize: number = 10;
   totalPages: number = 1;
   totalItems: number = 0;
+
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPagesCalc(): number {
+    return Math.ceil(this.totalItems / this.pageSize);
+  }
 
   constructor(private archivoService: ArchivoService) {}
 
@@ -190,17 +265,16 @@ export class ArchivosExpedienteComponent implements OnInit {
     }
   }
 
-  cargarArchivos() {
+  cargarArchivos(page: number = this.currentPage, size: number = this.pageSize) {
     this.loading = true;
-    this.archivoService.getArchivosByEntidad(this.entidad, this.idEntidad, this.paginaActual, this.pageSize).subscribe({
+    // API espera páginas desde 1, pero internamente usamos desde 0
+    this.archivoService.getArchivosByEntidad(this.entidad, this.idEntidad, page + 1, size).subscribe({
       next: (response: any) => {
         this.archivos = response.archivos || [];
         // Leer paginación desde response.pagination
         const pag = response.pagination || {};
-  this.totalItems = pag.total_items || 0;
-  this.totalPages = pag.total_pages || 1;
-  this.paginaActual = pag.current_page || 1;
-  // No sobrescribir el pageSize con el del backend, mantener el seleccionado por el usuario
+        this.totalItems = pag.total_items || 0;
+        this.totalPages = pag.total_pages || 1;
         this.loading = false;
       },
       error: (error: any) => {
@@ -292,17 +366,34 @@ export class ArchivosExpedienteComponent implements OnInit {
     }
   }
 
-  cambiarPagina(nuevaPagina: number) {
-    if (nuevaPagina >= 1 && nuevaPagina <= this.totalPages) {
-      this.paginaActual = nuevaPagina;
-      this.cargarArchivos();
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.cargarArchivos(this.currentPage, this.pageSize);
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.cargarArchivos(this.currentPage, this.pageSize);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.cargarArchivos(this.currentPage, this.pageSize);
     }
   }
 
-  // Método para manejar el cambio de página y tamaño
-  onPageChange(event: any) {
-    this.pageSize = event.pageSize;
-    this.paginaActual = event.pageIndex + 1;
-    this.cargarArchivos();
+  nextPage(): void {
+    if (this.currentPage < this.totalPagesCalc - 1) {
+      this.currentPage++;
+      this.cargarArchivos(this.currentPage, this.pageSize);
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPagesCalc - 1;
+    this.cargarArchivos(this.currentPage, this.pageSize);
   }
 }

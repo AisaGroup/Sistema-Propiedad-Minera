@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,9 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { ActaService, Acta } from '../services/acta.service';
-import { HttpResponse } from '@angular/common/http';
 import { ActaCreateComponent } from './acta-create.component';
 import { ActaEditComponent } from './acta-edit.component';
 import { Router } from '@angular/router';
@@ -16,7 +14,7 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-actas',
   standalone: true,
-  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatTooltipModule, MatProgressSpinnerModule, MatPaginatorModule, ActaCreateComponent, ActaEditComponent],
+  imports: [CommonModule, MatTableModule, MatButtonModule, MatIconModule, MatChipsModule, MatTooltipModule, MatProgressSpinnerModule, ActaCreateComponent, ActaEditComponent],
   template: `
     <div>
       <div class="header-row">
@@ -40,7 +38,7 @@ import { Router } from '@angular/router';
       <div *ngIf="mostrarFormulario && editando">
         <app-acta-edit [acta]="actaEdit" (update)="onActualizarActa($event)" (cancelar)="onCancelarActa()"></app-acta-edit>
       </div>
-  <div class="table-container" *ngIf="actas && actas.length > 0 && !loadingActas && !mostrarFormulario">
+      <div class="table-container" *ngIf="actas && actas.length > 0 && !loadingActas && !mostrarFormulario">
         <table mat-table [dataSource]="actas" class="actas-table mat-elevation-4">
           <!-- Columnas -->
           <ng-container matColumnDef="Fecha">
@@ -65,7 +63,34 @@ import { Router } from '@angular/router';
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;" (click)="verActa(row)" class="clickable-row"></tr>
         </table>
-        <mat-paginator [length]="totalActas" [pageSize]="pageSize" [pageIndex]="pageIndex" [pageSizeOptions]="[5, 10, 20]" (page)="onPageChange($event)"></mat-paginator>
+      </div>
+      <div class="custom-pagination" *ngIf="totalActas > 0 && !mostrarFormulario">
+        <div class="page-size-selector">
+          <span>Mostrar:</span>
+          <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+        </div>
+
+        <div class="pagination-info">
+          {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalActas) }} de {{ totalActas }}
+        </div>
+
+        <div class="pagination-controls">
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+            <mat-icon>first_page</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+            <mat-icon>last_page</mat-icon>
+          </button>
+        </div>
       </div>
       <div *ngIf="actas && actas.length === 0 && !loadingActas" class="no-data">
         No hay actas asociadas.
@@ -84,6 +109,52 @@ import { Router } from '@angular/router';
     .clickable-row { cursor: pointer; transition: background 0.2s; }
     .clickable-row:hover { background: #e6f2ed; }
     .close-btn { display: block; margin: 0 0 1.5rem 0; position: relative; left: 0; top: 0; background: #fff; border-radius: 6px; z-index: 2; }
+    
+    /* Estilos de paginación personalizada (igual que alertas) */
+    .custom-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 8px;
+    }
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-size-selector span {
+      font-size: 14px;
+      color: #666;
+    }
+    .page-size-selector button {
+      min-width: 40px;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .page-size-selector button.active {
+      background-color: #416759;
+      color: white;
+    }
+    .pagination-info {
+      font-size: 14px;
+      color: #666;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .page-number {
+      margin: 0 8px;
+      font-size: 14px;
+      color: #333;
+    }
   `]
 })
 export class ActasComponent implements OnInit {
@@ -93,10 +164,18 @@ export class ActasComponent implements OnInit {
   displayedColumns = ['Fecha', 'Descripcion', 'actions'];
   totalActas = 0;
   pageSize = 10;
-  pageIndex = 0;
+  currentPage = 0;
   mostrarFormulario = false;
   editando = false;
   actaEdit: Acta | null = null;
+
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalActas / this.pageSize);
+  }
 
   constructor(private actaService: ActaService, private router: Router) {}
 
@@ -106,9 +185,9 @@ export class ActasComponent implements OnInit {
     }
   }
 
-  cargarActas() {
+  cargarActas(page: number = 0, size: number = this.pageSize) {
     this.loadingActas = true;
-    this.actaService.getActasByExpedientePaged(this.idExpediente, this.pageIndex, this.pageSize)
+    this.actaService.getActasByExpedientePaged(this.idExpediente, page, size)
       .subscribe({
         next: (resp: any) => {
           this.actas = resp.body || [];
@@ -129,10 +208,35 @@ export class ActasComponent implements OnInit {
       });
   }
 
-  onPageChange(event: PageEvent) {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
-    this.cargarActas();
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.cargarActas(this.currentPage, this.pageSize);
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.cargarActas(this.currentPage, this.pageSize);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.cargarActas(this.currentPage, this.pageSize);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.cargarActas(this.currentPage, this.pageSize);
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
+    this.cargarActas(this.currentPage, this.pageSize);
   }
 
   onCrearActa(acta: Acta) {
