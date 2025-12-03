@@ -199,8 +199,8 @@ export class AlertaCreateComponent implements OnInit, OnChanges {
     this.periodicidadAlertaService.getPeriodicidades().subscribe(periodicidades => this.periodicidades = periodicidades);
     
     // Aplicar validaciones iniciales según el medio por defecto
-    const medioInicial = this.form.get('Medio')?.value || 'Email';
-    this.actualizarValidacionesDestinatarios(medioInicial);
+     const medioInicial = this.form.get('Medio')?.value || 'Email';
+     this.actualizarValidacionesDestinatarios(medioInicial);
     
     // Escuchar cambios en el campo de periodicidad para validaciones dinámicas
     this.form.get('IdPeriodicidad')?.valueChanges.subscribe(value => {

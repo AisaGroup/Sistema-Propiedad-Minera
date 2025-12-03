@@ -56,13 +56,9 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <th mat-header-cell *matHeaderCellDef>ID</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.idAlerta }}</td>
           </ng-container> -->
-          <ng-container matColumnDef="FechaInicio">
-            <th mat-header-cell *matHeaderCellDef>Fecha de inicio</th>
-            <td mat-cell *matCellDef="let alerta">{{ alerta.FechaInicio ? (alerta.FechaInicio | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="FechaFin">
-            <th mat-header-cell *matHeaderCellDef>Fecha fin</th>
-            <td mat-cell *matCellDef="let alerta">{{ alerta.FechaFin ? (alerta.FechaFin | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
+          <ng-container matColumnDef="AudFecha">
+            <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
+            <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha ? (alerta.AudFecha | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
           </ng-container>
           <ng-container matColumnDef="Estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -76,6 +72,14 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <th mat-header-cell *matHeaderCellDef>Mensaje</th>
             <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Mensaje"></td>
           </ng-container>
+          <ng-container matColumnDef="Medio">
+              <th mat-header-cell *matHeaderCellDef>Medio</th>
+              <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Medio"></td>
+            </ng-container>
+            <ng-container matColumnDef="Destinatarios">
+              <th mat-header-cell *matHeaderCellDef>Destinatarios</th>
+              <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Destinatarios"></td>
+            </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
@@ -83,7 +87,34 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
       <div *ngIf="!loading && alertas.length === 0" class="no-data">
         <p>No hay alertas en el sistema.</p>
       </div>
-      <mat-paginator *ngIf="totalAlertas > 0" [length]="totalAlertas" [pageSize]="pageSize" [pageSizeOptions]="[5, 10, 25]" (page)="onPageChange($event)"></mat-paginator>
+      <div class="custom-pagination" *ngIf="totalAlertas > 0">
+        <div class="page-size-selector">
+          <span>Mostrar:</span>
+          <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+        </div>
+
+        <div class="pagination-info">
+          {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalAlertas) }} de {{ totalAlertas }}
+        </div>
+
+        <div class="pagination-controls">
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+            <mat-icon>first_page</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+            <mat-icon>last_page</mat-icon>
+          </button>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -117,11 +148,19 @@ export class AlertasGlobalListComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
   loading = false;
-  displayedColumns: string[] = ['FechaInicio', 'FechaFin', 'Estado', 'Asunto', 'Mensaje'];
+  displayedColumns: string[] = ['AudFecha', 'Estado', 'Asunto', 'Mensaje','Medio','Destinatarios'];
   
   // Filtro por estado
   estadosAlerta: any[] = [];
   selectedEstado: number | string = 1; // Pendiente por defecto
+
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalAlertas / this.pageSize);
+  }
 
   constructor(
     private alertaGlobalService: AlertaGlobalService,
@@ -152,7 +191,14 @@ export class AlertasGlobalListComponent implements OnInit {
     
     this.alertaGlobalService.getAllPaginated(page, size, estadoParam).subscribe({
       next: (resp) => {
-        this.alertas = resp.data;
+        // Ordenar alertas por fecha de auditoría descendente (más reciente primero)
+        const datosOrdenados = resp.data.sort((a: any, b: any) => {
+          const fechaA = new Date(a.AudFecha).getTime();
+          const fechaB = new Date(b.AudFecha).getTime();
+          return fechaB - fechaA; // Descendente: más reciente primero
+        });
+        
+        this.alertas = datosOrdenados;
         this.totalAlertas = resp.total;
         this.loading = false;
       },
@@ -177,6 +223,37 @@ export class AlertasGlobalListComponent implements OnInit {
   onPageChange(event: PageEvent) {
     this.currentPage = event.pageIndex;
     this.pageSize = event.pageSize;
+    this.loadAlertas(this.currentPage, this.pageSize);
+  }
+
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.loadAlertas(this.currentPage, this.pageSize);
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.loadAlertas(this.currentPage, this.pageSize);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadAlertas(this.currentPage, this.pageSize);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadAlertas(this.currentPage, this.pageSize);
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
     this.loadAlertas(this.currentPage, this.pageSize);
   }
 }

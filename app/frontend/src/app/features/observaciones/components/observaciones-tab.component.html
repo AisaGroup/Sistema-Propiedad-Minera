@@ -1,7 +1,7 @@
 <div>
   <div class="header-row">
     <span class="section-title">Observaciones Asociadas</span>
-    <mat-chip *ngIf="!mostrarFormulario && observaciones.length > 0" class="count-chip">{{ observaciones.length }}</mat-chip>
+    <mat-chip *ngIf="!mostrarFormulario && totalObservaciones > 0" class="count-chip">{{ totalObservaciones }}</mat-chip>
     <span class="spacer"></span>
     <button mat-raised-button color="primary" *ngIf="!mostrarFormulario" (click)="onNuevaObservacion()">
       <mat-icon>add_comment</mat-icon> Nueva Observación
@@ -42,14 +42,36 @@
         <tr mat-header-row *matHeaderRowDef="['Descripcion', 'Observaciones', 'actions']"></tr>
         <tr mat-row *matRowDef="let row; columns: ['Descripcion', 'Observaciones', 'actions']"></tr>
       </table>
-      <mat-paginator
-        [length]="totalObservaciones"
-        [pageSize]="pageSize"
-        [pageIndex]="currentPage"
-        [pageSizeOptions]="[5, 10, 25, 50]"
-        (page)="onPageChange($event)"
-        showFirstLastButtons>
-      </mat-paginator>
+    </div>
+    
+    <!-- Paginación personalizada -->
+    <div class="custom-pagination" *ngIf="totalObservaciones > 0 && !loading && !mostrarFormulario">
+      <div class="page-size-selector">
+        <span>Mostrar:</span>
+        <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+        <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+        <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+      </div>
+
+      <div class="pagination-info">
+        {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalObservaciones) }} de {{ totalObservaciones }}
+      </div>
+
+      <div class="pagination-controls">
+        <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+          <mat-icon>first_page</mat-icon>
+        </button>
+        <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+        <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+          <mat-icon>last_page</mat-icon>
+        </button>
+      </div>
     </div>
     <div *ngIf="observaciones.length === 0 && !loading" class="no-data">
       <mat-icon>info</mat-icon>

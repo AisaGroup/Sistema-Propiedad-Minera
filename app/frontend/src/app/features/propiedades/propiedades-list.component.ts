@@ -206,16 +206,36 @@ import html2pdf from 'html2pdf.js';
                   class="table-row" (click)="viewPropiedad(row)"></tr>
             </table>
 
-            <!-- Paginador -->
-            <mat-paginator 
-              [length]="totalRecords"
-              [pageSize]="pageSize"
-              [pageIndex]="pageIndex"
-              [pageSizeOptions]="pageSizeOptions"
-              (page)="onPageChange($event)"
-              showFirstLastButtons
-              class="paginator">
-            </mat-paginator>
+            <!-- Paginación personalizada -->
+            <div class="custom-pagination">
+              <div class="page-size-selector">
+                <span>Mostrar:</span>
+                <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+                <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+                <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+                <button mat-button [class.active]="pageSize === 50" (click)="changePageSize(50)">50</button>
+              </div>
+
+              <div class="pagination-info">
+                {{ (pageIndex * pageSize) + 1 }} - {{ Math.min((pageIndex + 1) * pageSize, totalRecords) }} de {{ totalRecords }}
+              </div>
+
+              <div class="pagination-controls">
+                <button mat-icon-button [disabled]="pageIndex === 0" (click)="firstPage()" matTooltip="Primera página">
+                  <mat-icon>first_page</mat-icon>
+                </button>
+                <button mat-icon-button [disabled]="pageIndex === 0" (click)="previousPage()" matTooltip="Anterior">
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+                <span class="page-number">Página {{ pageIndex + 1 }} de {{ totalPages }}</span>
+                <button mat-icon-button [disabled]="pageIndex >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+                <button mat-icon-button [disabled]="pageIndex >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+                  <mat-icon>last_page</mat-icon>
+                </button>
+              </div>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>
@@ -434,6 +454,14 @@ export class PropiedadesListComponent implements OnInit {
   pageIndex = 0;
   pageSizeOptions = [5, 10, 25, 50];
 
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalRecords / this.pageSize);
+  }
+
   constructor(
     private propiedadService: PropiedadMineraService,
     private fb: FormBuilder,
@@ -559,5 +587,36 @@ export class PropiedadesListComponent implements OnInit {
         console.error('Error al obtener el reporte HTML:', err);
       }
     });
+  }
+
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.pageIndex = 0;
+    this.loadPropiedades();
+  }
+
+  firstPage(): void {
+    this.pageIndex = 0;
+    this.loadPropiedades();
+  }
+
+  previousPage(): void {
+    if (this.pageIndex > 0) {
+      this.pageIndex--;
+      this.loadPropiedades();
+    }
+  }
+
+  nextPage(): void {
+    if (this.pageIndex < this.totalPages - 1) {
+      this.pageIndex++;
+      this.loadPropiedades();
+    }
+  }
+
+  lastPage(): void {
+    this.pageIndex = this.totalPages - 1;
+    this.loadPropiedades();
   }
 }
