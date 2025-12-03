@@ -11,6 +11,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { SharedDatepickerModule } from '../../../shared/shared-datepicker.module';
 import { DateFormatDirective } from '../../../shared/directives/date-format.directive';
@@ -21,19 +22,25 @@ import { TipoExpedienteService, TipoExpediente } from '../services/tipo-expedien
   selector: 'app-expediente-form',
   standalone: true,
   encapsulation: ViewEncapsulation.None,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatCardModule, SharedDatepickerModule, MatAutocompleteModule, DateFormatDirective],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, MatSelectModule, MatCardModule, MatIconModule, SharedDatepickerModule, MatAutocompleteModule, DateFormatDirective],
   template: `
     <mat-card class="expediente-form-card">
       <mat-card-title class="form-title">{{ modo === 'editar' ? 'Editar Expediente' : 'Datos del Expediente' }}</mat-card-title>
       <form [formGroup]="form" (ngSubmit)="onSubmit()" class="expediente-form-grid" autocomplete="off" novalidate>
         <!-- Fila 1: Código, Año, Estado -->
         <mat-form-field appearance="fill">
-          <mat-label>Código de Expediente</mat-label>
+          <mat-label>Código de Expediente *</mat-label>
           <input matInput formControlName="CodigoExpediente" maxlength="50">
+          <mat-error *ngIf="form.get('CodigoExpediente')?.hasError('required')">
+            Código de Expediente es requerido
+          </mat-error>
         </mat-form-field>
         <mat-form-field appearance="fill">
-          <mat-label>Año</mat-label>
+          <mat-label>Año *</mat-label>
           <input matInput formControlName="Ano" type="number" min="1800" max="2100">
+          <mat-error *ngIf="form.get('Ano')?.hasError('required')">
+            Año es requerido
+          </mat-error>
         </mat-form-field>
         <mat-form-field appearance="fill">
           <mat-label>Estado</mat-label>
@@ -67,26 +74,30 @@ import { TipoExpedienteService, TipoExpediente } from '../services/tipo-expedien
         </mat-form-field>
         <mat-form-field appearance="fill">
           <mat-label>Propiedad Minera *</mat-label>
-          <input matInput type="text" [formControl]="propiedadMineraControl" [matAutocomplete]="auto" [ngStyle]="{background:'#fff'}">
+          <input matInput type="text" [formControl]="propiedadMineraControl" [matAutocomplete]="auto" [ngStyle]="{background:'#fff'}" placeholder="Busque y seleccione una propiedad">
           <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onPropiedadMineraSelected($event)">
             <mat-option *ngFor="let propiedad of propiedadesMineraFiltradas$ | async" [value]="propiedad.Nombre">
               {{propiedad.Nombre}}
             </mat-option>
           </mat-autocomplete>
-          <mat-error *ngIf="propiedadMineraControl.hasError('required')" 
-                     class="error-text-red" 
-                     [ngStyle]="{'color': '#f44336', 'font-weight': '500', 'font-size': '0.85rem'}">
-            Propiedad Minera es requerida
+          <mat-error *ngIf="propiedadMineraControl.hasError('required')">
+            Debe buscar y seleccionar una Propiedad Minera
+          </mat-error>
+          <mat-error *ngIf="propiedadMineraControl.hasError('invalid')">
+            Seleccione una Propiedad Minera válida de la lista
           </mat-error>
         </mat-form-field>
         <!-- Fila 4: ID Tipo de Expediente -->
           <mat-form-field appearance="fill">
-            <mat-label>Tipo de Expediente</mat-label>
+            <mat-label>Tipo de Expediente *</mat-label>
             <mat-select formControlName="IdTipoExpediente">
               <mat-option *ngFor="let tipo of tiposExpedienteLista" [value]="tipo.IdTipoExpediente">
                 {{ tipo.Nombre }}
               </mat-option>
             </mat-select>
+            <mat-error *ngIf="form.get('IdTipoExpediente')?.hasError('required')">
+              Tipo de Expediente es requerido
+            </mat-error>
           </mat-form-field>
         <!-- Fila 5 (full width): Descripción -->
         <mat-form-field appearance="fill" class="full-width">
@@ -98,6 +109,10 @@ import { TipoExpedienteService, TipoExpediente } from '../services/tipo-expedien
           <mat-label>Observaciones</mat-label>
           <textarea matInput formControlName="Observaciones" maxlength="500"></textarea>
         </mat-form-field>
+        <div class="error-message full-width" *ngIf="errorMessage">
+          <mat-icon>error</mat-icon>
+          <span>{{ errorMessage }}</span>
+        </div>
         <div class="form-actions full-width">
           <button mat-raised-button color="primary" type="submit">
             {{ modo === 'editar' ? 'Guardar cambios' : 'Crear Expediente' }}
@@ -302,6 +317,24 @@ import { TipoExpedienteService, TipoExpediente } from '../services/tipo-expedien
     ::ng-deep .mdc-text-field--filled .mdc-text-field__input {
       background: #fff !important;
     }
+    
+    /* Estilos para mensaje de error general */
+    .error-message {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background-color: #ffebee;
+      border: 1px solid #f44336;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-top: 0.5rem;
+      color: #c62828;
+      font-weight: 500;
+    }
+    
+    .error-message mat-icon {
+      color: #f44336;
+    }
   `]
 })
 
@@ -317,10 +350,15 @@ export class ExpedienteFormComponent implements OnInit, OnChanges {
         this.form.patchValue({ IdPropiedadMinera: propiedad.IdPropiedadMinera });
         // Limpiar errores cuando se selecciona una propiedad válida
         this.propiedadMineraControl.setErrors(null);
+        this.errorMessage = '';
+      } else {
+        this.form.patchValue({ IdPropiedadMinera: null });
+        this.propiedadMineraControl.setErrors({ 'invalid': true });
       }
     });
   }
-  propiedadMineraControl: FormControl = new FormControl('');
+  propiedadMineraControl: FormControl = new FormControl('', [Validators.required]);
+  errorMessage: string = '';
   propiedadesMineraFiltradas$: Observable<PropiedadMinera[]> = of([]);
   selectedPropiedadMinera: PropiedadMinera | null = null;
   @Output() create = new EventEmitter<ExpedienteCreate>();
@@ -459,25 +497,48 @@ export class ExpedienteFormComponent implements OnInit, OnChanges {
     console.log('=== EXPEDIENTE onSubmit ===');
     console.log('Form valid:', this.form.valid);
     console.log('Form value:', this.form.value);
-    console.log('Form errors:', this.form.errors);
-    
-    // Verificar errores en cada campo
-    Object.keys(this.form.controls).forEach(key => {
-      const control = this.form.get(key);
-      if (control && control.errors) {
-        console.log(`ERROR en campo ${key}:`, control.errors);
-      }
-    });
+    console.log('Propiedad Minera Control valid:', this.propiedadMineraControl.valid);
+    console.log('Selected Propiedad Minera:', this.selectedPropiedadMinera);
     
     // Marcar todos los campos como tocados para mostrar errores
     this.form.markAllAsTouched();
     this.propiedadMineraControl.markAsTouched();
     
-    // Validar solo que el formulario principal sea válido
+    // Validar campos requeridos específicos
+    const errores: string[] = [];
+    
+    if (!this.form.get('CodigoExpediente')?.value) {
+      errores.push('Código de Expediente');
+    }
+    if (!this.form.get('Ano')?.value) {
+      errores.push('Año');
+    }
+    if (!this.form.get('IdTipoExpediente')?.value) {
+      errores.push('Tipo de Expediente');
+    }
+    if (!this.selectedPropiedadMinera || !this.propiedadMineraControl.value) {
+      errores.push('Propiedad Minera');
+      this.propiedadMineraControl.setErrors({ 'required': true });
+    }
+    
+    // Si hay errores, mostrar alerta y detener
+    if (errores.length > 0) {
+      this.errorMessage = `Por favor complete los siguientes campos requeridos: ${errores.join(', ')}`;
+      alert(this.errorMessage);
+      console.log('Formulario inválido - campos faltantes:', errores);
+      return;
+    }
+    
+    // Validar que el formulario principal sea válido
     if (this.form.invalid) {
+      this.errorMessage = 'Por favor corrija los errores en el formulario antes de continuar.';
+      alert(this.errorMessage);
       console.log('Formulario inválido - deteniendo');
       return;
     }
+    
+    // Limpiar mensaje de error si todo está bien
+    this.errorMessage = '';
 
     const value = { ...this.form.value };
     console.log('Valor antes de formatear:', value);
