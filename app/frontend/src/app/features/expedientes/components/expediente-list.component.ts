@@ -149,19 +149,60 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
             </table>
           </div>
 
-          <!-- Paginación -->
-          <mat-paginator 
-            #paginator
-            [length]="totalExpedientes"
-            [pageSize]="pageSize"
-            [pageSizeOptions]="[5, 10, 25, 50]"
-            (page)="onPageChange($event)"
-            showFirstLastButtons>
-          </mat-paginator>
+          <!-- Paginación personalizada -->
+          <div class="custom-pagination">
+            <div class="page-size-selector">
+              <span>Mostrar:</span>
+              <button 
+                mat-button 
+                [class.active]="pageSize === 5"
+                (click)="changePageSize(5)">
+                5
+              </button>
+              <button 
+                mat-button 
+                [class.active]="pageSize === 10"
+                (click)="changePageSize(10)">
+                10
+              </button>
+              <button 
+                mat-button 
+                [class.active]="pageSize === 25"
+                (click)="changePageSize(25)">
+                25
+              </button>
+              <button 
+                mat-button 
+                [class.active]="pageSize === 50"
+                (click)="changePageSize(50)">
+                50
+              </button>
+            </div>
+
+            <div class="pagination-info">
+              {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalExpedientes) }} de {{ totalExpedientes }}
+            </div>
+
+            <div class="pagination-controls">
+              <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+                <mat-icon>first_page</mat-icon>
+              </button>
+              <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+              <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+              <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+                <mat-icon>last_page</mat-icon>
+              </button>
+            </div>
+          </div>
         </mat-card-content>
       </mat-card>
     </div>
-  `,
+  `, 
   styles: [`
     .expedientes-container {
       padding: 20px;
@@ -302,12 +343,20 @@ export class ExpedientesListComponent implements OnInit {
 
   filters: ExpedienteFilter = {};
 
+  // Para usar Math en el template
+  Math = Math;
+
   constructor(
     private expedienteService: ExpedienteService,
     private router: Router,
     private http: HttpClient,
     private sanitizer: DomSanitizer
   ) {}
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalExpedientes / this.pageSize);
+  }
   descargarPDF() {
     // Llama al endpoint del backend que devuelve el HTML del reporte
     this.http.get(`${API_BASE_URL}/expedientes/reporte/html`, { responseType: 'text' }).subscribe({
@@ -395,5 +444,36 @@ export class ExpedientesListComponent implements OnInit {
   // Utilidad para mostrar valores en tabla
   mostrarDato(valor: any): string {
     return valor !== undefined && valor !== null && valor !== '' ? valor : 'Sin dato';
+  }
+
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.loadExpedientes();
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.loadExpedientes();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadExpedientes();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadExpedientes();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
+    this.loadExpedientes();
   }
 }

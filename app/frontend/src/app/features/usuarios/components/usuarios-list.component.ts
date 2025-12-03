@@ -170,16 +170,36 @@ import { Usuario } from '../models/usuario.model';
               </button>
             </div>
 
-            <!-- Paginator -->
-            <mat-paginator 
-              *ngIf="usuarios.length > 0"
-              [length]="totalItems"
-              [pageSize]="pageSize"
-              [pageIndex]="currentPage"
-              [pageSizeOptions]="[5, 10, 25, 50]"
-              (page)="onPageChange($event)"
-              showFirstLastButtons>
-            </mat-paginator>
+            <!-- Paginación personalizada -->
+            <div class="custom-pagination" *ngIf="usuarios.length > 0">
+              <div class="page-size-selector">
+                <span>Mostrar:</span>
+                <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
+                <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
+                <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+                <button mat-button [class.active]="pageSize === 50" (click)="changePageSize(50)">50</button>
+              </div>
+
+              <div class="pagination-info">
+                {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalItems) }} de {{ totalItems }}
+              </div>
+
+              <div class="pagination-controls">
+                <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+                  <mat-icon>first_page</mat-icon>
+                </button>
+                <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+                  <mat-icon>chevron_left</mat-icon>
+                </button>
+                <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
+                <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+                  <mat-icon>chevron_right</mat-icon>
+                </button>
+                <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+                  <mat-icon>last_page</mat-icon>
+                </button>
+              </div>
+            </div>
           </div>
         </mat-card-content>
       </mat-card>
@@ -196,6 +216,14 @@ export class UsuariosListComponent implements OnInit {
   currentPage = 0;
   pageSize = 10;
   totalItems = 0;
+
+  // Para usar Math en el template
+  Math = Math;
+
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalItems / this.pageSize);
+  }
 
   displayedColumns: string[] = [
     'IdUsuario',
@@ -299,5 +327,36 @@ export class UsuariosListComponent implements OnInit {
       'Supervisor': '#9c27b0'
     };
     return colors[rol] || '#6b7280';
+  }
+
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.loadUsuarios();
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.loadUsuarios();
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadUsuarios();
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadUsuarios();
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
+    this.loadUsuarios();
   }
 }

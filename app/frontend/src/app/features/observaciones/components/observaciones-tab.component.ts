@@ -9,7 +9,6 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
@@ -23,7 +22,6 @@ import { MatButtonModule } from '@angular/material/button';
     MatChipsModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatPaginatorModule,
     ObservacionCreateComponent,
     ObservacionEditComponent
   ],
@@ -74,6 +72,62 @@ import { MatButtonModule } from '@angular/material/button';
       width: 10% !important;
       max-width: 80px !important;
     }
+    .loading-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin: 16px 0;
+    }
+    .close-btn {
+      display: block;
+      margin: 0 0 1.5rem 0;
+    }
+    /* Estilos de paginación personalizada */
+    .custom-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 8px;
+    }
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-size-selector span {
+      font-size: 14px;
+      color: #666;
+    }
+    .page-size-selector button {
+      min-width: 40px;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .page-size-selector button.active {
+      background-color: #416759;
+      color: white;
+    }
+    .pagination-info {
+      font-size: 14px;
+      color: #666;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .page-number {
+      margin: 0 8px;
+      font-size: 14px;
+      color: #333;
+    }
   `]
 })
 export class ObservacionesTabComponent implements OnInit, OnChanges {
@@ -82,10 +136,18 @@ export class ObservacionesTabComponent implements OnInit, OnChanges {
   @Input() tipoPadre: string = 'expediente'; // tipo de entidad padre
   @Input() idPadre: number | null = null; // ID de la entidad padre
   totalObservaciones = 0;
-  pageSize = 5;
+  pageSize = 10;
   currentPage = 0;
   loading = false;
   mostrarFormulario = false;
+  
+  // Para usar Math en el template
+  Math = Math;
+  
+  // Getter para calcular total de páginas
+  get totalPages(): number {
+    return Math.ceil(this.totalObservaciones / this.pageSize);
+  }
   editando = false;
   observacionEdit: Observacion | null = null;
 
@@ -121,9 +183,34 @@ export class ObservacionesTabComponent implements OnInit, OnChanges {
     });
   }
 
-  onPageChange(event: PageEvent) {
-    this.currentPage = event.pageIndex;
-    this.pageSize = event.pageSize;
+  // Métodos de paginación personalizada
+  changePageSize(size: number): void {
+    this.pageSize = size;
+    this.currentPage = 0;
+    this.loadObservaciones(this.currentPage, this.pageSize);
+  }
+
+  firstPage(): void {
+    this.currentPage = 0;
+    this.loadObservaciones(this.currentPage, this.pageSize);
+  }
+
+  previousPage(): void {
+    if (this.currentPage > 0) {
+      this.currentPage--;
+      this.loadObservaciones(this.currentPage, this.pageSize);
+    }
+  }
+
+  nextPage(): void {
+    if (this.currentPage < this.totalPages - 1) {
+      this.currentPage++;
+      this.loadObservaciones(this.currentPage, this.pageSize);
+    }
+  }
+
+  lastPage(): void {
+    this.currentPage = this.totalPages - 1;
     this.loadObservaciones(this.currentPage, this.pageSize);
   }
 

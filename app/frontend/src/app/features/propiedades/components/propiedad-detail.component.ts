@@ -10,7 +10,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PropiedadMineraService } from '../services/propiedad-minera.service';
 import { ReqMineroMovService, ReqMineroMov, ReqMineroMovCreate } from '../services/req-minero-mov.service';
 import { ReqMineroService, ReqMinero } from '../services/req-minero.service';
@@ -38,7 +38,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
     MatTableModule,
     MatChipsModule,
     MatMenuModule,
-    MatPaginatorModule,
+    MatTooltipModule,
     ReqMineroMovCreateComponent,
     ReqMineroMovEditComponent,
     AlertasListComponent,
@@ -70,7 +70,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
       <div *ngIf="!loading && propiedad" class="tabs-container">
         <mat-tab-group animationDuration="300ms">
           <!-- Tab 1: Datos de Propiedad Minera -->
-          <mat-tab label="Datos de Propiedad">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>info</mat-icon>
+              Datos de Propiedad
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -140,7 +144,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 2: Requerimientos Mineros -->
-          <mat-tab label="Requerimientos Mineros">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>assignment</mat-icon>
+              Requerimientos Mineros
+            </ng-template>
             <div class="tab-content">
               <!-- Formulario de creación (solo si está activo) -->
               <div *ngIf="mostrandoFormularioCreacion" class="formulario-container">
@@ -242,20 +250,41 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <tr mat-row *matRowDef="let row; columns: requerimientosColumns;"></tr>
                     </table>
 
-                    <!-- Paginador de requerimientos -->
-                    <mat-paginator
-                      [length]="requerimientosTotal"
-                      [pageSize]="requerimientosPageSize"
-                      [pageIndex]="requerimientosPageIndex"
-                      [pageSizeOptions]="requerimientosPageSizeOptions"
-                      (page)="onRequerimientosPageChange($event)">
-                    </mat-paginator>
-
                     <!-- Mensaje si no hay requerimientos -->
                     <div *ngIf="requerimientos.length === 0" class="no-requerimientos">
                       <mat-icon>assignment</mat-icon>
                       <h3>No hay requerimientos registrados</h3>
                       <p>Aún no se han agregado requerimientos para esta propiedad minera.</p>
+                    </div>
+                  </div>
+
+                  <!-- Paginación personalizada de requerimientos -->
+                  <div class="custom-pagination" *ngIf="requerimientosTotal > 0">
+                    <div class="page-size-selector">
+                      <span>Mostrar:</span>
+                      <button mat-button [class.active]="requerimientosPageSize === 5" (click)="changeRequerimientosPageSize(5)">5</button>
+                      <button mat-button [class.active]="requerimientosPageSize === 10" (click)="changeRequerimientosPageSize(10)">10</button>
+                      <button mat-button [class.active]="requerimientosPageSize === 25" (click)="changeRequerimientosPageSize(25)">25</button>
+                    </div>
+
+                    <div class="pagination-info">
+                      {{ (requerimientosCurrentPage * requerimientosPageSize) + 1 }} - {{ Math.min((requerimientosCurrentPage + 1) * requerimientosPageSize, requerimientosTotal) }} de {{ requerimientosTotal }}
+                    </div>
+
+                    <div class="pagination-controls">
+                      <button mat-icon-button [disabled]="requerimientosCurrentPage === 0" (click)="firstRequerimientosPage()" matTooltip="Primera página">
+                        <mat-icon>first_page</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="requerimientosCurrentPage === 0" (click)="previousRequerimientosPage()" matTooltip="Anterior">
+                        <mat-icon>chevron_left</mat-icon>
+                      </button>
+                      <span class="page-number">Página {{ requerimientosCurrentPage + 1 }} de {{ requerimientosTotalPages }}</span>
+                      <button mat-icon-button [disabled]="requerimientosCurrentPage >= requerimientosTotalPages - 1" (click)="nextRequerimientosPage()" matTooltip="Siguiente">
+                        <mat-icon>chevron_right</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="requerimientosCurrentPage >= requerimientosTotalPages - 1" (click)="lastRequerimientosPage()" matTooltip="Última página">
+                        <mat-icon>last_page</mat-icon>
+                      </button>
                     </div>
                   </div>
                 </mat-card-content>
@@ -264,7 +293,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 3: Expediente -->
-          <mat-tab label="Expediente">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>folder_open</mat-icon>
+              Expedientes
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -295,14 +328,37 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                     <tr mat-header-row *matHeaderRowDef="expedientesColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: expedientesColumns;" (click)="irADetalleExpediente(row)" style="cursor:pointer"></tr>
                   </table>
-                  <mat-paginator
-                    [length]="expedientesTotal"
-                    [pageSize]="expedientesPageSize"
-                    [pageIndex]="expedientesPageIndex"
-                    [pageSizeOptions]="[5, 10, 20, 50]"
-                    (page)="onExpedientesPageChange($event)"
-                    *ngIf="!loadingExpedientes && expedientesTotal > expedientesPageSize">
-                  </mat-paginator>
+                  
+                  <!-- Paginación personalizada de expedientes -->
+                  <div class="custom-pagination" *ngIf="!loadingExpedientes && expedientesTotal > 0">
+                    <div class="page-size-selector">
+                      <span>Mostrar:</span>
+                      <button mat-button [class.active]="expedientesPageSize === 5" (click)="changeExpedientesPageSize(5)">5</button>
+                      <button mat-button [class.active]="expedientesPageSize === 10" (click)="changeExpedientesPageSize(10)">10</button>
+                      <button mat-button [class.active]="expedientesPageSize === 25" (click)="changeExpedientesPageSize(25)">25</button>
+                    </div>
+
+                    <div class="pagination-info">
+                      {{ (expedientesCurrentPage * expedientesPageSize) + 1 }} - {{ Math.min((expedientesCurrentPage + 1) * expedientesPageSize, expedientesTotal) }} de {{ expedientesTotal }}
+                    </div>
+
+                    <div class="pagination-controls">
+                      <button mat-icon-button [disabled]="expedientesCurrentPage === 0" (click)="firstExpedientesPage()" matTooltip="Primera página">
+                        <mat-icon>first_page</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="expedientesCurrentPage === 0" (click)="previousExpedientesPage()" matTooltip="Anterior">
+                        <mat-icon>chevron_left</mat-icon>
+                      </button>
+                      <span class="page-number">Página {{ expedientesCurrentPage + 1 }} de {{ expedientesTotalPages }}</span>
+                      <button mat-icon-button [disabled]="expedientesCurrentPage >= expedientesTotalPages - 1" (click)="nextExpedientesPage()" matTooltip="Siguiente">
+                        <mat-icon>chevron_right</mat-icon>
+                      </button>
+                      <button mat-icon-button [disabled]="expedientesCurrentPage >= expedientesTotalPages - 1" (click)="lastExpedientesPage()" matTooltip="Última página">
+                        <mat-icon>last_page</mat-icon>
+                      </button>
+                    </div>
+                  </div>
+                  
                   <div *ngIf="!loadingExpedientes && expedientes.length === 0">
                     <mat-icon>assignment</mat-icon>
                     <h3>No hay expedientes registrados para esta propiedad minera.</h3>
@@ -313,7 +369,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 4: Alertas -->
-          <mat-tab label="Alertas">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>notifications</mat-icon>
+              Alertas
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -327,7 +387,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 5: Observaciones -->
-          <mat-tab label="Observaciones">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>note</mat-icon>
+              Observaciones
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -341,7 +405,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
           </mat-tab>
 
           <!-- Tab 6: Archivos -->
-          <mat-tab label="Archivos">
+          <mat-tab>
+            <ng-template mat-tab-label>
+              <mat-icon>attach_file</mat-icon>
+              Archivos
+            </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
@@ -413,7 +481,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
 
     .header-info h1 {
       margin: 0;
-      color: #3f51b5;
+      color: #000000;
       font-size: 1.8rem;
       font-weight: 500;
     }
@@ -457,16 +525,59 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
     }
 
     .tabs-container {
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 20px rgba(65, 103, 89, 0.1);
-      overflow: hidden;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
       border: 1px solid #e1f0ec;
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow: hidden;
     }
 
     .tabs-container:hover {
-      box-shadow: 0 8px 30px rgba(65, 103, 89, 0.15);
+      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+    }
+
+    /* Estilos personalizados para mat-tab-group */
+    .tabs-container ::ng-deep .mat-mdc-tab-labels {
+      background: #f5f7f6;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab {
+      color: #416759 !important;
+      font-weight: 500;
+      font-size: 16px;
+      opacity: 1 !important;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab:hover {
+      background: #e8f0ec;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab.mdc-tab--active {
+      background: #fff;
+      color: #416759 !important;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab .mdc-tab__text-label {
+      color: #416759;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab-label-container {
+      background: #f5f7f6;
+    }
+
+    .tabs-container ::ng-deep .mdc-tab-indicator__content--underline {
+      border-color: #416759 !important;
+      border-width: 3px;
+    }
+
+    .tabs-container ::ng-deep .mat-mdc-tab-body-wrapper {
+      background: #fff;
+      border-radius: 0 0 8px 8px;
     }
 
     .tab-content {
@@ -790,6 +901,52 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
       max-width: 200px;
       white-space: nowrap;
     }
+
+    /* Estilos de paginación personalizada */
+    .custom-pagination {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px;
+      background: #fafafa;
+      border-top: 1px solid #e0e0e0;
+      margin-top: 8px;
+    }
+    .page-size-selector {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .page-size-selector span {
+      font-size: 14px;
+      color: #666;
+    }
+    .page-size-selector button {
+      min-width: 40px;
+      height: 32px;
+      line-height: 32px;
+      padding: 0 8px;
+      font-size: 13px;
+      color: #666;
+    }
+    .page-size-selector button.active {
+      background-color: #416759;
+      color: white;
+    }
+    .pagination-info {
+      font-size: 14px;
+      color: #666;
+    }
+    .pagination-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .page-number {
+      margin: 0 8px;
+      font-size: 14px;
+      color: #333;
+    }
   `]
 })
 export class PropiedadDetailComponent implements OnInit {
@@ -811,8 +968,15 @@ export class PropiedadDetailComponent implements OnInit {
   ];
   requerimientosTotal = 0;
   requerimientosPageSize = 10;
-  requerimientosPageIndex = 0;
-  requerimientosPageSizeOptions = [5, 10, 20, 50];
+  requerimientosCurrentPage = 0;
+  
+  // Para usar Math en el template
+  Math = Math;
+  
+  // Getter para calcular total de páginas de requerimientos
+  get requerimientosTotalPages(): number {
+    return Math.ceil(this.requerimientosTotal / this.requerimientosPageSize);
+  }
   
   // Lista de tipos de requerimientos para hacer el mapeo
   tiposRequerimientos: ReqMinero[] = [];
@@ -829,7 +993,12 @@ export class PropiedadDetailComponent implements OnInit {
   loadingExpedientes = false;
   expedientesTotal = 0;
   expedientesPageSize = 10;
-  expedientesPageIndex = 0;
+  expedientesCurrentPage = 0;
+  
+  // Getter para calcular total de páginas de expedientes
+  get expedientesTotalPages(): number {
+    return Math.ceil(this.expedientesTotal / this.expedientesPageSize);
+  }
 
   constructor(
     private route: ActivatedRoute,
@@ -877,10 +1046,10 @@ export class PropiedadDetailComponent implements OnInit {
     });
   }
 
-  loadRequerimientos(idPropiedadMinera: number) {
+  loadRequerimientos(idPropiedadMinera: number, page: number = this.requerimientosCurrentPage, size: number = this.requerimientosPageSize) {
     this.loadingRequerimientos = true;
-    const skip = this.requerimientosPageIndex * this.requerimientosPageSize;
-    const limit = this.requerimientosPageSize;
+    const skip = page * size;
+    const limit = size;
     this.reqMineroMovService.getReqMineroMovsByPropiedad(idPropiedadMinera, skip, limit).subscribe({
       next: (result) => {
         this.requerimientos = result.data;
@@ -896,11 +1065,44 @@ export class PropiedadDetailComponent implements OnInit {
     });
   }
 
-  onRequerimientosPageChange(event: any): void {
-    this.requerimientosPageIndex = event.pageIndex;
-    this.requerimientosPageSize = event.pageSize;
+  // Métodos de paginación personalizada para requerimientos
+  changeRequerimientosPageSize(size: number): void {
+    this.requerimientosPageSize = size;
+    this.requerimientosCurrentPage = 0;
     if (this.propiedadId) {
-      this.loadRequerimientos(this.propiedadId);
+      this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+    }
+  }
+
+  firstRequerimientosPage(): void {
+    this.requerimientosCurrentPage = 0;
+    if (this.propiedadId) {
+      this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+    }
+  }
+
+  previousRequerimientosPage(): void {
+    if (this.requerimientosCurrentPage > 0) {
+      this.requerimientosCurrentPage--;
+      if (this.propiedadId) {
+        this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+      }
+    }
+  }
+
+  nextRequerimientosPage(): void {
+    if (this.requerimientosCurrentPage < this.requerimientosTotalPages - 1) {
+      this.requerimientosCurrentPage++;
+      if (this.propiedadId) {
+        this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+      }
+    }
+  }
+
+  lastRequerimientosPage(): void {
+    this.requerimientosCurrentPage = this.requerimientosTotalPages - 1;
+    if (this.propiedadId) {
+      this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
     }
   }
 
@@ -1043,14 +1245,39 @@ export class PropiedadDetailComponent implements OnInit {
   }
 
   setExpedientesPaged(): void {
-    const start = this.expedientesPageIndex * this.expedientesPageSize;
+    const start = this.expedientesCurrentPage * this.expedientesPageSize;
     const end = start + this.expedientesPageSize;
     this.expedientesPaged = this.expedientes.slice(start, end);
   }
 
-  onExpedientesPageChange(event: any): void {
-    this.expedientesPageIndex = event.pageIndex;
-    this.expedientesPageSize = event.pageSize;
+  // Métodos de paginación personalizada para expedientes
+  changeExpedientesPageSize(size: number): void {
+    this.expedientesPageSize = size;
+    this.expedientesCurrentPage = 0;
+    this.setExpedientesPaged();
+  }
+
+  firstExpedientesPage(): void {
+    this.expedientesCurrentPage = 0;
+    this.setExpedientesPaged();
+  }
+
+  previousExpedientesPage(): void {
+    if (this.expedientesCurrentPage > 0) {
+      this.expedientesCurrentPage--;
+      this.setExpedientesPaged();
+    }
+  }
+
+  nextExpedientesPage(): void {
+    if (this.expedientesCurrentPage < this.expedientesTotalPages - 1) {
+      this.expedientesCurrentPage++;
+      this.setExpedientesPaged();
+    }
+  }
+
+  lastExpedientesPage(): void {
+    this.expedientesCurrentPage = this.expedientesTotalPages - 1;
     this.setExpedientesPaged();
   }
 
