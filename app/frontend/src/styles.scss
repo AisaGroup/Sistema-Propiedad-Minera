@@ -1126,19 +1126,9 @@ html body .mat-form-field-infix {
 /* Z-index para evitar superposición */
 .cdk-overlay-pane:has(.mat-mdc-menu-panel) {
   z-index: 1050 !important;
-  pointer-events: auto !important;
 }
 
-.cdk-overlay-backdrop.cdk-overlay-backdrop-showing {
-  z-index: 1049 !important;
-  pointer-events: auto !important;
-}
-
-/* Asegurar que el backdrop no bloquee los clicks en el menú pero sí funcione para selectores */
-.cdk-overlay-backdrop.cdk-overlay-transparent-backdrop:not(.mat-mdc-select-backdrop) {
-  pointer-events: none !important;
-}
-
+/* Solo aplicar pointer-events: auto a backdrops específicos, NO globalmente */
 /* El backdrop del select debe permitir clicks para cerrar */
 .cdk-overlay-backdrop.mat-mdc-select-backdrop {
   pointer-events: auto !important;
@@ -1235,20 +1225,10 @@ mat-card:has(mat-paginator) {
   z-index: 1050 !important;
 }
 
-/* Asegurar que el backdrop del paginador funcione correctamente */
-.cdk-overlay-backdrop {
-  pointer-events: auto !important;
-}
-
 /* Backdrop específico del select del paginador */
 .cdk-overlay-backdrop.cdk-overlay-transparent-backdrop.mat-mdc-select-backdrop {
   pointer-events: auto !important;
   opacity: 0 !important;
-}
-
-/* Asegurar que los clicks funcionen en el overlay del paginador */
-.cdk-overlay-pane:has(.mat-mdc-paginator-page-size-select-panel) {
-  pointer-events: auto !important;
 }
 
 /* Opciones del selector de página */
