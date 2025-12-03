@@ -120,7 +120,15 @@ import html2pdf from 'html2pdf.js';
         </mat-card-header>
         <mat-card-content>
           <div class="table-container">
-            <table mat-table [dataSource]="propiedades" class="propiedades-table" matSort>
+            <table mat-table [dataSource]="propiedades" class="propiedades-table mat-elevation-z1" matSort>
+              <!-- ID Column -->
+              <ng-container matColumnDef="IdPropiedadMinera">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
+                <td mat-cell *matCellDef="let propiedad">
+                  <span class="id-pill">{{ propiedad.IdPropiedadMinera }}</span>
+                </td>
+              </ng-container>
+
               <!-- Nombre Column -->
               <ng-container matColumnDef="Nombre">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
@@ -338,6 +346,18 @@ import html2pdf from 'html2pdf.js';
       color: #416759;
     }
 
+    .id-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: rgba(63, 104, 89, 0.1);
+      color: #1f4136;
+      font-weight: 600;
+    }
+
     .cell-content {
       display: flex;
       flex-direction: column;
@@ -416,6 +436,7 @@ export class PropiedadesListComponent implements OnInit {
   propiedades: PropiedadMinera[] = [];
   filterForm: FormGroup;
   displayedColumns: string[] = [
+    'IdPropiedadMinera',
     'Nombre',
     'Referente',
     'Provincia',

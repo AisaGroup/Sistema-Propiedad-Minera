@@ -109,10 +109,12 @@ def crear_expediente(
     print('DEBUG Expediente recibido:', expediente_data)
     service = ExpedienteService(db)
     expediente = service.create(expediente_data)
+    # Usar el expediente persistido (que ya tiene IdTransaccion) para el detalle de auditoría
+    expediente_payload = ExpedienteRead.from_orm(expediente).model_dump()
     AuditLogger(db, current_user).log_creation(
         entidad="Expediente",
         entity_id=expediente.IdExpediente,
-        payload=expediente_data.model_dump(),
+        payload=expediente_payload,
     )
     return expediente
 

@@ -20,6 +20,125 @@
       <button mat-stroked-button color="primary" (click)="fetchAuditorias()">Reintentar</button>
     </div>
     } @if (!loading && !error) {
+    <form class="filters-panel" [formGroup]="filterForm">
+      <div class="filters-grid">
+        <mat-form-field appearance="outline" class="max-height-form-field">
+          <mat-label>Usuario</mat-label>
+          <input matInput placeholder="Nombre o ID" formControlName="usuario" autocomplete="off" />
+          <button
+            mat-icon-button
+            matSuffix
+            aria-label="Limpiar filtro de usuario"
+            type="button"
+            *ngIf="filterForm.get('usuario')?.value"
+            (click)="filterForm.get('usuario')?.setValue('')"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="max-height-form-field">
+          <mat-label>Entidad</mat-label>
+          <mat-select formControlName="entidad" multiple>
+            <mat-option *ngFor="let entidad of availableEntidades" [value]="entidad">
+              {{ entidad }}
+            </mat-option>
+          </mat-select>
+          <button
+            mat-icon-button
+            matSuffix
+            aria-label="Limpiar filtro de acción"
+            type="button"
+            *ngIf="(filterForm.get('entidad')?.value?.length || 0) > 0"
+            (click)="filterForm.get('entidad')?.setValue([])"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="max-height-form-field">
+          <mat-label>Acción</mat-label>
+          <mat-select formControlName="accion" multiple>
+            <mat-option *ngFor="let accion of availableAcciones" [value]="accion">
+              {{ accion }}
+            </mat-option>
+          </mat-select>
+          <button
+            mat-icon-button
+            matSuffix
+            aria-label="Limpiar filtro de acción"
+            type="button"
+            *ngIf="(filterForm.get('accion')?.value?.length || 0) > 0"
+            (click)="filterForm.get('accion')?.setValue([])"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="date-range-field max-height-form-field">
+          <mat-label>Rango de fechas</mat-label>
+          <mat-date-range-input [rangePicker]="fechaPicker">
+            <input matStartDate placeholder="Desde" formControlName="fechaDesde" />
+            <input matEndDate placeholder="Hasta" formControlName="fechaHasta" />
+          </mat-date-range-input>
+          <mat-datepicker-toggle matSuffix [for]="fechaPicker"></mat-datepicker-toggle>
+          <mat-date-range-picker #fechaPicker></mat-date-range-picker>
+          <button
+            mat-icon-button
+            matSuffix
+            aria-label="Limpiar rango de fechas"
+            type="button"
+            *ngIf="filterForm.get('fechaDesde')?.value || filterForm.get('fechaHasta')?.value"
+            (click)="filterForm.patchValue({ fechaDesde: null, fechaHasta: null })"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+      <div class="filters-grid-right">
+        <mat-form-field appearance="outline" class="max-height-form-field id-transaccion-field">
+          <mat-label>ID Transacción</mat-label>
+          <input matInput formControlName="idTransaccion" autocomplete="off" />
+          <button
+            mat-icon-button
+            matSuffix
+            aria-label="Limpiar filtro de ID Transacción"
+            type="button"
+            *ngIf="filterForm.get('idTransaccion')?.value"
+            (click)="filterForm.get('idTransaccion')?.setValue('')"
+          >
+            <mat-icon aria-hidden="true">close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+
+      <div class="filter-actions">
+        <span class="results-counter">
+          {{ dataSource.data.length }} / {{ totalItems }} resultados
+        </span>
+        <span class="filter-spacer"></span>
+        <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="exportPdf()"
+          [disabled]="loading || exportingPdf"
+        >
+          <mat-icon aria-hidden="true">picture_as_pdf</mat-icon>
+          {{ exportingPdf ? 'Generando PDF...' : 'Exportar PDF' }}
+        </button>
+        <button
+          mat-stroked-button
+          color="primary"
+          type="button"
+          (click)="clearFilters()"
+          [disabled]="!hasActiveFilters"
+        >
+          Limpiar filtros
+        </button>
+      </div>
+    </form>
+
     <div class="table-wrapper">
       <table mat-table [dataSource]="dataSource" class="auditorias-table mat-elevation-z1">
         <ng-container matColumnDef="IdAuditoria">
@@ -48,7 +167,8 @@
           <td mat-cell *matCellDef="let auditoria">
             {{
               auditoria.AudFecha
-                ? (auditoria.AudFecha | date : 'dd/MM/yyyy - HH:mm')
+                ? (auditoria.AudFecha
+                  | date : 'dd/MM/yyyy - HH:mm:ss' : 'America/Argentina/Buenos_Aires')
                 : 'Sin registro'
             }}
           </td>

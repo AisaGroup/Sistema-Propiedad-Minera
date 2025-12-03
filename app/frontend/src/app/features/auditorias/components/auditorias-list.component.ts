@@ -1,17 +1,35 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatButtonModule } from '@angular/material/button';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
+import { debounceTime } from 'rxjs/operators';
 import { AuditoriaService } from '../services/auditoria.service';
 import { AuditoriaDescripcionEntry, AuditoriaRaw } from '../models/auditoria.model';
 
-type AuditoriaView = AuditoriaRaw & {
+type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
+  AudFecha: Date | null;
   descripcionEntries: AuditoriaDescripcionEntry[];
+};
+
+type FilterFormValue = {
+  usuario: string;
+  entidad: string[];
+  accion: string[];
+  idTransaccion: string;
+  fechaDesde: Date | null;
+  fechaHasta: Date | null;
 };
 
 @Component({
@@ -19,12 +37,19 @@ type AuditoriaView = AuditoriaRaw & {
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatPaginatorModule,
     MatCardModule,
     MatIconModule,
     MatProgressSpinnerModule,
     MatButtonModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatSnackBarModule,
   ],
   templateUrl: './auditorias-list.component.html',
   styleUrls: ['./auditorias-list.component.scss'],
@@ -40,11 +65,19 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   ];
   dataSource = new MatTableDataSource<AuditoriaView>([]);
 
+  filterForm: FormGroup;
+  availableAcciones: string[] = [];
+  availableEntidades: string[] = [];
+  totalItems = 0;
+
   loading = false;
   error: string | null = null;
   expandedAuditoriaId: number | null = null;
+  exportingPdf = false;
 
-  private subscription?: Subscription;
+  private dataSubscription?: Subscription;
+  private filterSubscription?: Subscription;
+  private allAuditorias: AuditoriaView[] = [];
 
   private _paginator?: MatPaginator;
 
@@ -56,23 +89,94 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private auditoriaService: AuditoriaService) {}
+  get paginator(): MatPaginator | undefined {
+    return this._paginator;
+  }
+
+  constructor(
+    private auditoriaService: AuditoriaService,
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar
+  ) {
+    this.filterForm = this.fb.group({
+      usuario: [''],
+      entidad: [[]],
+      accion: [[]],
+      idTransaccion: [''],
+      fechaDesde: [null],
+      fechaHasta: [null],
+    });
+  }
 
   ngOnInit(): void {
+    this.setupFilterListener();
     this.fetchAuditorias();
   }
 
+  exportPdf(): void {
+    if (this.exportingPdf) {
+      return;
+    }
+
+    this.exportingPdf = true;
+
+    const { usuario, entidad, accion, idTransaccion, fechaDesde, fechaHasta } = this.filterForm
+      .value as FilterFormValue;
+
+    const filters = {
+      usuario: usuario && usuario.trim() ? usuario.trim() : null,
+      entidad: entidad || [],
+      accion: accion || [],
+      idTransaccion: idTransaccion && idTransaccion.trim() ? idTransaccion.trim() : null,
+      fechaDesde: fechaDesde ? fechaDesde.toISOString() : null,
+      fechaHasta: fechaHasta ? fechaHasta.toISOString() : null,
+    };
+
+    this.auditoriaService.exportAuditoriasPdf(filters).subscribe({
+      next: (blob) => {
+        this.exportingPdf = false;
+        if (!blob || blob.size === 0) {
+          this.snackBar.open('El archivo PDF generado está vacío.', 'Cerrar', {
+            duration: 5000,
+          });
+          return;
+        }
+
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'auditorias.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+      },
+      error: (err) => {
+        console.error('Error al generar el PDF de auditorías:', err);
+        this.exportingPdf = false;
+        this.snackBar.open('Ocurrió un error al generar el PDF de auditorías.', 'Cerrar', {
+          duration: 5000,
+        });
+      },
+    });
+  }
+
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    this.dataSubscription?.unsubscribe();
+    this.filterSubscription?.unsubscribe();
   }
 
   fetchAuditorias(): void {
     this.loading = true;
     this.error = null;
 
-    this.subscription = this.auditoriaService.getAuditorias().subscribe({
+    this.dataSubscription = this.auditoriaService.getAuditorias().subscribe({
       next: (auditorias) => {
-        this.dataSource.data = auditorias.map((item) => this.toViewModel(item));
+        this.allAuditorias = auditorias.map((item) => this.toViewModel(item));
+        this.totalItems = this.allAuditorias.length;
+        this.updateAvailableAcciones();
+        this.updateAvailableEntidades();
+        this.applyFilters(false);
         if (this.paginator) {
           this.paginator.firstPage();
         }
@@ -86,9 +190,33 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     });
   }
 
+  clearFilters(): void {
+    this.filterForm.reset({
+      usuario: '',
+      entidad: [],
+      accion: [],
+      idTransaccion: '',
+      fechaDesde: null,
+      fechaHasta: null,
+    });
+  }
+
+  get hasActiveFilters(): boolean {
+    const { usuario, entidad, accion, idTransaccion, fechaDesde, fechaHasta } = this.filterForm
+      .value as FilterFormValue;
+    return Boolean(
+      (usuario && usuario.trim()) ||
+        (entidad && entidad.length) ||
+        (accion && accion.length) ||
+        (idTransaccion && idTransaccion.trim()) ||
+        fechaDesde ||
+        fechaHasta
+    );
+  }
+
   getAccionClass(accion: string | null | undefined): string {
     const normalized = (accion || '').toLowerCase();
-    if (['create', 'update', 'delete'].includes(normalized)) {
+    if (['create', 'update', 'delete', 'login'].includes(normalized)) {
       return normalized;
     }
     return 'default';
@@ -108,10 +236,128 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
       this.expandedAuditoriaId === auditoria.IdAuditoria ? null : auditoria.IdAuditoria;
   }
 
+  private setupFilterListener(): void {
+    this.filterSubscription = this.filterForm.valueChanges
+      .pipe(debounceTime(250))
+      .subscribe(() => this.applyFilters());
+  }
+
+  private applyFilters(resetPaginator = true): void {
+    const filteredData = this.filterAuditorias();
+    this.dataSource.data = filteredData;
+    if (resetPaginator && this.paginator) {
+      this.paginator.firstPage();
+    }
+  }
+
+  private filterAuditorias(): AuditoriaView[] {
+    if (!this.allAuditorias.length) {
+      return [];
+    }
+
+    const { usuario, entidad, accion, idTransaccion, fechaDesde, fechaHasta } = this.filterForm
+      .value as FilterFormValue;
+    const usuarioFilter = (usuario || '').trim().toLowerCase();
+    const entidadFilter = (entidad || []).map((e) => e.toLowerCase());
+    const accionFilter = (accion || []).map((a) => a.toLowerCase());
+    const idTransaccionFilter = (idTransaccion || '').trim().toLowerCase();
+
+    const startDate = fechaDesde ? this.startOfDay(fechaDesde).getTime() : null;
+    const endDate = fechaHasta ? this.endOfDay(fechaHasta).getTime() : null;
+
+    return this.allAuditorias.filter((auditoria) => {
+      const matchesUsuario = usuarioFilter
+        ? this.matchesText(auditoria.UsuarioNombre, usuarioFilter) ||
+          this.matchesText(
+            auditoria.AudUsuario !== null && auditoria.AudUsuario !== undefined
+              ? String(auditoria.AudUsuario)
+              : null,
+            usuarioFilter
+          )
+        : true;
+
+      const matchesEntidad =
+        entidadFilter.length > 0
+          ? entidadFilter.includes((auditoria.Entidad || '').toLowerCase())
+          : true;
+      const matchesAccion =
+        accionFilter.length > 0
+          ? accionFilter.includes((auditoria.Accion || '').toLowerCase())
+          : true;
+
+      const matchesIdTransaccion = idTransaccionFilter
+        ? this.matchesIdTransaccion(auditoria, idTransaccionFilter)
+        : true;
+
+      const matchesFecha = this.matchesDateRange(auditoria.AudFecha, startDate, endDate);
+
+      return (
+        matchesUsuario && matchesEntidad && matchesAccion && matchesIdTransaccion && matchesFecha
+      );
+    });
+  }
+
+  private matchesText(value: string | null | undefined, filter: string): boolean {
+    return (value || '').toLowerCase().includes(filter);
+  }
+
+  private matchesIdTransaccion(auditoria: AuditoriaView, filter: string): boolean {
+    if (!auditoria.descripcionEntries || auditoria.descripcionEntries.length === 0) {
+      return false;
+    }
+    return auditoria.descripcionEntries.some(
+      (entry) =>
+        entry.label.toLowerCase().includes('idtransaccion') &&
+        entry.value.toLowerCase().includes(filter)
+    );
+  }
+
+  private matchesDateRange(date: Date | null, start: number | null, end: number | null): boolean {
+    if (!start && !end) {
+      return true;
+    }
+    if (!date) {
+      return false;
+    }
+    const time = date.getTime();
+    if (start && time < start) {
+      return false;
+    }
+    if (end && time > end) {
+      return false;
+    }
+    return true;
+  }
+
+  private startOfDay(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(0, 0, 0, 0);
+    return newDate;
+  }
+
+  private endOfDay(date: Date): Date {
+    const newDate = new Date(date);
+    newDate.setHours(23, 59, 59, 999);
+    return newDate;
+  }
+
+  private parseAudFecha(value: string | null): Date | null {
+    if (!value) return null;
+
+    // si viene con Z o con offset, devuelvo la fecha tal cual
+    if (/[zZ]$/.test(value) || /[+-]\d\d:\d\d$/.test(value)) {
+      return new Date(value);
+    }
+
+    // si viene sin zona, asumo que es UTC y la agrego
+    return new Date(value + 'Z');
+  }
+
   private toViewModel(raw: AuditoriaRaw): AuditoriaView {
     return {
       ...raw,
       descripcionEntries: this.parseDescripcion(raw.Descripcion),
+      AudFecha: this.parseAudFecha(raw.AudFecha),
     };
   }
 
@@ -177,5 +423,27 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   private cleanLabel(label: string): string {
     // Saco el prefijo "data." o "changes." del principio de la etiqueta
     return label.replace(/^(data|changes)\./i, '');
+  }
+
+  private updateAvailableAcciones(): void {
+    const uniqueAcciones = new Set(
+      this.allAuditorias
+        .map((auditoria) => auditoria.Accion)
+        .filter((accion): accion is string => Boolean(accion))
+    );
+    this.availableAcciones = Array.from(uniqueAcciones).sort((a, b) =>
+      a.localeCompare(b, 'es', { sensitivity: 'base' })
+    );
+  }
+
+  private updateAvailableEntidades(): void {
+    const uniqueEntidades = new Set(
+      this.allAuditorias
+        .map((auditoria) => auditoria.Entidad)
+        .filter((entidad): entidad is string => Boolean(entidad))
+    );
+    this.availableEntidades = Array.from(uniqueEntidades).sort((a, b) =>
+      a.localeCompare(b, 'es', { sensitivity: 'base' })
+    );
   }
 }
