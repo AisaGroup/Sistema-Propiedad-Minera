@@ -91,6 +91,12 @@
   tr.table-row:hover {
     background-color: rgba(63, 104, 89, 0.04);
   }
+
+  // la columna "Detalle" la hago más ancha
+  .mat-column-Descripcion {
+    min-width: 300px;
+    width: 50%;
+  }
 }
 
 .state-container {
