@@ -81,6 +81,10 @@ import { APP_VERSION } from '../core/api.constants';
               <mat-icon>people</mat-icon>
               <span>Usuarios</span>
             </button>
+            <button mat-menu-item routerLink="/auditorias">
+              <mat-icon>policy_alert</mat-icon>
+              <span>Auditorías</span>
+            </button>
           </mat-menu>
         </mat-nav-list>
       </mat-sidenav>

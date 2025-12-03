@@ -1,0 +1,128 @@
+<mat-card class="auditorias-card">
+  <mat-card-header>
+    <mat-card-title>
+      <mat-icon aria-hidden="true">fact_check</mat-icon>
+      Auditorías
+    </mat-card-title>
+    <mat-card-subtitle>Historial de acciones registradas en el sistema</mat-card-subtitle>
+  </mat-card-header>
+
+  <mat-card-content>
+    @if (loading) {
+    <div class="state-container loading">
+      <mat-spinner diameter="48"></mat-spinner>
+      <span>Cargando auditorías...</span>
+    </div>
+    } @if (error) {
+    <div class="state-container error">
+      <mat-icon aria-hidden="true">error_outline</mat-icon>
+      <span>{{ error }}</span>
+      <button mat-stroked-button color="primary" (click)="fetchAuditorias()">Reintentar</button>
+    </div>
+    } @if (!loading && !error) {
+    <div class="table-wrapper">
+      <table mat-table [dataSource]="dataSource" class="auditorias-table mat-elevation-z1">
+        <ng-container matColumnDef="IdAuditoria">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let auditoria">
+            <span class="id-pill">{{ auditoria.IdAuditoria }}</span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="Accion">
+          <th mat-header-cell *matHeaderCellDef>Acción</th>
+          <td mat-cell *matCellDef="let auditoria">
+            <span class="accion-pill" [ngClass]="getAccionClass(auditoria.Accion)">
+              {{ auditoria.Accion }}
+            </span>
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="Entidad">
+          <th mat-header-cell *matHeaderCellDef>Entidad</th>
+          <td mat-cell *matCellDef="let auditoria">{{ auditoria.Entidad }}</td>
+        </ng-container>
+
+        <ng-container matColumnDef="AudFecha">
+          <th mat-header-cell *matHeaderCellDef>Fecha</th>
+          <td mat-cell *matCellDef="let auditoria">
+            {{
+              auditoria.AudFecha
+                ? (auditoria.AudFecha | date : 'dd/MM/yyyy - HH:mm')
+                : 'Sin registro'
+            }}
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="AudUsuario">
+          <th mat-header-cell *matHeaderCellDef>Usuario</th>
+          <td mat-cell *matCellDef="let auditoria">
+            @if (auditoria.AudUsuario !== null && auditoria.AudUsuario !== undefined) { @if
+            (auditoria.UsuarioNombre) {
+            <span>{{ auditoria.UsuarioNombre }} (ID: {{ auditoria.AudUsuario }})</span>
+            } @else {
+            <span>ID: {{ auditoria.AudUsuario }}</span>
+            } } @else {
+            <span>Sin dato</span>
+            }
+          </td>
+        </ng-container>
+
+        <ng-container matColumnDef="Descripcion">
+          <th mat-header-cell *matHeaderCellDef>Detalle</th>
+          <td mat-cell *matCellDef="let auditoria">
+            <div class="detalle-cell">
+              <button
+                mat-stroked-button
+                color="primary"
+                type="button"
+                class="detalle-toggle"
+                (click)="toggleDetalle(auditoria, $event)"
+              >
+                <mat-icon aria-hidden="true">
+                  {{ isDetalleVisible(auditoria) ? 'expand_less' : 'expand_more' }}
+                </mat-icon>
+                {{ isDetalleVisible(auditoria) ? 'Ocultar detalle' : 'Ver detalle' }}
+              </button>
+
+              <div class="detalle-contenedor" [class.is-visible]="isDetalleVisible(auditoria)">
+                <div class="detalle-contenido">
+                  @if (auditoria.descripcionEntries.length) {
+                  <dl class="descripcion-grid">
+                    @for (entry of auditoria.descripcionEntries; track trackByEntry($index, entry))
+                    {
+                    <dt>{{ entry.label }}</dt>
+                    <dd>{{ entry.value }}</dd>
+                    }
+                  </dl>
+                  } @else {
+                  <span class="descripcion-vacia">Sin detalle disponible</span>
+                  }
+                </div>
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+      </table>
+
+      @if (dataSource.data.length === 0) {
+      <div class="state-container empty">
+        <mat-icon aria-hidden="true">inventory_2</mat-icon>
+        <span>No se encontraron auditorías registradas.</span>
+      </div>
+      } @if (dataSource.data.length > 0) {
+      <mat-paginator
+        [length]="dataSource.data.length"
+        [pageSize]="10"
+        [pageSizeOptions]="[5, 10, 25, 50]"
+        showFirstLastButtons
+      >
+      </mat-paginator>
+      }
+    </div>
+    }
+  </mat-card-content>
+</mat-card>

@@ -12,6 +12,7 @@ from backend.models.expediente_model import Expediente
 from sqlalchemy import or_, func, String as SAString
 from backend.models.expediente_model import Expediente
 from backend.services.auth_jwt import get_current_user, require_role
+from backend.services.audit_logger import AuditLogger
 
 router = APIRouter(prefix="/propiedades-mineras", tags=["Propiedades Mineras"])
 
@@ -66,7 +67,13 @@ def crear_propiedad(
 ):
     service = PropiedadMineraService(db)
     try:
-        return service.create(propiedad_data)
+        propiedad = service.create(propiedad_data)
+        AuditLogger(db, current_user).log_creation(
+            entidad="PropiedadMinera",
+            entity_id=propiedad.IdPropiedadMinera,
+            payload=propiedad_data.model_dump(),
+        )
+        return propiedad
     except ValueError as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=str(e))
@@ -84,6 +91,11 @@ def actualizar_propiedad(
         updated = service.update(id_propiedad, propiedad_data)
         if not updated:
             raise HTTPException(status_code=404, detail="Propiedad no encontrada")
+        AuditLogger(db, current_user).log_update(
+            entidad="PropiedadMinera",
+            entity_id=id_propiedad,
+            changes=propiedad_data,
+        )
         return updated
     except ValueError as e:
         from fastapi import HTTPException
@@ -91,9 +103,17 @@ def actualizar_propiedad(
 
 
 @router.delete("/{id_propiedad}")
-def borrar_propiedad(id_propiedad: int, db: Session = Depends(get_db)):
+def borrar_propiedad(
+    id_propiedad: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
     service = PropiedadMineraService(db)
     deleted = service.delete(id_propiedad)
     if not deleted:
         raise HTTPException(status_code=404, detail="Propiedad no encontrada")
+    AuditLogger(db, current_user).log_deletion(
+        entidad="PropiedadMinera",
+        entity_id=id_propiedad,
+    )
     return {"ok": True}

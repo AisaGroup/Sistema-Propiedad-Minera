@@ -65,13 +65,13 @@ import html2pdf from 'html2pdf.js';
         <mat-card-content>
           <form [formGroup]="filterForm" class="filters-form">
             <div class="filter-row">
-              <mat-form-field appearance="outline" class="filter-nombre">
+              <mat-form-field appearance="outline" class="filter-nombre input-height">
                 <mat-label>Nombre</mat-label>
                 <input matInput formControlName="Nombre" placeholder="Buscar propiedad...">
                 <mat-icon matSuffix>search</mat-icon>
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="input-height">
                 <mat-label>Provincia</mat-label>
                 <mat-select formControlName="Provincia">
                   <mat-option value="">Todas</mat-option>
@@ -81,7 +81,7 @@ import html2pdf from 'html2pdf.js';
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="input-height">
                 <mat-label>Titular</mat-label>
                 <mat-select formControlName="IdTitular">
                   <mat-option value="">Todos</mat-option>
@@ -91,7 +91,7 @@ import html2pdf from 'html2pdf.js';
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="input-height" style="align-items: center;">
                 <mat-label>Expediente</mat-label>
                 <input matInput formControlName="Expediente" placeholder="Buscar por expediente...">
               </mat-form-field>
@@ -307,6 +307,7 @@ import html2pdf from 'html2pdf.js';
     .filter-actions {
       display: flex;
       gap: 12px;
+      padding-top: 8px;
     }
 
     .results-card {
@@ -381,6 +382,10 @@ import html2pdf from 'html2pdf.js';
       min-width: 0;
       max-width: none;
       width: 100%;
+    }
+
+    .input-height {
+      max-height: 50px;
     }
 
     .referente-star {
