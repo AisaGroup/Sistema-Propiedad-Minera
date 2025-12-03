@@ -12,6 +12,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
 import { AuditoriaService } from '../services/auditoria.service';
@@ -48,6 +49,7 @@ type FilterFormValue = {
     MatSelectModule,
     MatDatepickerModule,
     MatNativeDateModule,
+    MatSnackBarModule,
   ],
   templateUrl: './auditorias-list.component.html',
   styleUrls: ['./auditorias-list.component.scss'],
@@ -71,6 +73,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   expandedAuditoriaId: number | null = null;
+  exportingPdf = false;
 
   private dataSubscription?: Subscription;
   private filterSubscription?: Subscription;
@@ -90,7 +93,11 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     return this._paginator;
   }
 
-  constructor(private auditoriaService: AuditoriaService, private fb: FormBuilder) {
+  constructor(
+    private auditoriaService: AuditoriaService,
+    private fb: FormBuilder,
+    private snackBar: MatSnackBar
+  ) {
     this.filterForm = this.fb.group({
       usuario: [''],
       entidad: [[]],
@@ -104,6 +111,54 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupFilterListener();
     this.fetchAuditorias();
+  }
+
+  exportPdf(): void {
+    if (this.exportingPdf) {
+      return;
+    }
+
+    this.exportingPdf = true;
+
+    const { usuario, entidad, accion, idTransaccion, fechaDesde, fechaHasta } = this.filterForm
+      .value as FilterFormValue;
+
+    const filters = {
+      usuario: usuario && usuario.trim() ? usuario.trim() : null,
+      entidad: entidad || [],
+      accion: accion || [],
+      idTransaccion: idTransaccion && idTransaccion.trim() ? idTransaccion.trim() : null,
+      fechaDesde: fechaDesde ? fechaDesde.toISOString() : null,
+      fechaHasta: fechaHasta ? fechaHasta.toISOString() : null,
+    };
+
+    this.auditoriaService.exportAuditoriasPdf(filters).subscribe({
+      next: (blob) => {
+        this.exportingPdf = false;
+        if (!blob || blob.size === 0) {
+          this.snackBar.open('El archivo PDF generado está vacío.', 'Cerrar', {
+            duration: 5000,
+          });
+          return;
+        }
+
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'auditorias.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
+      },
+      error: (err) => {
+        console.error('Error al generar el PDF de auditorías:', err);
+        this.exportingPdf = false;
+        this.snackBar.open('Ocurrió un error al generar el PDF de auditorías.', 'Cerrar', {
+          duration: 5000,
+        });
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -236,7 +291,9 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
 
       const matchesFecha = this.matchesDateRange(auditoria.AudFecha, startDate, endDate);
 
-      return matchesUsuario && matchesEntidad && matchesAccion && matchesIdTransaccion && matchesFecha;
+      return (
+        matchesUsuario && matchesEntidad && matchesAccion && matchesIdTransaccion && matchesFecha
+      );
     });
   }
 

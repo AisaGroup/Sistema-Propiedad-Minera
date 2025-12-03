@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
+
 
 class AuditoriaBase(BaseModel):
     Accion: str
@@ -9,11 +10,14 @@ class AuditoriaBase(BaseModel):
     AudFecha: datetime
     AudUsuario: int
 
+
 class AuditoriaCreate(AuditoriaBase):
     pass
 
+
 class AuditoriaUpdate(AuditoriaBase):
     pass
+
 
 class AuditoriaOut(AuditoriaBase):
     IdAuditoria: int
@@ -21,3 +25,12 @@ class AuditoriaOut(AuditoriaBase):
 
     class Config:
         orm_mode = True
+
+
+class AuditoriaExportFilters(BaseModel):
+    usuario: Optional[str] = None
+    entidad: List[str] = []
+    accion: List[str] = []
+    idTransaccion: Optional[str] = None
+    fechaDesde: Optional[datetime] = None
+    fechaHasta: Optional[datetime] = None

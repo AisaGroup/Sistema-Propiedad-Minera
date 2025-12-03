@@ -118,6 +118,16 @@
         </span>
         <span class="filter-spacer"></span>
         <button
+          mat-raised-button
+          color="primary"
+          type="button"
+          (click)="exportPdf()"
+          [disabled]="loading || exportingPdf"
+        >
+          <mat-icon aria-hidden="true">picture_as_pdf</mat-icon>
+          {{ exportingPdf ? 'Generando PDF...' : 'Exportar PDF' }}
+        </button>
+        <button
           mat-stroked-button
           color="primary"
           type="button"

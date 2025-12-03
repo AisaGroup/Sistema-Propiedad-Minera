@@ -7,3 +7,4 @@ python-jose[cryptography]
 pytz
 python-multipart
 jinja2
+reportlab
