@@ -21,12 +21,13 @@ from datetime import datetime
 
 router = APIRouter(prefix="/propiedades-mineras", tags=["Propiedades Mineras"])
 
+
 @router.get("", response_model=List[PropiedadMineraRead])
 def listar_propiedades(
     db: Session = Depends(get_db),
     response: Response = None,
     range: str = Query(None, alias="range"),
-    filter: str = Query(None)
+    filter: str = Query(None),
 ):
     service = PropiedadMineraService(db)
     filters = {}
@@ -51,8 +52,11 @@ def listar_propiedades(
             pass
     limit = end - start + 1
     items, total = service.get_filtered_paginated(filters, offset=start, limit=limit)
-    response.headers["Content-Range"] = f"propiedades-mineras {start}-{start+len(items)-1}/{total}"
+    response.headers["Content-Range"] = (
+        f"propiedades-mineras {start}-{start + len(items) - 1}/{total}"
+    )
     return items
+
 
 @router.get("/{id_propiedad}", response_model=PropiedadMineraRead)
 def obtener_propiedad(id_propiedad: int, db: Session = Depends(get_db)):
@@ -68,7 +72,7 @@ def obtener_propiedad(id_propiedad: int, db: Session = Depends(get_db)):
 def crear_propiedad(
     propiedad_data: PropiedadMineraCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = PropiedadMineraService(db)
     try:
@@ -88,7 +92,7 @@ def actualizar_propiedad(
     id_propiedad: int,
     propiedad_data: dict,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = PropiedadMineraService(db)
     try:
