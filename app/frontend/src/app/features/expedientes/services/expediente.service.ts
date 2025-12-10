@@ -2,11 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { Expediente, ExpedienteCreate, ExpedienteFilter, ExpedienteResponse } from '../models/expediente.model';
+import {
+  Expediente,
+  ExpedienteCreate,
+  ExpedienteFilter,
+  ExpedienteResponse,
+} from '../models/expediente.model';
 import { API_BASE_URL } from '../../../core/api.constants';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ExpedienteService {
   private readonly baseUrl = `${API_BASE_URL}/expedientes`;
@@ -17,19 +22,18 @@ export class ExpedienteService {
    * Obtiene expedientes con paginación
    */
   getExpedientes(
-    page: number = 0, 
-    size: number = 10, 
+    page: number = 0,
+    size: number = 10,
     filters?: ExpedienteFilter
   ): Observable<ExpedienteResponse> {
     const start = page * size;
     const end = start + size - 1;
-    
-    let params = new HttpParams()
-      .set('range', `[${start},${end}]`);
+
+    let params = new HttpParams().set('range', `[${start},${end}]`);
 
     // Aplicar filtros si existen
     if (filters) {
-      Object.keys(filters).forEach(key => {
+      Object.keys(filters).forEach((key) => {
         const value = (filters as any)[key];
         if (value !== undefined && value !== null && value !== '') {
           params = params.set(key, value.toString());
@@ -37,28 +41,30 @@ export class ExpedienteService {
       });
     }
 
-    return this.http.get<any[]>(this.baseUrl, { 
-      params, 
-      observe: 'response' 
-    }).pipe(
-      map((response: HttpResponse<any[]>) => {
-        console.log('Respuesta del backend expedientes:', response); // Debug
-        const contentRange = response.headers.get('Content-Range') || '';
-        const total = this.extractTotalFromRange(contentRange);
-        
-        // Mapear datos del backend al modelo frontend
-        const mappedData = (response.body || []).map((item: any) => ({
-          ...item
-          // Ya no es necesario mapear PrimerDueño ni Año, el backend envía PrimerDueno y Ano
-        }));
-        
-        return {
-          data: mappedData,
-          total: total,
-          range: contentRange
-        };
+    return this.http
+      .get<any[]>(this.baseUrl, {
+        params,
+        observe: 'response',
       })
-    );
+      .pipe(
+        map((response: HttpResponse<any[]>) => {
+          console.log('Respuesta del backend expedientes:', response); // Debug
+          const contentRange = response.headers.get('Content-Range') || '';
+          const total = this.extractTotalFromRange(contentRange);
+
+          // Mapear datos del backend al modelo frontend
+          const mappedData = (response.body || []).map((item: any) => ({
+            ...item,
+            // Ya no es necesario mapear PrimerDueño ni Año, el backend envía PrimerDueno y Ano
+          }));
+
+          return {
+            data: mappedData,
+            total: total,
+            range: contentRange,
+          };
+        })
+      );
   }
 
   /**
@@ -128,21 +134,23 @@ export class ExpedienteService {
     let params = new HttpParams()
       .set('range', `[${start},${end}]`)
       .set('filter', JSON.stringify({ IdPropiedadMinera: idPropiedadMinera }));
-    return this.http.get<any[]>(this.baseUrl, {
-      params,
-      observe: 'response'
-    }).pipe(
-      map((response: HttpResponse<any[]>) => {
-        const contentRange = response.headers.get('Content-Range') || '';
-        const total = this.extractTotalFromRange(contentRange);
-        const mappedData = (response.body || []).map((item: any) => ({ ...item }));
-        return {
-          data: mappedData,
-          total: total,
-          range: contentRange
-        };
+    return this.http
+      .get<any[]>(this.baseUrl, {
+        params,
+        observe: 'response',
       })
-    );
+      .pipe(
+        map((response: HttpResponse<any[]>) => {
+          const contentRange = response.headers.get('Content-Range') || '';
+          const total = this.extractTotalFromRange(contentRange);
+          const mappedData = (response.body || []).map((item: any) => ({ ...item }));
+          return {
+            data: mappedData,
+            total: total,
+            range: contentRange,
+          };
+        })
+      );
   }
 
   /**
@@ -161,7 +169,7 @@ export class ExpedienteService {
 
     return this.http.get<{ id: number; nombre: string }[]>(`${this.baseUrl}/tipos`, {
       headers,
-      params
+      params,
     });
   }
 }
