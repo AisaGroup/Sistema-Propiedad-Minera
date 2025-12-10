@@ -98,4 +98,15 @@ export class PropiedadMineraService {
   getProvincias(): string[] {
     return ['San Juan', 'La Rioja', 'Mendoza','Buenos Aires', 'Córdoba', 'Santa Fe', 'Tucumán', 'Entre Ríos', 'Salta', 'Misiones', 'Chaco', 'Corrientes', 'Santiago del Estero', 'Jujuy', 'Río Negro', 'Formosa', 'Neuquén', 'Chubut', 'San Luis', 'Catamarca',  'La Pampa', 'Santa Cruz', 'Tierra del Fuego'];
   }
+
+  exportPropiedadesPdf(filters: {
+    nombre?: string | null;
+    provincia?: string | null;
+    idTitular?: number | null;
+    expediente?: string | null;
+  }) {
+    return this.http.post(`${this.apiUrl}/propiedades-mineras/export/pdf`, filters, {
+      responseType: 'blob'
+    });
+  }
 }

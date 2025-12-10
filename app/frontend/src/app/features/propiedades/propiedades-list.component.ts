@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -18,8 +17,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { PropiedadMineraService } from './services/propiedad-minera.service';
 import { TitularMineroService, TitularMinero } from '../titulares/services/titular.service';
 import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-minera.model';
-import { API_BASE_URL } from '../../core/api.constants';
-import html2pdf from 'html2pdf.js';
 
 @Component({
   selector: 'app-propiedades-list',
@@ -466,8 +463,7 @@ export class PropiedadesListComponent implements OnInit {
     private propiedadService: PropiedadMineraService,
     private fb: FormBuilder,
     private router: Router,
-    private titularService: TitularMineroService,
-    private http: HttpClient
+    private titularService: TitularMineroService
   ) {
     this.filterForm = this.fb.group({
       Nombre: [''],
@@ -570,21 +566,32 @@ export class PropiedadesListComponent implements OnInit {
   }
 
   descargarPDF() {
-    this.http.get(`${API_BASE_URL}/propiedades-mineras/reporte/html`, { responseType: 'text' }).subscribe({
-      next: (html) => {
-        const ventana = window.open('', '_blank');
-        if (ventana) {
-          ventana.document.write(html);
-          ventana.document.close();
-          ventana.onload = () => {
-            html2pdf().from(ventana.document.body).set({ filename: 'propiedades-mineras.pdf' }).save().then(() => {
-              ventana.close();
-            });
-          };
+    const { Nombre, Provincia, IdTitular, Expediente } = this.filterForm.value;
+    const idTitularNumber = Number(IdTitular);
+    const filtersPayload = {
+      nombre: Nombre && Nombre.trim() ? Nombre.trim() : null,
+      provincia: Provincia && Provincia.trim() ? Provincia.trim() : null,
+      idTitular: !isNaN(idTitularNumber) && IdTitular !== '' ? idTitularNumber : null,
+      expediente: Expediente && Expediente.trim() ? Expediente.trim() : null
+    };
+
+    this.propiedadService.exportPropiedadesPdf(filtersPayload).subscribe({
+      next: (blob) => {
+        if (!blob || blob.size === 0) {
+          console.warn('El PDF de propiedades mineras está vacío.');
+          return;
         }
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'propiedades-mineras.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
       },
       error: (err) => {
-        console.error('Error al obtener el reporte HTML:', err);
+        console.error('Error al generar el PDF de propiedades mineras:', err);
       }
     });
   }
