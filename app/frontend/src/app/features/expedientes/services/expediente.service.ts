@@ -95,6 +95,18 @@ export class ExpedienteService {
     return this.http.delete<{ ok: boolean }>(`${this.baseUrl}/${id}`);
   }
 
+  exportExpedientesPdf(filters: { codigoExpediente?: string | null }) {
+    const payload = {
+      codigoExpediente:
+        filters.codigoExpediente && filters.codigoExpediente.trim()
+          ? filters.codigoExpediente.trim()
+          : null,
+    };
+    return this.http.post(`${this.baseUrl}/export/pdf`, payload, {
+      responseType: 'blob',
+    });
+  }
+
   /**
    * Extrae el total de registros del header Content-Range
    */

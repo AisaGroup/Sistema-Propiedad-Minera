@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime, date
 
+
 class ExpedienteBase(BaseModel):
     CodigoExpediente: Optional[str]
     PrimerDueno: Optional[str] = None
@@ -17,11 +18,17 @@ class ExpedienteBase(BaseModel):
     IdTipoExpediente: Optional[int] = None
     IdTransaccion: Optional[int] = None
 
+
 class ExpedienteCreate(ExpedienteBase):
     pass
+
 
 class ExpedienteRead(ExpedienteBase):
     IdExpediente: int
 
     class Config:
         from_attributes = True
+
+
+class ExpedienteExportFilters(BaseModel):
+    codigoExpediente: Optional[str] = None

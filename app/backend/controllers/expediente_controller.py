@@ -1,9 +1,13 @@
 from backend.repositories.expediente_respositorie import ExpedienteRepository
 from backend.services.expediente_report_service import render_expedientes_html
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from sqlalchemy.orm import Session
 from backend.services.expediente_service import ExpedienteService
-from backend.schemas.expediente_schema import ExpedienteRead, ExpedienteCreate
+from backend.schemas.expediente_schema import (
+    ExpedienteRead,
+    ExpedienteCreate,
+    ExpedienteExportFilters,
+)
 from backend.schemas.alerta_schema import AlertaOut
 from backend.models.alerta_model import Alerta
 from backend.schemas.observaciones_schema import ObservacionesOut
@@ -11,12 +15,18 @@ from backend.models.observaciones_model import Observaciones
 from backend.models.acta_model import Acta
 from backend.database.connection import get_db
 from typing import List
-from fastapi import Query
 from typing import Dict, Any
 from backend.services.auth_jwt import get_current_user
 from backend.services.audit_logger import AuditLogger
 from backend.repositories.propiedad_minera_repositorie import PropiedadMineraRepositorie
 from backend.models.tipo_expediente_model import TipoExpediente
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
 
 router = APIRouter(prefix="/expedientes", tags=["Expedientes"])
 
@@ -151,6 +161,126 @@ def borrar_expediente(
         entity_id=id_expediente,
     )
     return {"ok": True}
+
+
+def _format_date(value: datetime | str | None) -> str:
+    """Devuelve la fecha formateada dd/mm/YYYY o cadena vacía."""
+    if not value:
+        return ""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except Exception:
+            return value
+    return value.strftime("%d/%m/%Y")
+
+
+@router.post("/export/pdf")
+def export_expedientes_pdf(
+    filtros: ExpedienteExportFilters,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Genera un PDF con el listado de expedientes usando el mismo estilo que el reporte de auditorías.
+    """
+    service = ExpedienteService(db)
+    expedientes = service.get_all()
+
+    codigo_filter = (filtros.codigoExpediente or "").strip().lower()
+    if codigo_filter:
+        expedientes = [
+            e
+            for e in expedientes
+            if codigo_filter in (getattr(e, "CodigoExpediente", "") or "").lower()
+        ]
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=30,
+        rightMargin=30,
+        topMargin=40,
+        bottomMargin=40,
+    )
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Reporte de Expedientes", styles["Title"]))
+    resumen = f"Total de registros: {len(expedientes)}"
+    if codigo_filter:
+        resumen += f" | Filtro código: {filtros.codigoExpediente}"
+
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(resumen, styles["Normal"]))
+    elements.append(Spacer(1, 12))
+
+    data = [
+        [
+            "ID",
+            "Código",
+            "Primer Dueño",
+            "Carátula",
+            "Estado",
+            "Dependencia",
+            "Desde",
+        ]
+    ]
+
+    for e in expedientes:
+        data.append(
+            [
+                str(getattr(e, "IdExpediente", "")),
+                getattr(e, "CodigoExpediente", "") or "",
+                getattr(e, "PrimerDueno", "") or "",
+                getattr(e, "Caratula", "") or "",
+                getattr(e, "Estado", "") or "",
+                getattr(e, "Dependencia", "") or "",
+                _format_date(getattr(e, "FechaInicio", None)),
+            ]
+        )
+
+    table = Table(
+        data,
+        colWidths=[35, 90, 110, 120, 70, 80, 70],
+        repeatRows=1,
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#416759")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 9),
+                ("FONTSIZE", (0, 1), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.whitesmoke, colors.lightgrey],
+                ),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+
+    elements.append(table)
+    doc.build(elements)
+    buffer.seek(0)
+
+    headers = {
+        "Content-Disposition": 'attachment; filename="expedientes.pdf"',
+        "Content-Type": "application/pdf",
+    }
+
+    return StreamingResponse(buffer, media_type="application/pdf", headers=headers)
 
 @router.get("/propiedad-minera/{id_propiedad}", response_model=List[ExpedienteRead])
 def listar_expedientes_por_propiedad_minera(id_propiedad: int, db: Session = Depends(get_db)):

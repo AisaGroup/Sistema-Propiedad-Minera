@@ -1,8 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
-import { HttpClient } from '@angular/common/http';
-import html2pdf from 'html2pdf.js';
-import { API_BASE_URL } from '../../../core/api.constants';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -221,6 +217,9 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
       color: #333 !important;
       font-weight: 600;
     }
+    ::ng-deep mat-form-field .mdc-floating-label.mat-mdc-floating-label {
+      width: max-content;
+    }
 
     .header-actions {
       display: flex;
@@ -348,9 +347,7 @@ export class ExpedientesListComponent implements OnInit {
 
   constructor(
     private expedienteService: ExpedienteService,
-    private router: Router,
-    private http: HttpClient,
-    private sanitizer: DomSanitizer
+    private router: Router
   ) {}
 
   // Getter para calcular total de páginas
@@ -358,25 +355,28 @@ export class ExpedientesListComponent implements OnInit {
     return Math.ceil(this.totalExpedientes / this.pageSize);
   }
   descargarPDF() {
-    // Llama al endpoint del backend que devuelve el HTML del reporte
-    this.http.get(`${API_BASE_URL}/expedientes/reporte/html`, { responseType: 'text' }).subscribe({
-      next: (html) => {
-        const ventana = window.open('', '_blank');
-        if (ventana) {
-          ventana.document.write(html);
-          ventana.document.close();
-          // Espera a que cargue y convierte a PDF
-          ventana.onload = () => {
-            html2pdf().from(ventana.document.body).set({ filename: 'expedientes.pdf' }).save().then(() => {
-              ventana.close(); // Cierra la ventana después de descargar
-            });
-          };
+    const codigoExpediente = this.filters.CodigoExpediente || null;
+    this.expedienteService
+      .exportExpedientesPdf({ codigoExpediente })
+      .subscribe({
+        next: (blob) => {
+          if (!blob || blob.size === 0) {
+            console.warn('El PDF de expedientes está vacío.');
+            return;
+          }
+          const blobUrl = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = 'expedientes.pdf';
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(blobUrl);
+        },
+        error: (err) => {
+          console.error('Error al generar el PDF de expedientes:', err);
         }
-      },
-      error: (err) => {
-        console.error('Error al obtener el reporte HTML:', err);
-      }
-    });
+      });
   }
 
   ngOnInit(): void {
