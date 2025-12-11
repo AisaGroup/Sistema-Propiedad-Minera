@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -543,6 +543,14 @@ export class PropiedadesListComponent implements OnInit {
     this.loadDropdownData();
     this.loadTitulares();
     this.loadPropiedades();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p') {
+      event.preventDefault();
+      this.descargarPDF();
+    }
   }
 
   loadDropdownData() {

@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatTableModule } from '@angular/material/table';
@@ -421,6 +421,14 @@ export class ExpedientesListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadExpedientes();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p') {
+      event.preventDefault();
+      this.descargarPDF();
+    }
   }
 
   loadExpedientes(): void {
