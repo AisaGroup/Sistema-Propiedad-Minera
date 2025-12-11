@@ -166,6 +166,15 @@
   flex: 1;
 }
 
+.export-pdf-button {
+  background-color: #416759 !important;
+  color: white !important;
+}
+
+.export-pdf-button:hover:not(:disabled) {
+  background-color: #335248 !important;
+}
+
 .results-counter {
   font-weight: 600;
   color: #1f4136;

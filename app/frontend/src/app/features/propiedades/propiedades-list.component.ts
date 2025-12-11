@@ -47,9 +47,9 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
             <mat-icon>add</mat-icon>
             Nueva Propiedad
           </button>
-          <button mat-raised-button color="accent" (click)="descargarPDF()">
-            <mat-icon>print</mat-icon>
-            Imprimir
+          <button mat-raised-button color="primary" class="export-button" (click)="descargarPDF()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
           </button>
         </div>
       </div>
@@ -345,6 +345,17 @@ import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-miner
       }
 
       .add-button:hover {
+        background-color: #335248 !important;
+      }
+
+      .export-button {
+        height: 48px;
+        padding: 0 24px;
+        background-color: #416759 !important;
+        color: white !important;
+      }
+
+      .export-button:hover {
         background-color: #335248 !important;
       }
 

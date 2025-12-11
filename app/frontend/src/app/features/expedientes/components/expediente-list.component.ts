@@ -47,9 +47,9 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
               <mat-icon>add</mat-icon>
               Nuevo Expediente
             </button>
-            <button mat-raised-button color="accent" (click)="descargarPDF()">
-              <mat-icon>print</mat-icon>
-              Imprimir
+            <button mat-raised-button color="primary" (click)="descargarPDF()">
+              <mat-icon>picture_as_pdf</mat-icon>
+              Exportar PDF
             </button>
           </div>
         </mat-card-header>
