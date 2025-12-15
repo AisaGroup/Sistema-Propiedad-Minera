@@ -208,6 +208,18 @@ def _format_date(value: datetime | str | None) -> str:
     return value.strftime("%d/%m/%Y")
 
 
+def _add_footer(canvas, doc):
+    """Agrega la fecha actual y el número de página en el pie."""
+    canvas.saveState()
+    date_str = datetime.now().strftime("%d/%m/%Y %H:%M")
+    canvas.setFont("Helvetica", 8)
+    canvas.drawString(doc.leftMargin, 20, f"Generado: {date_str}")
+    canvas.drawRightString(
+        doc.pagesize[0] - doc.rightMargin, 20, f"Página {canvas.getPageNumber()}"
+    )
+    canvas.restoreState()
+
+
 @router.post("/export/pdf")
 def export_expedientes_pdf(
     filtros: ExpedienteExportFilters,
@@ -305,7 +317,7 @@ def export_expedientes_pdf(
     )
 
     elements.append(table)
-    doc.build(elements)
+    doc.build(elements, onFirstPage=_add_footer, onLaterPages=_add_footer)
     buffer.seek(0)
 
     headers = {
