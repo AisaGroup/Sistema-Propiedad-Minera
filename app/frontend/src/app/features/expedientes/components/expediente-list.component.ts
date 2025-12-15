@@ -79,6 +79,14 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
             </mat-progress-spinner>
 
             <table mat-table [dataSource]="expedientes" *ngIf="!loading" class="expedientes-table">
+              <!-- ID Column -->
+              <ng-container matColumnDef="IdExpediente">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let expediente">
+                  <span class="id-pill">{{ mostrarDato(expediente.IdExpediente) }}</span>
+                </td>
+              </ng-container>
+
               <!-- Código Column -->
               <ng-container matColumnDef="CodigoExpediente">
                 <th mat-header-cell *matHeaderCellDef>Código</th>
@@ -310,6 +318,18 @@ import { Expediente, ExpedienteFilter } from '../models/expediente.model';
         background-color: #e8f4f1;
       }
 
+      .id-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background-color: rgba(63, 104, 89, 0.1);
+        color: #1f4136;
+        font-weight: 600;
+      }
+
       .estado-badge {
         padding: 4px 8px;
         border-radius: 12px;
@@ -371,6 +391,7 @@ export class ExpedientesListComponent implements OnInit {
 
   expedientes: Expediente[] = [];
   displayedColumns: string[] = [
+    'IdExpediente',
     'CodigoExpediente',
     'PrimerDueno',
     'Caratula',
