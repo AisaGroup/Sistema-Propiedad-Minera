@@ -411,6 +411,12 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                     *ngIf="!loadingExpedientes && expedientes.length > 0"
                     class="full-width-table"
                   >
+                    <ng-container matColumnDef="id">
+                      <th mat-header-cell *matHeaderCellDef>ID</th>
+                      <td mat-cell *matCellDef="let exp">
+                        <span class="id-pill">{{ exp.IdExpediente }}</span>
+                      </td>
+                    </ng-container>
                     <ng-container matColumnDef="codigo">
                       <th mat-header-cell *matHeaderCellDef>Código</th>
                       <td mat-cell *matCellDef="let exp">{{ exp.CodigoExpediente }}</td>
@@ -1170,7 +1176,7 @@ export class PropiedadDetailComponent implements OnInit {
   // Expedientes
   expedientes: Expediente[] = [];
   expedientesPaged: Expediente[] = [];
-  expedientesColumns: string[] = ['codigo', 'caratula', 'estado', 'ano'];
+  expedientesColumns: string[] = ['id', 'codigo', 'caratula', 'estado', 'ano'];
   loadingExpedientes = false;
   expedientesTotal = 0;
   expedientesPageSize = 10;
