@@ -12,7 +12,11 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PropiedadMineraService } from '../services/propiedad-minera.service';
-import { ReqMineroMovService, ReqMineroMov, ReqMineroMovCreate } from '../services/req-minero-mov.service';
+import {
+  ReqMineroMovService,
+  ReqMineroMov,
+  ReqMineroMovCreate,
+} from '../services/req-minero-mov.service';
 import { ReqMineroService, ReqMinero } from '../services/req-minero.service';
 import { TitularMineroService } from '../../titulares/services/titular.service';
 import { PropiedadMinera } from '../models/propiedad-minera.model';
@@ -43,7 +47,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
     ReqMineroMovEditComponent,
     AlertasListComponent,
     ObservacionesTabComponent,
-    ArchivosExpedienteComponent
+    ArchivosExpedienteComponent,
   ],
   template: `
     <div class="detail-container">
@@ -78,9 +82,19 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
             <div class="tab-content">
               <mat-card class="info-card">
                 <mat-card-header>
-                  <mat-card-title>Información General</mat-card-title>
+                  <mat-card-title>
+                    Información General
+                    <span *ngIf="propiedad?.IdPropiedadMinera" class="id-pill">
+                      ID {{ propiedad.IdPropiedadMinera }}
+                    </span>
+                  </mat-card-title>
                   <div class="spacer"></div>
-                  <button mat-flat-button class="editar-prop-btn" (click)="editPropiedad()" *ngIf="propiedad">
+                  <button
+                    mat-flat-button
+                    class="editar-prop-btn"
+                    (click)="editPropiedad()"
+                    *ngIf="propiedad"
+                  >
                     <mat-icon>edit</mat-icon>
                     Editar Propiedad
                   </button>
@@ -109,7 +123,13 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                     </div>
                     <div class="info-item">
                       <label>Referente:</label>
-                      <span>{{ propiedad.Referente === true ? 'Sí' : propiedad.Referente === false ? 'No' : 'No especificado' }}</span>
+                      <span>{{
+                        propiedad.Referente === true
+                          ? 'Sí'
+                          : propiedad.Referente === false
+                          ? 'No'
+                          : 'No especificado'
+                      }}</span>
                     </div>
                   </div>
                 </mat-card-content>
@@ -152,32 +172,44 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
             <div class="tab-content">
               <!-- Formulario de creación (solo si está activo) -->
               <div *ngIf="mostrandoFormularioCreacion" class="formulario-container">
-                <app-req-minero-mov-create 
+                <app-req-minero-mov-create
                   [idPropiedadMinera]="propiedadId"
                   (create)="onCrearRequerimiento($event)"
-                  (cancelar)="ocultarFormularioCreacion()">
+                  (cancelar)="ocultarFormularioCreacion()"
+                >
                 </app-req-minero-mov-create>
               </div>
 
               <!-- Formulario de edición (solo si está activo) -->
-              <div *ngIf="mostrandoFormularioEdicion && requerimientoEnEdicion" class="formulario-container">
-                <app-req-minero-mov-edit 
+              <div
+                *ngIf="mostrandoFormularioEdicion && requerimientoEnEdicion"
+                class="formulario-container"
+              >
+                <app-req-minero-mov-edit
                   [reqMineroMov]="requerimientoEnEdicion"
                   (update)="onActualizarRequerimiento($event)"
-                  (cancelar)="ocultarFormularioEdicion()">
+                  (cancelar)="ocultarFormularioEdicion()"
+                >
                 </app-req-minero-mov-edit>
               </div>
 
               <!-- Lista de requerimientos (solo si no hay formularios activos) -->
-              <mat-card class="info-card" *ngIf="!mostrandoFormularioCreacion && !mostrandoFormularioEdicion">
+              <mat-card
+                class="info-card"
+                *ngIf="!mostrandoFormularioCreacion && !mostrandoFormularioEdicion"
+              >
                 <mat-card-header>
                   <mat-card-title>Requerimientos Mineros</mat-card-title>
-                  <mat-card-subtitle>Documentos y requisitos de la propiedad minera</mat-card-subtitle>
+                  <mat-card-subtitle
+                    >Documentos y requisitos de la propiedad minera</mat-card-subtitle
+                  >
                   <div class="spacer"></div>
-                  <button mat-flat-button 
-                          class="editar-prop-btn"
-                          (click)="mostrarFormularioCreacion()"
-                          *ngIf="!mostrandoFormularioCreacion && !mostrandoFormularioEdicion">
+                  <button
+                    mat-flat-button
+                    class="editar-prop-btn"
+                    (click)="mostrarFormularioCreacion()"
+                    *ngIf="!mostrandoFormularioCreacion && !mostrandoFormularioEdicion"
+                  >
                     <mat-icon>add</mat-icon>
                     Nuevo Requerimiento
                   </button>
@@ -196,7 +228,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <ng-container matColumnDef="fechaInicio">
                         <th mat-header-cell *matHeaderCellDef>Desde</th>
                         <td mat-cell *matCellDef="let req">
-                          {{ req.FechaInicio ? (req.FechaInicio | date:'dd/MM/yyyy') : '-' }}
+                          {{ req.FechaInicio ? (req.FechaInicio | date : 'dd/MM/yyyy') : '-' }}
                         </td>
                       </ng-container>
 
@@ -204,7 +236,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <ng-container matColumnDef="fechaFin">
                         <th mat-header-cell *matHeaderCellDef>Hasta</th>
                         <td mat-cell *matCellDef="let req">
-                          {{ req.FechaFin ? (req.FechaFin | date:'dd/MM/yyyy') : '-' }}
+                          {{ req.FechaFin ? (req.FechaFin | date : 'dd/MM/yyyy') : '-' }}
                         </td>
                       </ng-container>
 
@@ -212,7 +244,11 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <ng-container matColumnDef="nombreReqMinero">
                         <th mat-header-cell *matHeaderCellDef>Tipo de Requerimiento</th>
                         <td mat-cell *matCellDef="let req">
-                          {{ req.IdReqMinero ? getTipoRequerimientoNombre(req.IdReqMinero) : 'Sin tipo especificado' }}
+                          {{
+                            req.IdReqMinero
+                              ? getTipoRequerimientoNombre(req.IdReqMinero)
+                              : 'Sin tipo especificado'
+                          }}
                         </td>
                       </ng-container>
 
@@ -228,10 +264,20 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <ng-container matColumnDef="importe">
                         <th mat-header-cell *matHeaderCellDef>Importe</th>
                         <td mat-cell *matCellDef="let req">
-                          <span *ngIf="getTipoRequerimientoNombre(req.IdReqMinero) === 'Canon' && req.Importe">
+                          <span
+                            *ngIf="
+                              getTipoRequerimientoNombre(req.IdReqMinero) === 'Canon' && req.Importe
+                            "
+                          >
                             {{ formatCurrency(req.Importe) }}
                           </span>
-                          <span *ngIf="getTipoRequerimientoNombre(req.IdReqMinero) !== 'Canon' || !req.Importe">-</span>
+                          <span
+                            *ngIf="
+                              getTipoRequerimientoNombre(req.IdReqMinero) !== 'Canon' ||
+                              !req.Importe
+                            "
+                            >-</span
+                          >
                         </td>
                       </ng-container>
 
@@ -239,15 +285,18 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <ng-container matColumnDef="acciones">
                         <th mat-header-cell *matHeaderCellDef>Acciones</th>
                         <td mat-cell *matCellDef="let req">
-                          <button mat-icon-button [matMenuTriggerFor]="reqMenu" 
-                                  [matMenuTriggerData]="{requerimiento: req}">
+                          <button
+                            mat-icon-button
+                            [matMenuTriggerFor]="reqMenu"
+                            [matMenuTriggerData]="{ requerimiento: req }"
+                          >
                             <mat-icon>more_vert</mat-icon>
                           </button>
                         </td>
                       </ng-container>
 
                       <tr mat-header-row *matHeaderRowDef="requerimientosColumns"></tr>
-                      <tr mat-row *matRowDef="let row; columns: requerimientosColumns;"></tr>
+                      <tr mat-row *matRowDef="let row; columns: requerimientosColumns"></tr>
                     </table>
 
                     <!-- Mensaje si no hay requerimientos -->
@@ -262,27 +311,75 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                   <div class="custom-pagination" *ngIf="requerimientosTotal > 0">
                     <div class="page-size-selector">
                       <span>Mostrar:</span>
-                      <button mat-button [class.active]="requerimientosPageSize === 5" (click)="changeRequerimientosPageSize(5)">5</button>
-                      <button mat-button [class.active]="requerimientosPageSize === 10" (click)="changeRequerimientosPageSize(10)">10</button>
-                      <button mat-button [class.active]="requerimientosPageSize === 25" (click)="changeRequerimientosPageSize(25)">25</button>
+                      <button
+                        mat-button
+                        [class.active]="requerimientosPageSize === 5"
+                        (click)="changeRequerimientosPageSize(5)"
+                      >
+                        5
+                      </button>
+                      <button
+                        mat-button
+                        [class.active]="requerimientosPageSize === 10"
+                        (click)="changeRequerimientosPageSize(10)"
+                      >
+                        10
+                      </button>
+                      <button
+                        mat-button
+                        [class.active]="requerimientosPageSize === 25"
+                        (click)="changeRequerimientosPageSize(25)"
+                      >
+                        25
+                      </button>
                     </div>
 
                     <div class="pagination-info">
-                      {{ (requerimientosCurrentPage * requerimientosPageSize) + 1 }} - {{ Math.min((requerimientosCurrentPage + 1) * requerimientosPageSize, requerimientosTotal) }} de {{ requerimientosTotal }}
+                      {{ requerimientosCurrentPage * requerimientosPageSize + 1 }} -
+                      {{
+                        Math.min(
+                          (requerimientosCurrentPage + 1) * requerimientosPageSize,
+                          requerimientosTotal
+                        )
+                      }}
+                      de {{ requerimientosTotal }}
                     </div>
 
                     <div class="pagination-controls">
-                      <button mat-icon-button [disabled]="requerimientosCurrentPage === 0" (click)="firstRequerimientosPage()" matTooltip="Primera página">
+                      <button
+                        mat-icon-button
+                        [disabled]="requerimientosCurrentPage === 0"
+                        (click)="firstRequerimientosPage()"
+                        matTooltip="Primera página"
+                      >
                         <mat-icon>first_page</mat-icon>
                       </button>
-                      <button mat-icon-button [disabled]="requerimientosCurrentPage === 0" (click)="previousRequerimientosPage()" matTooltip="Anterior">
+                      <button
+                        mat-icon-button
+                        [disabled]="requerimientosCurrentPage === 0"
+                        (click)="previousRequerimientosPage()"
+                        matTooltip="Anterior"
+                      >
                         <mat-icon>chevron_left</mat-icon>
                       </button>
-                      <span class="page-number">Página {{ requerimientosCurrentPage + 1 }} de {{ requerimientosTotalPages }}</span>
-                      <button mat-icon-button [disabled]="requerimientosCurrentPage >= requerimientosTotalPages - 1" (click)="nextRequerimientosPage()" matTooltip="Siguiente">
+                      <span class="page-number"
+                        >Página {{ requerimientosCurrentPage + 1 }} de
+                        {{ requerimientosTotalPages }}</span
+                      >
+                      <button
+                        mat-icon-button
+                        [disabled]="requerimientosCurrentPage >= requerimientosTotalPages - 1"
+                        (click)="nextRequerimientosPage()"
+                        matTooltip="Siguiente"
+                      >
                         <mat-icon>chevron_right</mat-icon>
                       </button>
-                      <button mat-icon-button [disabled]="requerimientosCurrentPage >= requerimientosTotalPages - 1" (click)="lastRequerimientosPage()" matTooltip="Última página">
+                      <button
+                        mat-icon-button
+                        [disabled]="requerimientosCurrentPage >= requerimientosTotalPages - 1"
+                        (click)="lastRequerimientosPage()"
+                        matTooltip="Última página"
+                      >
                         <mat-icon>last_page</mat-icon>
                       </button>
                     </div>
@@ -308,7 +405,12 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                     <mat-spinner></mat-spinner>
                     <p>Cargando expedientes...</p>
                   </div>
-                  <table mat-table [dataSource]="expedientesPaged" *ngIf="!loadingExpedientes && expedientes.length > 0" class="full-width-table">
+                  <table
+                    mat-table
+                    [dataSource]="expedientesPaged"
+                    *ngIf="!loadingExpedientes && expedientes.length > 0"
+                    class="full-width-table"
+                  >
                     <ng-container matColumnDef="codigo">
                       <th mat-header-cell *matHeaderCellDef>Código</th>
                       <td mat-cell *matCellDef="let exp">{{ exp.CodigoExpediente }}</td>
@@ -326,39 +428,95 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                       <td mat-cell *matCellDef="let exp">{{ exp.Ano }}</td>
                     </ng-container>
                     <tr mat-header-row *matHeaderRowDef="expedientesColumns"></tr>
-                    <tr mat-row *matRowDef="let row; columns: expedientesColumns;" (click)="irADetalleExpediente(row)" style="cursor:pointer"></tr>
+                    <tr
+                      mat-row
+                      *matRowDef="let row; columns: expedientesColumns"
+                      (click)="irADetalleExpediente(row)"
+                      style="cursor:pointer"
+                    ></tr>
                   </table>
-                  
+
                   <!-- Paginación personalizada de expedientes -->
-                  <div class="custom-pagination" *ngIf="!loadingExpedientes && expedientesTotal > 0">
+                  <div
+                    class="custom-pagination"
+                    *ngIf="!loadingExpedientes && expedientesTotal > 0"
+                  >
                     <div class="page-size-selector">
                       <span>Mostrar:</span>
-                      <button mat-button [class.active]="expedientesPageSize === 5" (click)="changeExpedientesPageSize(5)">5</button>
-                      <button mat-button [class.active]="expedientesPageSize === 10" (click)="changeExpedientesPageSize(10)">10</button>
-                      <button mat-button [class.active]="expedientesPageSize === 25" (click)="changeExpedientesPageSize(25)">25</button>
+                      <button
+                        mat-button
+                        [class.active]="expedientesPageSize === 5"
+                        (click)="changeExpedientesPageSize(5)"
+                      >
+                        5
+                      </button>
+                      <button
+                        mat-button
+                        [class.active]="expedientesPageSize === 10"
+                        (click)="changeExpedientesPageSize(10)"
+                      >
+                        10
+                      </button>
+                      <button
+                        mat-button
+                        [class.active]="expedientesPageSize === 25"
+                        (click)="changeExpedientesPageSize(25)"
+                      >
+                        25
+                      </button>
                     </div>
 
                     <div class="pagination-info">
-                      {{ (expedientesCurrentPage * expedientesPageSize) + 1 }} - {{ Math.min((expedientesCurrentPage + 1) * expedientesPageSize, expedientesTotal) }} de {{ expedientesTotal }}
+                      {{ expedientesCurrentPage * expedientesPageSize + 1 }} -
+                      {{
+                        Math.min(
+                          (expedientesCurrentPage + 1) * expedientesPageSize,
+                          expedientesTotal
+                        )
+                      }}
+                      de {{ expedientesTotal }}
                     </div>
 
                     <div class="pagination-controls">
-                      <button mat-icon-button [disabled]="expedientesCurrentPage === 0" (click)="firstExpedientesPage()" matTooltip="Primera página">
+                      <button
+                        mat-icon-button
+                        [disabled]="expedientesCurrentPage === 0"
+                        (click)="firstExpedientesPage()"
+                        matTooltip="Primera página"
+                      >
                         <mat-icon>first_page</mat-icon>
                       </button>
-                      <button mat-icon-button [disabled]="expedientesCurrentPage === 0" (click)="previousExpedientesPage()" matTooltip="Anterior">
+                      <button
+                        mat-icon-button
+                        [disabled]="expedientesCurrentPage === 0"
+                        (click)="previousExpedientesPage()"
+                        matTooltip="Anterior"
+                      >
                         <mat-icon>chevron_left</mat-icon>
                       </button>
-                      <span class="page-number">Página {{ expedientesCurrentPage + 1 }} de {{ expedientesTotalPages }}</span>
-                      <button mat-icon-button [disabled]="expedientesCurrentPage >= expedientesTotalPages - 1" (click)="nextExpedientesPage()" matTooltip="Siguiente">
+                      <span class="page-number"
+                        >Página {{ expedientesCurrentPage + 1 }} de
+                        {{ expedientesTotalPages }}</span
+                      >
+                      <button
+                        mat-icon-button
+                        [disabled]="expedientesCurrentPage >= expedientesTotalPages - 1"
+                        (click)="nextExpedientesPage()"
+                        matTooltip="Siguiente"
+                      >
                         <mat-icon>chevron_right</mat-icon>
                       </button>
-                      <button mat-icon-button [disabled]="expedientesCurrentPage >= expedientesTotalPages - 1" (click)="lastExpedientesPage()" matTooltip="Última página">
+                      <button
+                        mat-icon-button
+                        [disabled]="expedientesCurrentPage >= expedientesTotalPages - 1"
+                        (click)="lastExpedientesPage()"
+                        matTooltip="Última página"
+                      >
                         <mat-icon>last_page</mat-icon>
                       </button>
                     </div>
                   </div>
-                  
+
                   <div *ngIf="!loadingExpedientes && expedientes.length === 0">
                     <mat-icon>assignment</mat-icon>
                     <h3>No hay expedientes registrados para esta propiedad minera.</h3>
@@ -380,7 +538,9 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                   <mat-card-title>Alertas asociadas a la propiedad minera</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                  <app-alertas-list [idTransaccion]="propiedad.IdTransaccion ?? null"></app-alertas-list>
+                  <app-alertas-list
+                    [idTransaccion]="propiedad.IdTransaccion ?? null"
+                  ></app-alertas-list>
                 </mat-card-content>
               </mat-card>
             </div>
@@ -398,7 +558,9 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                   <mat-card-title>Observaciones asociadas a la propiedad minera</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                  <app-observaciones-tab [idTransaccion]="propiedad.IdTransaccion ?? null"></app-observaciones-tab>
+                  <app-observaciones-tab
+                    [idTransaccion]="propiedad.IdTransaccion ?? null"
+                  ></app-observaciones-tab>
                 </mat-card-content>
               </mat-card>
             </div>
@@ -416,7 +578,10 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                   <mat-card-title>Archivos asociados a la propiedad minera</mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                  <app-archivos-expediente [idEntidad]="propiedad.IdTransaccion ?? 0" [entidad]="'propiedad-minera'"></app-archivos-expediente>
+                  <app-archivos-expediente
+                    [idEntidad]="propiedad.IdTransaccion ?? 0"
+                    [entidad]="'propiedad-minera'"
+                  ></app-archivos-expediente>
                 </mat-card-content>
               </mat-card>
             </div>
@@ -447,514 +612,530 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
         <mat-icon color="warn">error</mat-icon>
         <h2>Propiedad no encontrada</h2>
         <p>No se pudo cargar la información de la propiedad minera.</p>
-        <button mat-raised-button color="primary" (click)="goBack()">
-          Volver al listado
-        </button>
+        <button mat-raised-button color="primary" (click)="goBack()">Volver al listado</button>
       </div>
     </div>
   `,
-  styles: [`
-    .detail-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    .detail-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 32px;
-      padding-bottom: 16px;
-      border-bottom: 2px solid #e0e0e0;
-    }
-
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .back-button {
-      color: #666;
-    }
-
-    .header-info h1 {
-      margin: 0;
-      color: #000000;
-      font-size: 1.8rem;
-      font-weight: 500;
-    }
-
-    .subtitle {
-      margin: 4px 0 0 0;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 12px;
-    }
-
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 20px;
-      text-align: center;
-      background: linear-gradient(135deg, #f8fffe 0%, #f1f8f6 100%);
-      border-radius: 16px;
-      border: 1px solid #e1f0ec;
-      margin: 20px;
-      box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .loading-container:hover {
-      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
-      transform: translateY(-2px);
-    }
-
-    .loading-container p {
-      margin-top: 16px;
-      color: #2d5a48;
-      font-weight: 500;
-      font-size: 1.1rem;
-    }
-
-    .tabs-container {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
-      border: 1px solid #e1f0ec;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-    }
-
-    .tabs-container:hover {
-      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
-    }
-
-    /* Estilos personalizados para mat-tab-group */
-    .tabs-container ::ng-deep .mat-mdc-tab-labels {
-      background: #f5f7f6;
-      border-radius: 8px 8px 0 0;
-    }
-
-    .tabs-container ::ng-deep .mat-mdc-tab {
-      color: #416759 !important;
-      font-weight: 500;
-      font-size: 16px;
-      opacity: 1 !important;
-    }
-
-    .tabs-container ::ng-deep .mat-mdc-tab:hover {
-      background: #e8f0ec;
-    }
-
-    .tabs-container ::ng-deep .mat-mdc-tab.mdc-tab--active {
-      background: #fff;
-      color: #416759 !important;
-    }
-
-    .tabs-container ::ng-deep .mat-mdc-tab .mdc-tab__text-label {
-      color: #416759;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .tabs-container ::ng-deep .mat-mdc-tab-label-container {
-      background: #f5f7f6;
-    }
-
-    .tabs-container ::ng-deep .mdc-tab-indicator__content--underline {
-      border-color: #416759 !important;
-      border-width: 3px;
-    }
-
-    .tabs-container ::ng-deep .mat-mdc-tab-body-wrapper {
-      background: #fff;
-      border-radius: 0 0 8px 8px;
-    }
-
-    .tab-content {
-      padding: 24px;
-      min-height: 400px;
-    }
-
-    .formulario-container {
-      margin-bottom: 24px;
-    }
-
-    .info-card {
-      margin-bottom: 24px;
-      box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
-      border-radius: 16px;
-      border: 1px solid #e1f0ec;
-      background: linear-gradient(135deg, #fdfdfd 0%, #f9fdf9 100%);
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow: hidden;
-    }
-
-    .info-card:hover {
-      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
-      transform: translateY(-2px);
-    }
-
-    .info-card mat-card-header {
-      display: flex !important;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .info-card mat-card-header button {
-      z-index: 10;
-      pointer-events: auto;
-    }
-
-    .btn-nuevo-requerimiento {
-      cursor: pointer !important;
-      user-select: none;
-    }
-
-    .spacer {
-      flex: 1;
-    }
-
-    .info-card:last-child {
-      margin-bottom: 0;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 16px;
-      background: linear-gradient(135deg, #f8fffe 0%, #f1f8f6 100%);
-      border-radius: 12px;
-      border: 1px solid #e1f0ec;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .info-item::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 4px;
-      height: 100%;
-      background: linear-gradient(180deg, #416759 0%, #5a8070 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-    }
-
-    .info-item:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
-      border-color: #c8e0d7;
-    }
-
-    .info-item:hover::before {
-      opacity: 1;
-    }
-
-    .info-item label {
-      font-weight: 600;
-      color: #2d5a48;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 4px;
-      position: relative;
-    }
-
-    .info-item span {
-      color: #1a4435;
-      font-size: 1rem;
-      font-weight: 500;
-      line-height: 1.4;
-    }
-
-    /* Estilos modernos para botones */
-    button[mat-raised-button] {
-      background: linear-gradient(135deg, #416759 0%, #5a8070 100%) !important;
-      border-radius: 12px !important;
-      padding: 12px 20px !important;
-      font-weight: 600 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.5px !important;
-      box-shadow: 0 4px 15px rgba(65, 103, 89, 0.25) !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-      border: none !important;
-    }
-
-    button[mat-raised-button]:hover {
-      transform: translateY(-2px) !important;
-      box-shadow: 0 8px 25px rgba(65, 103, 89, 0.35) !important;
-    }
-
-    button[mat-raised-button] mat-icon {
-      margin-right: 8px;
-    }
-
-    .back-button {
-      color: #416759 !important;
-      background: rgba(65, 103, 89, 0.1) !important;
-      border-radius: 50% !important;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-
-    .back-button:hover {
-      background: rgba(65, 103, 89, 0.2) !important;
-      transform: translateX(-2px) !important;
-    }
-
-    .requerimientos-container {
-      margin-top: 16px;
-    }
-
-    .requerimiento-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 16px 0;
-    }
-
-    .requerimiento-info {
-      flex: 1;
-    }
-
-    .requerimiento-info h4 {
-      margin: 0 0 8px 0;
-      color: #333;
-      font-size: 1.1rem;
-    }
-
-    .requerimiento-info p {
-      margin: 0 0 8px 0;
-      color: #666;
-      font-size: 0.9rem;
-    }
-
-    .status {
-      padding: 4px 12px;
-      border-radius: 16px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      text-transform: uppercase;
-    }
-
-    .status.completed {
-      background: #e8f5e8;
-      color: #2e7d32;
-    }
-
-    .status.pending {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-
-    .status.in-progress {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-
-
-
-    .loading-requerimientos {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px;
-      text-align: center;
-    }
-
-    .loading-requerimientos p {
-      margin-top: 16px;
-      color: #666;
-    }
-
-    .requerimientos-table {
-      margin-top: 16px;
-    }
-
-    .requerimientos-table table.full-width-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-    }
-    .requerimientos-table th, .requerimientos-table td {
-      border-right: 1px solid #888;
-      padding: 8px 12px;
-    }
-    .requerimientos-table tr {
-      border-bottom: 1px solid #888;
-    }
-    .requerimientos-table th {
-      background: #f5f5f5;
-      font-weight: 600;
-      text-align: left;
-    }
-    .requerimientos-table tr {
-      border-bottom: 1px solid #e0e0e0;
-    }
-    .requerimientos-table tr:last-child {
-      border-bottom: none;
-    }
-    .importe {
-      font-weight: bold;
-      color: #2e7d32;
-    }
-    .no-importe {
-      color: #aaa;
-    }
-    .full-width-table {
-      width: 100%;
-    }
-    .error-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 80px 20px;
-      text-align: center;
-    }
-
-    .error-container mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      margin-bottom: 16px;
-    }
-
-    .error-container h2 {
-      margin: 0 0 8px 0;
-      color: #666;
-    }
-
-    .error-container p {
-      margin: 0 0 24px 0;
-      color: #999;
-    }
-
-    /* Responsive */
-    @media (max-width: 768px) {
+  styles: [
+    `
       .detail-container {
-        padding: 16px;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
       }
 
       .detail-header {
-        flex-direction: column;
-        gap: 16px;
-        align-items: flex-start;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 32px;
+        padding-bottom: 16px;
+        border-bottom: 2px solid #e0e0e0;
       }
 
       .header-content {
-        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .back-button {
+        color: #666;
+      }
+
+      .header-info h1 {
+        margin: 0;
+        color: #000000;
+        font-size: 1.8rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .subtitle {
+        margin: 4px 0 0 0;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .id-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background-color: rgba(63, 104, 89, 0.1);
+        color: #1f4136;
+        font-weight: 600;
+        font-size: 0.95rem;
+        line-height: 1;
       }
 
       .header-actions {
-        width: 100%;
-        justify-content: flex-end;
+        display: flex;
+        gap: 12px;
+      }
+
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 20px;
+        text-align: center;
+        background: linear-gradient(135deg, #f8fffe 0%, #f1f8f6 100%);
+        border-radius: 16px;
+        border: 1px solid #e1f0ec;
+        margin: 20px;
+        box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .loading-container:hover {
+        box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .loading-container p {
+        margin-top: 16px;
+        color: #2d5a48;
+        font-weight: 500;
+        font-size: 1.1rem;
+      }
+
+      .tabs-container {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
+        border: 1px solid #e1f0ec;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+      }
+
+      .tabs-container:hover {
+        box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+      }
+
+      /* Estilos personalizados para mat-tab-group */
+      .tabs-container ::ng-deep .mat-mdc-tab-labels {
+        background: #f5f7f6;
+        border-radius: 8px 8px 0 0;
+      }
+
+      .tabs-container ::ng-deep .mat-mdc-tab {
+        color: #416759 !important;
+        font-weight: 500;
+        font-size: 16px;
+        opacity: 1 !important;
+      }
+
+      .tabs-container ::ng-deep .mat-mdc-tab:hover {
+        background: #e8f0ec;
+      }
+
+      .tabs-container ::ng-deep .mat-mdc-tab.mdc-tab--active {
+        background: #fff;
+        color: #416759 !important;
+      }
+
+      .tabs-container ::ng-deep .mat-mdc-tab .mdc-tab__text-label {
+        color: #416759;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .tabs-container ::ng-deep .mat-mdc-tab-label-container {
+        background: #f5f7f6;
+      }
+
+      .tabs-container ::ng-deep .mdc-tab-indicator__content--underline {
+        border-color: #416759 !important;
+        border-width: 3px;
+      }
+
+      .tabs-container ::ng-deep .mat-mdc-tab-body-wrapper {
+        background: #fff;
+        border-radius: 0 0 8px 8px;
+      }
+
+      .tab-content {
+        padding: 24px;
+        min-height: 400px;
+      }
+
+      .formulario-container {
+        margin-bottom: 24px;
+      }
+
+      .info-card {
+        margin-bottom: 24px;
+        box-shadow: 0 4px 15px rgba(65, 103, 89, 0.08);
+        border-radius: 16px;
+        border: 1px solid #e1f0ec;
+        background: linear-gradient(135deg, #fdfdfd 0%, #f9fdf9 100%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+      }
+
+      .info-card:hover {
+        box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+        transform: translateY(-2px);
+      }
+
+      .info-card mat-card-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .info-card mat-card-header button {
+        z-index: 10;
+        pointer-events: auto;
+      }
+
+      .btn-nuevo-requerimiento {
+        cursor: pointer !important;
+        user-select: none;
+      }
+
+      .spacer {
+        flex: 1;
+      }
+
+      .info-card:last-child {
+        margin-bottom: 0;
       }
 
       .info-grid {
-        grid-template-columns: 1fr;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
       }
-    }
 
-    .editar-prop-btn {
-      background: #fff !important;
-      color: #219653 !important;
-      border: 2px solid #219653 !important;
-      box-shadow: none !important;
-      opacity: 1 !important;
-      filter: none !important;
-      font-weight: 700;
-    }
-    .editar-prop-btn mat-icon {
-      color: #219653 !important;
-    }
-    .editar-prop-btn:hover,
-    .editar-prop-btn:focus {
-      background: #e8f5e9 !important;
-      color: #17693b !important;
-      border-color: #17693b !important;
-      box-shadow: 0 0 0 2px #e8f5e9 !important;
-    }
+      .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding: 16px;
+        background: linear-gradient(135deg, #f8fffe 0%, #f1f8f6 100%);
+        border-radius: 12px;
+        border: 1px solid #e1f0ec;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
 
-    .mat-column-importe {
-      min-width: 120px;
-      max-width: 200px;
-      white-space: nowrap;
-    }
+      .info-item::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(180deg, #416759 0%, #5a8070 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
 
-    /* Estilos de paginación personalizada */
-    .custom-pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      background: #fafafa;
-      border-top: 1px solid #e0e0e0;
-      margin-top: 8px;
-    }
-    .page-size-selector {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .page-size-selector span {
-      font-size: 14px;
-      color: #666;
-    }
-    .page-size-selector button {
-      min-width: 40px;
-      height: 32px;
-      line-height: 32px;
-      padding: 0 8px;
-      font-size: 13px;
-      color: #666;
-    }
-    .page-size-selector button.active {
-      background-color: #416759;
-      color: white;
-    }
-    .pagination-info {
-      font-size: 14px;
-      color: #666;
-    }
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .page-number {
-      margin: 0 8px;
-      font-size: 14px;
-      color: #333;
-    }
-  `]
+      .info-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(65, 103, 89, 0.12);
+        border-color: #c8e0d7;
+      }
+
+      .info-item:hover::before {
+        opacity: 1;
+      }
+
+      .info-item label {
+        font-weight: 600;
+        color: #2d5a48;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        position: relative;
+      }
+
+      .info-item span {
+        color: #1a4435;
+        font-size: 1rem;
+        font-weight: 500;
+        line-height: 1.4;
+      }
+
+      /* Estilos modernos para botones */
+      button[mat-raised-button] {
+        background: linear-gradient(135deg, #416759 0%, #5a8070 100%) !important;
+        border-radius: 12px !important;
+        padding: 12px 20px !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        box-shadow: 0 4px 15px rgba(65, 103, 89, 0.25) !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        border: none !important;
+      }
+
+      button[mat-raised-button]:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(65, 103, 89, 0.35) !important;
+      }
+
+      button[mat-raised-button] mat-icon {
+        margin-right: 8px;
+      }
+
+      .back-button {
+        color: #416759 !important;
+        background: rgba(65, 103, 89, 0.1) !important;
+        border-radius: 50% !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+      }
+
+      .back-button:hover {
+        background: rgba(65, 103, 89, 0.2) !important;
+        transform: translateX(-2px) !important;
+      }
+
+      .requerimientos-container {
+        margin-top: 16px;
+      }
+
+      .requerimiento-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px 0;
+      }
+
+      .requerimiento-info {
+        flex: 1;
+      }
+
+      .requerimiento-info h4 {
+        margin: 0 0 8px 0;
+        color: #333;
+        font-size: 1.1rem;
+      }
+
+      .requerimiento-info p {
+        margin: 0 0 8px 0;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .status {
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: uppercase;
+      }
+
+      .status.completed {
+        background: #e8f5e8;
+        color: #2e7d32;
+      }
+
+      .status.pending {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+
+      .status.in-progress {
+        background: #e3f2fd;
+        color: #1976d2;
+      }
+
+      .loading-requerimientos {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px;
+        text-align: center;
+      }
+
+      .loading-requerimientos p {
+        margin-top: 16px;
+        color: #666;
+      }
+
+      .requerimientos-table {
+        margin-top: 16px;
+      }
+
+      .requerimientos-table table.full-width-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+      }
+      .requerimientos-table th,
+      .requerimientos-table td {
+        border-right: 1px solid #888;
+        padding: 8px 12px;
+      }
+      .requerimientos-table tr {
+        border-bottom: 1px solid #888;
+      }
+      .requerimientos-table th {
+        background: #f5f5f5;
+        font-weight: 600;
+        text-align: left;
+      }
+      .requerimientos-table tr {
+        border-bottom: 1px solid #e0e0e0;
+      }
+      .requerimientos-table tr:last-child {
+        border-bottom: none;
+      }
+      .importe {
+        font-weight: bold;
+        color: #2e7d32;
+      }
+      .no-importe {
+        color: #aaa;
+      }
+      .full-width-table {
+        width: 100%;
+      }
+      .error-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 80px 20px;
+        text-align: center;
+      }
+
+      .error-container mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+      }
+
+      .error-container h2 {
+        margin: 0 0 8px 0;
+        color: #666;
+      }
+
+      .error-container p {
+        margin: 0 0 24px 0;
+        color: #999;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .detail-container {
+          padding: 16px;
+        }
+
+        .detail-header {
+          flex-direction: column;
+          gap: 16px;
+          align-items: flex-start;
+        }
+
+        .header-content {
+          width: 100%;
+        }
+
+        .header-actions {
+          width: 100%;
+          justify-content: flex-end;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .editar-prop-btn {
+        background: #fff !important;
+        color: #219653 !important;
+        border: 2px solid #219653 !important;
+        box-shadow: none !important;
+        opacity: 1 !important;
+        filter: none !important;
+        font-weight: 700;
+      }
+      .editar-prop-btn mat-icon {
+        color: #219653 !important;
+      }
+      .editar-prop-btn:hover,
+      .editar-prop-btn:focus {
+        background: #e8f5e9 !important;
+        color: #17693b !important;
+        border-color: #17693b !important;
+        box-shadow: 0 0 0 2px #e8f5e9 !important;
+      }
+
+      .mat-column-importe {
+        min-width: 120px;
+        max-width: 200px;
+        white-space: nowrap;
+      }
+
+      /* Estilos de paginación personalizada */
+      .custom-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: #fafafa;
+        border-top: 1px solid #e0e0e0;
+        margin-top: 8px;
+      }
+      .page-size-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .page-size-selector span {
+        font-size: 14px;
+        color: #666;
+      }
+      .page-size-selector button {
+        min-width: 40px;
+        height: 32px;
+        line-height: 32px;
+        padding: 0 8px;
+        font-size: 13px;
+        color: #666;
+      }
+      .page-size-selector button.active {
+        background-color: #416759;
+        color: white;
+      }
+      .pagination-info {
+        font-size: 14px;
+        color: #666;
+      }
+      .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .page-number {
+        margin: 0 8px;
+        font-size: 14px;
+        color: #333;
+      }
+    `,
+  ],
 })
 export class PropiedadDetailComponent implements OnInit {
   propiedad: PropiedadMinera | null = null;
   loading = true;
   propiedadId: number | null = null;
   titularNombre: string = '';
-  
+
   // Requerimientos
   requerimientos: ReqMineroMov[] = [];
   loadingRequerimientos = false;
@@ -964,20 +1145,20 @@ export class PropiedadDetailComponent implements OnInit {
     'nombreReqMinero',
     'descripcion',
     'importe',
-    'acciones'
+    'acciones',
   ];
   requerimientosTotal = 0;
   requerimientosPageSize = 10;
   requerimientosCurrentPage = 0;
-  
+
   // Para usar Math en el template
   Math = Math;
-  
+
   // Getter para calcular total de páginas de requerimientos
   get requerimientosTotalPages(): number {
     return Math.ceil(this.requerimientosTotal / this.requerimientosPageSize);
   }
-  
+
   // Lista de tipos de requerimientos para hacer el mapeo
   tiposRequerimientos: ReqMinero[] = [];
 
@@ -994,7 +1175,7 @@ export class PropiedadDetailComponent implements OnInit {
   expedientesTotal = 0;
   expedientesPageSize = 10;
   expedientesCurrentPage = 0;
-  
+
   // Getter para calcular total de páginas de expedientes
   get expedientesTotalPages(): number {
     return Math.ceil(this.expedientesTotal / this.expedientesPageSize);
@@ -1013,8 +1194,8 @@ export class PropiedadDetailComponent implements OnInit {
   ngOnInit() {
     // Cargar tipos de requerimientos primero
     this.cargarTiposRequerimientos();
-    
-    this.route.params.subscribe(params => {
+
+    this.route.params.subscribe((params) => {
       this.propiedadId = +params['id'];
       if (this.propiedadId) {
         this.loadPropiedad(this.propiedadId);
@@ -1042,11 +1223,15 @@ export class PropiedadDetailComponent implements OnInit {
       error: (error: any) => {
         console.error('Error al cargar propiedad:', error);
         this.loading = false;
-      }
+      },
     });
   }
 
-  loadRequerimientos(idPropiedadMinera: number, page: number = this.requerimientosCurrentPage, size: number = this.requerimientosPageSize) {
+  loadRequerimientos(
+    idPropiedadMinera: number,
+    page: number = this.requerimientosCurrentPage,
+    size: number = this.requerimientosPageSize
+  ) {
     this.loadingRequerimientos = true;
     const skip = page * size;
     const limit = size;
@@ -1061,7 +1246,7 @@ export class PropiedadDetailComponent implements OnInit {
         this.requerimientos = [];
         this.requerimientosTotal = 0;
         this.loadingRequerimientos = false;
-      }
+      },
     });
   }
 
@@ -1070,14 +1255,22 @@ export class PropiedadDetailComponent implements OnInit {
     this.requerimientosPageSize = size;
     this.requerimientosCurrentPage = 0;
     if (this.propiedadId) {
-      this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+      this.loadRequerimientos(
+        this.propiedadId,
+        this.requerimientosCurrentPage,
+        this.requerimientosPageSize
+      );
     }
   }
 
   firstRequerimientosPage(): void {
     this.requerimientosCurrentPage = 0;
     if (this.propiedadId) {
-      this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+      this.loadRequerimientos(
+        this.propiedadId,
+        this.requerimientosCurrentPage,
+        this.requerimientosPageSize
+      );
     }
   }
 
@@ -1085,7 +1278,11 @@ export class PropiedadDetailComponent implements OnInit {
     if (this.requerimientosCurrentPage > 0) {
       this.requerimientosCurrentPage--;
       if (this.propiedadId) {
-        this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+        this.loadRequerimientos(
+          this.propiedadId,
+          this.requerimientosCurrentPage,
+          this.requerimientosPageSize
+        );
       }
     }
   }
@@ -1094,7 +1291,11 @@ export class PropiedadDetailComponent implements OnInit {
     if (this.requerimientosCurrentPage < this.requerimientosTotalPages - 1) {
       this.requerimientosCurrentPage++;
       if (this.propiedadId) {
-        this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+        this.loadRequerimientos(
+          this.propiedadId,
+          this.requerimientosCurrentPage,
+          this.requerimientosPageSize
+        );
       }
     }
   }
@@ -1102,31 +1303,35 @@ export class PropiedadDetailComponent implements OnInit {
   lastRequerimientosPage(): void {
     this.requerimientosCurrentPage = this.requerimientosTotalPages - 1;
     if (this.propiedadId) {
-      this.loadRequerimientos(this.propiedadId, this.requerimientosCurrentPage, this.requerimientosPageSize);
+      this.loadRequerimientos(
+        this.propiedadId,
+        this.requerimientosCurrentPage,
+        this.requerimientosPageSize
+      );
     }
   }
 
   cargarTitular(idTitular: number) {
     this.titularService.getAll().subscribe({
       next: (titulares) => {
-        const titular = titulares.find(t => t.IdTitular === idTitular);
+        const titular = titulares.find((t) => t.IdTitular === idTitular);
         this.titularNombre = titular ? titular.Nombre : 'Titular no encontrado';
       },
       error: () => {
         this.titularNombre = 'Error al cargar titular';
-      }
+      },
     });
   }
 
   private cargarTiposRequerimientos(): void {
     this.reqMineroService.getReqMineros().subscribe({
-      next: (response: {data: ReqMinero[], total: number}) => {
+      next: (response: { data: ReqMinero[]; total: number }) => {
         this.tiposRequerimientos = response.data || [];
         console.log('Tipos de requerimientos cargados:', this.tiposRequerimientos);
       },
       error: (error: any) => {
         console.error('Error al cargar tipos de requerimientos:', error);
-      }
+      },
     });
   }
 
@@ -1134,25 +1339,25 @@ export class PropiedadDetailComponent implements OnInit {
     if (!idReqMinero) {
       return 'ID no disponible';
     }
-    
+
     console.log('Buscando tipo para ID:', idReqMinero);
     console.log('Tipos disponibles:', this.tiposRequerimientos);
-    
-    const tipo = this.tiposRequerimientos.find(t => t.IdReqMinero === idReqMinero);
+
+    const tipo = this.tiposRequerimientos.find((t) => t.IdReqMinero === idReqMinero);
     console.log('Tipo encontrado:', tipo);
-    
+
     return tipo?.Tipo || `No especificado (ID: ${idReqMinero})`;
   }
 
   formatDate(date: Date | string | null | undefined): string {
     if (!date) return 'No especificada';
-    
+
     try {
       const dateObj = typeof date === 'string' ? new Date(date) : date;
       return dateObj.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'long',
-        day: 'numeric'
+        day: 'numeric',
       });
     } catch {
       return 'Fecha inválida';
@@ -1165,8 +1370,10 @@ export class PropiedadDetailComponent implements OnInit {
       style: 'currency',
       currency: 'ARS',
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(amount).replace(/\s/, '');
+      maximumFractionDigits: 2,
+    })
+      .format(amount)
+      .replace(/\s/, '');
   }
 
   // Métodos para manejar formularios
@@ -1204,24 +1411,26 @@ export class PropiedadDetailComponent implements OnInit {
       error: (error) => {
         console.error('Error al crear requerimiento:', error);
         alert('Error al crear el requerimiento. Por favor, intente nuevamente.');
-      }
+      },
     });
   }
 
   onActualizarRequerimiento(reqData: Partial<ReqMineroMovCreate>) {
     if (!this.requerimientoEnEdicion?.IdReqMineroMov) return;
 
-    this.reqMineroMovService.updateReqMineroMov(this.requerimientoEnEdicion.IdReqMineroMov, reqData).subscribe({
-      next: (response) => {
-        console.log('Requerimiento actualizado exitosamente:', response);
-        this.ocultarFormularioEdicion();
-        this.loadRequerimientos(this.propiedadId!);
-      },
-      error: (error) => {
-        console.error('Error al actualizar requerimiento:', error);
-        alert('Error al actualizar el requerimiento. Por favor, intente nuevamente.');
-      }
-    });
+    this.reqMineroMovService
+      .updateReqMineroMov(this.requerimientoEnEdicion.IdReqMineroMov, reqData)
+      .subscribe({
+        next: (response) => {
+          console.log('Requerimiento actualizado exitosamente:', response);
+          this.ocultarFormularioEdicion();
+          this.loadRequerimientos(this.propiedadId!);
+        },
+        error: (error) => {
+          console.error('Error al actualizar requerimiento:', error);
+          alert('Error al actualizar el requerimiento. Por favor, intente nuevamente.');
+        },
+      });
   }
 
   // Cargar expedientes relacionados con la propiedad minera
@@ -1240,7 +1449,7 @@ export class PropiedadDetailComponent implements OnInit {
         this.expedientesTotal = 0;
         this.setExpedientesPaged();
         this.loadingExpedientes = false;
-      }
+      },
     });
   }
 
@@ -1297,7 +1506,9 @@ export class PropiedadDetailComponent implements OnInit {
   }
 
   eliminarRequerimiento(requerimiento: ReqMineroMov) {
-    if (confirm(`¿Está seguro de que desea eliminar el requerimiento "${requerimiento.Descripcion}"?`)) {
+    if (
+      confirm(`¿Está seguro de que desea eliminar el requerimiento "${requerimiento.Descripcion}"?`)
+    ) {
       this.reqMineroMovService.deleteReqMineroMov(requerimiento.IdReqMineroMov).subscribe({
         next: () => {
           console.log('Requerimiento eliminado correctamente');
@@ -1309,7 +1520,7 @@ export class PropiedadDetailComponent implements OnInit {
         error: (error: any) => {
           console.error('Error al eliminar requerimiento:', error);
           alert('Error al eliminar el requerimiento');
-        }
+        },
       });
     }
   }
