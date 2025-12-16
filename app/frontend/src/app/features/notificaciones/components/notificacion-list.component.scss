@@ -5,7 +5,7 @@
 
 mat-card {
   margin: 1rem 0;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
   border-radius: 8px;
 }
 
@@ -47,7 +47,7 @@ mat-card-title {
   mat-form-field {
     flex: 1;
     min-width: 200px;
-    
+
     .mat-mdc-form-field {
       --mdc-outlined-text-field-container-shape: 8px;
       --mdc-outlined-text-field-focus-outline-color: #416759;
@@ -82,7 +82,7 @@ mat-card-title {
   .filters-section {
     flex-direction: column;
     align-items: stretch;
-    
+
     mat-form-field {
       width: 100%;
       min-width: unset;
@@ -134,7 +134,7 @@ mat-card-title {
   background: white;
   border-radius: 4px;
   overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 // pill style para la columna ID
@@ -159,7 +159,7 @@ mat-card-title {
 // Estilo de botones de acción
 button[mat-icon-button] {
   transition: all 0.2s ease;
-  
+
   &:hover {
     transform: scale(1.1);
   }
@@ -176,17 +176,17 @@ mat-progress-spinner {
   border-radius: 4px;
   font-size: 0.75rem;
   font-weight: 500;
-  
+
   &.estado-activo {
     background-color: #d4edda;
     color: #155724;
   }
-  
+
   &.estado-pendiente {
     background-color: #fff3cd;
     color: #856404;
   }
-  
+
   &.estado-inactivo {
     background-color: #f8d7da;
     color: #721c24;
