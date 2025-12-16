@@ -58,7 +58,12 @@
               <div class="tab-content">
                 <mat-card>
                   <mat-card-header>
-                    <mat-card-title>Datos Básicos</mat-card-title>
+                    <mat-card-title>
+                      Datos Básicos
+                      <span class="id-pill" [hidden]="!expediente.IdExpediente">
+                        ID {{ expediente.IdExpediente }}
+                      </span>
+                    </mat-card-title>
                     <button mat-flat-button class="editar-prop-btn" style="margin-left:auto;" (click)="editarExpediente()">
                       <mat-icon>edit</mat-icon>
                       Editar
