@@ -19,7 +19,11 @@
     <div *ngIf="eliminando" class="eliminar-confirm">
       <mat-card>
         <mat-card-content>
-          <p>¿Está seguro que desea eliminar el expediente <b>{{ expediente.CodigoExpediente || '#' + expediente.IdExpediente }}</b>?</p>
+          <p>
+            ¿Está seguro que desea eliminar el expediente
+            <b>{{ expediente.CodigoExpediente || '#' + expediente.IdExpediente }}</b
+            >?
+          </p>
           <div class="form-actions">
             <button mat-raised-button color="warn" (click)="confirmarEliminar()">Eliminar</button>
             <button mat-raised-button (click)="cancelarEliminar()">Cancelar</button>
@@ -29,23 +33,35 @@
     </div>
 
     <div *ngIf="editando">
-      <app-expediente-form [expediente]="expediente" [modo]="'editar'" (edit)="onExpedienteEditado($event)" (cancelar)="cancelarEdicion()"></app-expediente-form>
+      <app-expediente-form
+        [expediente]="expediente"
+        [modo]="'editar'"
+        (edit)="onExpedienteEditado($event)"
+        (cancelar)="cancelarEdicion()"
+      ></app-expediente-form>
     </div>
     <div *ngIf="!editando && !eliminando">
       <!-- Custom Tabs Header (fixed) -->
       <div class="custom-tab-header-wrapper">
         <div class="custom-tab-header">
-          <div *ngFor="let tab of tabs; let i = index"
-               #tabLabel
-               class="custom-tab-label"
-               [class.active]="selectedTabIndex === i"
-               (click)="selectTab(i)">
-            <mat-icon *ngIf="tab.icon">{{tab.icon}}</mat-icon>
-            {{tab.label}}
-            <mat-chip *ngIf="tab.chip && tab.chipValue" class="count-chip">{{tab.chipValue}}</mat-chip>
+          <div
+            *ngFor="let tab of tabs; let i = index"
+            #tabLabel
+            class="custom-tab-label"
+            [class.active]="selectedTabIndex === i"
+            (click)="selectTab(i)"
+          >
+            <mat-icon *ngIf="tab.icon">{{ tab.icon }}</mat-icon>
+            {{ tab.label }}
+            <mat-chip *ngIf="tab.chip && tab.chipValue" class="count-chip">{{
+              tab.chipValue
+            }}</mat-chip>
           </div>
-          <div class="custom-tab-underline" [style.width.px]="underlineWidth" [style.transform]="'translateX(' + underlineLeft + 'px)'">
-          </div>
+          <div
+            class="custom-tab-underline"
+            [style.width.px]="underlineWidth"
+            [style.transform]="'translateX(' + underlineLeft + 'px)'"
+          ></div>
         </div>
       </div>
 
@@ -64,25 +80,82 @@
                         ID {{ expediente.IdExpediente }}
                       </span>
                     </mat-card-title>
-                    <button mat-flat-button class="editar-prop-btn" style="margin-left:auto;" (click)="editarExpediente()">
+                    <button
+                      mat-flat-button
+                      class="editar-prop-btn"
+                      style="margin-left: auto"
+                      (click)="editarExpediente()"
+                    >
                       <mat-icon>edit</mat-icon>
                       Editar
                     </button>
                   </mat-card-header>
                   <mat-card-content>
                     <div class="info-grid">
-                      <div class="info-item"><label>Código de Expediente:</label><span>{{ expediente.CodigoExpediente || 'Sin código' }}</span></div>
-                      <div class="info-item"><label>Primer Propietario:</label><span>{{ expediente.PrimerDueno || 'Sin especificar' }}</span></div>
-                      <div class="info-item"><label>Estado Actual:</label><span>{{ expediente.Estado || 'Sin estado' }}</span></div>
-                      <div class="info-item"><label>Dependencia Responsable:</label><span>{{ expediente.Dependencia || 'Sin dependencia' }}</span></div>
-                      <div class="info-item"><label>Año de Creación:</label><span>{{ expediente.Ano || 'Sin año' }}</span></div>
-                      <div class="info-item"><label>Fecha de Inicio:</label><span>{{ expediente.FechaInicio ? (expediente.FechaInicio | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
-                      <div class="info-item"><label>Fecha de Finalización:</label><span>{{ expediente.FechaFin ? (expediente.FechaFin | date:'dd/MM/yyyy') : 'Sin fecha' }}</span></div>
-                      <div class="info-item"><label>Carátula:</label><span>{{ expediente.Caratula || 'Sin carátula' }}</span></div>
-                      <div class="info-item"><label>Descripción:</label><span>{{ expediente.Descripcion || 'Sin descripción' }}</span></div>
-                      <div class="info-item"><label>Observaciones:</label><span>{{ expediente.Observaciones || 'Sin observaciones' }}</span></div>
-                      <div class="info-item"><label>Propiedad Minera:</label><span>{{ expediente.PropiedadMineraNombre || expediente.IdPropiedadMinera || 'Sin propiedad' }}</span></div>
-                      <div class="info-item"><label>Tipo de Expediente:</label><span>{{ expediente.TipoExpedienteNombre || expediente.IdTipoExpediente || 'Sin tipo' }}</span></div>
+                      <div class="info-item">
+                        <label>Código de Expediente:</label
+                        ><span>{{ expediente.CodigoExpediente || 'Sin código' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Primer Propietario:</label
+                        ><span>{{ expediente.PrimerDueno || 'Sin especificar' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Estado Actual:</label
+                        ><span>{{ expediente.Estado || 'Sin estado' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Dependencia Responsable:</label
+                        ><span>{{ expediente.Dependencia || 'Sin dependencia' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Año de Creación:</label
+                        ><span>{{ expediente.Ano || 'Sin año' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Fecha de Inicio:</label
+                        ><span>{{
+                          expediente.FechaInicio
+                            ? (expediente.FechaInicio | date : 'dd/MM/yyyy')
+                            : 'Sin fecha'
+                        }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Fecha de Finalización:</label
+                        ><span>{{
+                          expediente.FechaFin
+                            ? (expediente.FechaFin | date : 'dd/MM/yyyy')
+                            : 'Sin fecha'
+                        }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Carátula:</label
+                        ><span>{{ expediente.Caratula || 'Sin carátula' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Descripción:</label
+                        ><span>{{ expediente.Descripcion || 'Sin descripción' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Observaciones:</label
+                        ><span>{{ expediente.Observaciones || 'Sin observaciones' }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Propiedad Minera:</label
+                        ><span>{{
+                          expediente.PropiedadMineraNombre ||
+                            expediente.IdPropiedadMinera ||
+                            'Sin propiedad'
+                        }}</span>
+                      </div>
+                      <div class="info-item">
+                        <label>Tipo de Expediente:</label
+                        ><span>{{
+                          expediente.TipoExpedienteNombre ||
+                            expediente.IdTipoExpediente ||
+                            'Sin tipo'
+                        }}</span>
+                      </div>
                     </div>
                   </mat-card-content>
                 </mat-card>
@@ -97,25 +170,34 @@
             <!-- Resoluciones -->
             <ng-container *ngSwitchCase="2">
               <div class="tab-content">
-                <app-resoluciones-list [idExpediente]="expediente.IdExpediente"></app-resoluciones-list>
+                <app-resoluciones-list
+                  [idExpediente]="expediente.IdExpediente"
+                ></app-resoluciones-list>
               </div>
             </ng-container>
             <!-- Alertas -->
             <ng-container *ngSwitchCase="3">
               <div class="tab-content">
-                <app-alertas-list tipoPadre="expediente" [idTransaccion]="expediente.IdTransaccion ?? null"></app-alertas-list>
+                <app-alertas-list
+                  tipoPadre="expediente"
+                  [idTransaccion]="expediente.IdTransaccion ?? null"
+                ></app-alertas-list>
               </div>
             </ng-container>
             <!-- Observaciones (nuevo tab modularizado) -->
             <ng-container *ngSwitchCase="4">
               <div class="tab-content">
-                <app-observaciones-tab [idTransaccion]="expediente.IdTransaccion ?? null"></app-observaciones-tab>
+                <app-observaciones-tab
+                  [idTransaccion]="expediente.IdTransaccion ?? null"
+                ></app-observaciones-tab>
               </div>
             </ng-container>
             <!-- Archivos -->
             <ng-container *ngSwitchCase="5">
               <div class="tab-content">
-                <app-archivos-expediente [idEntidad]="expediente.IdTransaccion ?? 0"></app-archivos-expediente>
+                <app-archivos-expediente
+                  [idEntidad]="expediente.IdTransaccion ?? 0"
+                ></app-archivos-expediente>
               </div>
             </ng-container>
           </ng-container>
