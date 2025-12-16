@@ -35,13 +35,23 @@
 
     <!-- Tabla -->
     <div class="table-container">
-      <mat-progress-spinner 
-        *ngIf="isLoading" 
-        mode="indeterminate" 
+      <mat-progress-spinner
+        *ngIf="isLoading"
+        mode="indeterminate"
         diameter="40">
       </mat-progress-spinner>
 
       <table mat-table [dataSource]="notificaciones" *ngIf="!isLoading" class="notificaciones-table">
+        <!-- ID Notificación Column -->
+        <ng-container matColumnDef="IdNotificacion">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let notificacion">
+            <span class="id-pill" [hidden]="!notificacion.IdNotificacion">
+              {{ notificacion.IdNotificacion }}
+            </span>
+          </td>
+        </ng-container>
+
         <!-- Emisión Column -->
         <ng-container matColumnDef="Emision">
           <th mat-header-cell *matHeaderCellDef>Fecha Emisión</th>
@@ -92,8 +102,8 @@
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="['Emision', 'Plazo', 'CodExp', 'Titular', 'Funcionario', 'acciones']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['Emision', 'Plazo', 'CodExp', 'Titular', 'Funcionario', 'acciones'];" 
+        <tr mat-header-row *matHeaderRowDef="['IdNotificacion', 'Emision', 'Plazo', 'CodExp', 'Titular', 'Funcionario', 'acciones']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['IdNotificacion', 'Emision', 'Plazo', 'CodExp', 'Titular', 'Funcionario', 'acciones'];"
             class="clickable-row" 
             (click)="verDetalle(row)" 
             matTooltip=""></tr>

@@ -137,6 +137,20 @@ mat-card-title {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+// pill style para la columna ID
+.id-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background-color: rgba(63, 104, 89, 0.1);
+  color: #1f4136;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
 // Mejoras sutiles en hover
 .notificaciones-table .mat-mdc-row:hover {
   background-color: #f8f9fa;
