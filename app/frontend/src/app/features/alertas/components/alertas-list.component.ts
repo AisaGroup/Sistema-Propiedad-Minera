@@ -54,6 +54,16 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
         </div>
         <div class="table-container" *ngIf="dataSource.data.length > 0 && !loading">
           <table mat-table [dataSource]="dataSource" class="alertas-table mat-elevation-4">
+            <!-- ID Alerta -->
+            <ng-container matColumnDef="Id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let alerta">
+                <span class="id-pill" [hidden]="!alerta.idAlerta">
+                  {{ alerta.idAlerta }}
+                </span>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="Fecha de Creación">
               <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
               <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha | date: 'short' }}</td>
@@ -140,6 +150,20 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
     .loading-container { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
     .clickable-row { cursor: pointer; transition: background 0.2s; }
     .clickable-row:hover { background: #e6f2ed; }
+
+    /* pill style para la columna ID */
+    .id-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: rgba(63, 104, 89, 0.1);
+      color: #1f4136;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
   `]
 })
 export class AlertasListComponent implements OnInit, OnChanges {
@@ -165,7 +189,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
   mostrarFormulario = false;
   editando = false;
   alertaEdit: any = null;
-  displayedColumns: string[] = ['Fecha de Creación', 'Estado', 'Asunto', 'Mensaje', 'Medio','Destinatarios', 'actions'];
+  displayedColumns: string[] = ['Id', 'Fecha de Creación', 'Estado', 'Asunto', 'Mensaje', 'Medio','Destinatarios', 'actions'];
 
   constructor(
     private alertaService: AlertaService,

@@ -56,6 +56,15 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <th mat-header-cell *matHeaderCellDef>ID</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.idAlerta }}</td>
           </ng-container> -->
+          <!-- ID Alerta -->
+          <ng-container matColumnDef="Id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let alerta">
+                <span class="id-pill" [hidden]="!alerta.idAlerta">
+                  {{ alerta.idAlerta }}
+                </span>
+              </td>
+            </ng-container>
           <ng-container matColumnDef="AudFecha">
             <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha ? (alerta.AudFecha | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
@@ -140,6 +149,19 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
     .loading-container { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
     .table-container { overflow-x: auto; margin-top: 1rem; }
     .no-data { color: #888; font-style: italic; margin-top: 16px; }
+    /* pill style para la columna ID */
+    .id-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background-color: rgba(63, 104, 89, 0.1);
+      color: #1f4136;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
   `]
 })
 export class AlertasGlobalListComponent implements OnInit {
@@ -148,7 +170,7 @@ export class AlertasGlobalListComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
   loading = false;
-  displayedColumns: string[] = ['AudFecha', 'Estado', 'Asunto', 'Mensaje','Medio','Destinatarios'];
+  displayedColumns: string[] = ['Id', 'AudFecha', 'Estado', 'Asunto', 'Mensaje','Medio','Destinatarios'];
   
   // Filtro por estado
   estadosAlerta: any[] = [];
