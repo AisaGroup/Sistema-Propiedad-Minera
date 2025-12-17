@@ -1,9 +1,13 @@
 from backend.repositories.expediente_respositorie import ExpedienteRepository
 from backend.services.expediente_report_service import render_expedientes_html
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Response, Query
 from sqlalchemy.orm import Session
 from backend.services.expediente_service import ExpedienteService
-from backend.schemas.expediente_schema import ExpedienteRead, ExpedienteCreate
+from backend.schemas.expediente_schema import (
+    ExpedienteRead,
+    ExpedienteCreate,
+    ExpedienteExportFilters,
+)
 from backend.schemas.alerta_schema import AlertaOut
 from backend.models.alerta_model import Alerta
 from backend.schemas.observaciones_schema import ObservacionesOut
@@ -11,45 +15,56 @@ from backend.models.observaciones_model import Observaciones
 from backend.models.acta_model import Acta
 from backend.database.connection import get_db
 from typing import List
-from fastapi import Query
 from typing import Dict, Any
 from backend.services.auth_jwt import get_current_user
 from backend.services.audit_logger import AuditLogger
 from backend.repositories.propiedad_minera_repositorie import PropiedadMineraRepositorie
 from backend.models.tipo_expediente_model import TipoExpediente
+from fastapi.responses import StreamingResponse
+from io import BytesIO
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from datetime import datetime
 
 router = APIRouter(prefix="/expedientes", tags=["Expedientes"])
+
 
 @router.get("/", response_model=List[ExpedienteRead])
 def listar_expedientes(
     db: Session = Depends(get_db),
     response: Response = None,
     range: str = Query(None, alias="range"),
-    CodigoExpediente: str = Query(None)
+    CodigoExpediente: str = Query(None),
 ):
     service = ExpedienteService(db)
     items = service.get_all()
-    
+
     # Aplicar filtro de código expediente si se proporciona
     if CodigoExpediente:
-        items = [item for item in items if CodigoExpediente.lower() in (item.CodigoExpediente or "").lower()]
-    
+        items = [
+            item
+            for item in items
+            if CodigoExpediente.lower() in (item.CodigoExpediente or "").lower()
+        ]
+
     total = len(items)
 
     # Parse range param (ejemplo: '[0,9]')
     start, end = 0, total - 1
     if range:
         import json
+
         try:
             start, end = json.loads(range)
         except Exception:
             pass
 
-    paginated_items = items[start:end+1]
+    paginated_items = items[start : end + 1]
     response.headers["Content-Range"] = f"expedientes {start}-{end}/{total}"
     # Serializar cada expediente usando Pydantic para asegurar nombres y valores correctos
     return [ExpedienteRead.from_orm(e).dict() for e in paginated_items]
-
 
 
 @router.get("/{id_expediente}", response_model=Dict[str, Any])
@@ -64,34 +79,59 @@ def obtener_expediente(id_expediente: int, db: Session = Depends(get_db)):
     observaciones = []
     if id_transaccion:
         try:
-            alertas_db = db.query(Alerta).filter(Alerta.IdTransaccion == id_transaccion).order_by(Alerta.idAlerta).all()
-            print(f"[DEBUG] Alertas encontradas para IdTransaccion={id_transaccion}: {len(alertas_db)}")
+            alertas_db = (
+                db.query(Alerta)
+                .filter(Alerta.IdTransaccion == id_transaccion)
+                .order_by(Alerta.idAlerta)
+                .all()
+            )
+            print(
+                f"[DEBUG] Alertas encontradas para IdTransaccion={id_transaccion}: {len(alertas_db)}"
+            )
             for a in alertas_db:
-                print(f"[DEBUG] Alerta cruda: idAlerta={a.idAlerta}, IdTransaccion={a.IdTransaccion}, Estado={a.Estado}")
+                print(
+                    f"[DEBUG] Alerta cruda: idAlerta={a.idAlerta}, IdTransaccion={a.IdTransaccion}, Estado={a.Estado}"
+                )
             alertas = [AlertaOut.from_orm(a).dict() for a in alertas_db]
             # Buscar observaciones relacionadas por IdTransaccion
-            observaciones_db = db.query(Observaciones).filter(Observaciones.IdTransaccion == id_transaccion).all()
-            print(f"[DEBUG] Observaciones crudas para IdTransaccion={id_transaccion}: {observaciones_db}")
-            print(f"[DEBUG] Observaciones encontradas para IdTransaccion={id_transaccion}: {len(observaciones_db)}")
-            observaciones = [ObservacionesOut.from_orm(o).dict() for o in observaciones_db]
+            observaciones_db = (
+                db.query(Observaciones)
+                .filter(Observaciones.IdTransaccion == id_transaccion)
+                .all()
+            )
+            print(
+                f"[DEBUG] Observaciones crudas para IdTransaccion={id_transaccion}: {observaciones_db}"
+            )
+            print(
+                f"[DEBUG] Observaciones encontradas para IdTransaccion={id_transaccion}: {len(observaciones_db)}"
+            )
+            observaciones = [
+                ObservacionesOut.from_orm(o).dict() for o in observaciones_db
+            ]
         except Exception as e:
-            print(f"[ERROR] Al procesar alertas/observaciones para expediente {id_expediente}: {e}")
+            print(
+                f"[ERROR] Al procesar alertas/observaciones para expediente {id_expediente}: {e}"
+            )
             alertas = []
             observaciones = []
     # Serializar expediente usando Pydantic (from_orm para SQLAlchemy)
     expediente_data = ExpedienteRead.from_orm(expediente).dict()
     # Obtener nombre de propiedad minera
     if expediente.IdPropiedadMinera:
-        
         propiedad_repo = PropiedadMineraRepositorie(db)
         propiedad = propiedad_repo.get_by_id(expediente.IdPropiedadMinera)
-        expediente_data["PropiedadMineraNombre"] = propiedad.Nombre if propiedad else None
+        expediente_data["PropiedadMineraNombre"] = (
+            propiedad.Nombre if propiedad else None
+        )
     else:
         expediente_data["PropiedadMineraNombre"] = None
     # Obtener nombre de tipo expediente
     if expediente.IdTipoExpediente:
-        
-        tipo = db.query(TipoExpediente).filter(TipoExpediente.IdTipoExpediente == expediente.IdTipoExpediente).first()
+        tipo = (
+            db.query(TipoExpediente)
+            .filter(TipoExpediente.IdTipoExpediente == expediente.IdTipoExpediente)
+            .first()
+        )
         expediente_data["TipoExpedienteNombre"] = tipo.Nombre if tipo else None
     else:
         expediente_data["TipoExpedienteNombre"] = None
@@ -100,13 +140,14 @@ def obtener_expediente(id_expediente: int, db: Session = Depends(get_db)):
     print(f"[DEBUG] Expediente response: {expediente_data}")
     return expediente_data
 
+
 @router.post("/", response_model=ExpedienteRead)
 def crear_expediente(
     expediente_data: ExpedienteCreate,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
-    print('DEBUG Expediente recibido:', expediente_data)
+    print("DEBUG Expediente recibido:", expediente_data)
     service = ExpedienteService(db)
     expediente = service.create(expediente_data)
     # Usar el expediente persistido (que ya tiene IdTransaccion) para el detalle de auditoría
@@ -118,12 +159,13 @@ def crear_expediente(
     )
     return expediente
 
+
 @router.put("/{id_expediente}", response_model=ExpedienteRead)
 def actualizar_expediente(
     id_expediente: int,
     expediente_data: dict,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = ExpedienteService(db)
     updated = service.update(id_expediente, expediente_data)
@@ -136,11 +178,12 @@ def actualizar_expediente(
     )
     return updated
 
+
 @router.delete("/{id_expediente}")
 def borrar_expediente(
     id_expediente: int,
     db: Session = Depends(get_db),
-    current_user=Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     service = ExpedienteService(db)
     deleted = service.delete(id_expediente)
@@ -152,11 +195,147 @@ def borrar_expediente(
     )
     return {"ok": True}
 
+
+def _format_date(value: datetime | str | None) -> str:
+    """Devuelve la fecha formateada dd/mm/YYYY o cadena vacía."""
+    if not value:
+        return ""
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except Exception:
+            return value
+    return value.strftime("%d/%m/%Y")
+
+
+def _add_footer(canvas, doc):
+    """Agrega la fecha actual y el número de página en el pie."""
+    canvas.saveState()
+    date_str = datetime.now().strftime("%d/%m/%Y %H:%M")
+    canvas.setFont("Helvetica", 8)
+    canvas.drawString(doc.leftMargin, 20, f"Generado: {date_str}")
+    canvas.drawRightString(
+        doc.pagesize[0] - doc.rightMargin, 20, f"Página {canvas.getPageNumber()}"
+    )
+    canvas.restoreState()
+
+
+@router.post("/export/pdf")
+def export_expedientes_pdf(
+    filtros: ExpedienteExportFilters,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Genera un PDF con el listado de expedientes usando el mismo estilo que el reporte de auditorías.
+    """
+    service = ExpedienteService(db)
+    expedientes = service.get_all()
+
+    codigo_filter = (filtros.codigoExpediente or "").strip().lower()
+    if codigo_filter:
+        expedientes = [
+            e
+            for e in expedientes
+            if codigo_filter in (getattr(e, "CodigoExpediente", "") or "").lower()
+        ]
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        leftMargin=30,
+        rightMargin=30,
+        topMargin=40,
+        bottomMargin=40,
+    )
+    styles = getSampleStyleSheet()
+    elements = []
+
+    elements.append(Paragraph("Reporte de Expedientes", styles["Title"]))
+    resumen = f"Total de registros: {len(expedientes)}"
+    if codigo_filter:
+        resumen += f" | Filtro código: {filtros.codigoExpediente}"
+
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(resumen, styles["Normal"]))
+    elements.append(Spacer(1, 12))
+
+    data = [
+        [
+            "ID",
+            "Código",
+            "Primer Dueño",
+            "Carátula",
+            "Estado",
+            "Dependencia",
+            "Desde",
+        ]
+    ]
+
+    for e in expedientes:
+        data.append(
+            [
+                str(getattr(e, "IdExpediente", "")),
+                getattr(e, "CodigoExpediente", "") or "",
+                getattr(e, "PrimerDueno", "") or "",
+                getattr(e, "Caratula", "") or "",
+                getattr(e, "Estado", "") or "",
+                getattr(e, "Dependencia", "") or "",
+                _format_date(getattr(e, "FechaInicio", None)),
+            ]
+        )
+
+    table = Table(
+        data,
+        colWidths=[35, 90, 110, 120, 70, 80, 70],
+        repeatRows=1,
+    )
+    table.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#416759")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 9),
+                ("FONTSIZE", (0, 1), (-1, -1), 8),
+                ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ("GRID", (0, 0), (-1, -1), 0.25, colors.grey),
+                (
+                    "ROWBACKGROUNDS",
+                    (0, 1),
+                    (-1, -1),
+                    [colors.whitesmoke, colors.lightgrey],
+                ),
+                ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                ("TOPPADDING", (0, 0), (-1, -1), 2),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ]
+        )
+    )
+
+    elements.append(table)
+    doc.build(elements, onFirstPage=_add_footer, onLaterPages=_add_footer)
+    buffer.seek(0)
+
+    headers = {
+        "Content-Disposition": 'attachment; filename="expedientes.pdf"',
+        "Content-Type": "application/pdf",
+    }
+
+    return StreamingResponse(buffer, media_type="application/pdf", headers=headers)
+
+
 @router.get("/propiedad-minera/{id_propiedad}", response_model=List[ExpedienteRead])
-def listar_expedientes_por_propiedad_minera(id_propiedad: int, db: Session = Depends(get_db)):
+def listar_expedientes_por_propiedad_minera(
+    id_propiedad: int, db: Session = Depends(get_db)
+):
     service = ExpedienteService(db)
     items = service.get_by_propiedad_minera(id_propiedad)
     return [ExpedienteRead.from_orm(e).dict() for e in items]
+
 
 # Endpoint para reporte HTML de expedientes
 @router.get("/reporte/html")

@@ -16,20 +16,20 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
   selector: 'app-alertas-global-list',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    MatTableModule, 
-    MatPaginatorModule, 
+    MatTableModule,
+    MatPaginatorModule,
     MatProgressSpinnerModule,
     MatSelectModule,
     MatFormFieldModule,
     MatButtonModule,
-    MatIconModule
+    MatIconModule,
   ],
   template: `
     <div class="alertas-container">
       <h2>Alertas del Sistema</h2>
-      
+
       <!-- Filtros -->
       <div class="filters-container">
         <mat-form-field appearance="outline" class="filter-field">
@@ -41,11 +41,16 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             </mat-option>
           </mat-select>
         </mat-form-field>
-        <button mat-icon-button (click)="clearFilter()" title="Limpiar filtro" class="clear-filter-btn">
+        <button
+          mat-icon-button
+          (click)="clearFilter()"
+          title="Limpiar filtro"
+          class="clear-filter-btn"
+        >
           <mat-icon>clear</mat-icon>
         </button>
       </div>
-      
+
       <div *ngIf="loading" class="loading-container">
         <mat-spinner diameter="32"></mat-spinner>
         <p>Cargando alertas...</p>
@@ -56,9 +61,20 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <th mat-header-cell *matHeaderCellDef>ID</th>
             <td mat-cell *matCellDef="let alerta">{{ alerta.idAlerta }}</td>
           </ng-container> -->
+          <!-- ID Alerta -->
+          <ng-container matColumnDef="Id">
+            <th mat-header-cell *matHeaderCellDef>ID</th>
+            <td mat-cell *matCellDef="let alerta">
+              <span class="id-pill" [hidden]="!alerta.idAlerta">
+                {{ alerta.idAlerta }}
+              </span>
+            </td>
+          </ng-container>
           <ng-container matColumnDef="AudFecha">
             <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
-            <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha ? (alerta.AudFecha | date:'dd/MM/yyyy HH:mm') : '-' }}</td>
+            <td mat-cell *matCellDef="let alerta">
+              {{ alerta.AudFecha ? (alerta.AudFecha | date : 'dd/MM/yyyy HH:mm') : '-' }}
+            </td>
           </ng-container>
           <ng-container matColumnDef="Estado">
             <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -73,15 +89,15 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
             <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Mensaje"></td>
           </ng-container>
           <ng-container matColumnDef="Medio">
-              <th mat-header-cell *matHeaderCellDef>Medio</th>
-              <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Medio"></td>
-            </ng-container>
-            <ng-container matColumnDef="Destinatarios">
-              <th mat-header-cell *matHeaderCellDef>Destinatarios</th>
-              <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Destinatarios"></td>
-            </ng-container>
+            <th mat-header-cell *matHeaderCellDef>Medio</th>
+            <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Medio"></td>
+          </ng-container>
+          <ng-container matColumnDef="Destinatarios">
+            <th mat-header-cell *matHeaderCellDef>Destinatarios</th>
+            <td mat-cell *matCellDef="let alerta" [innerHTML]="alerta.Destinatarios"></td>
+          </ng-container>
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
         </table>
       </div>
       <div *ngIf="!loading && alertas.length === 0" class="no-data">
@@ -91,56 +107,108 @@ import { EstadoAlerta } from '../models/estado-alerta.model';
         <div class="page-size-selector">
           <span>Mostrar:</span>
           <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
-          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
-          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">
+            10
+          </button>
+          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">
+            25
+          </button>
         </div>
 
         <div class="pagination-info">
-          {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalAlertas) }} de {{ totalAlertas }}
+          {{ currentPage * pageSize + 1 }} -
+          {{ Math.min((currentPage + 1) * pageSize, totalAlertas) }} de {{ totalAlertas }}
         </div>
 
         <div class="pagination-controls">
-          <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+          <button
+            mat-icon-button
+            [disabled]="currentPage === 0"
+            (click)="firstPage()"
+            matTooltip="Primera página"
+          >
             <mat-icon>first_page</mat-icon>
           </button>
-          <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+          <button
+            mat-icon-button
+            [disabled]="currentPage === 0"
+            (click)="previousPage()"
+            matTooltip="Anterior"
+          >
             <mat-icon>chevron_left</mat-icon>
           </button>
           <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+          <button
+            mat-icon-button
+            [disabled]="currentPage >= totalPages - 1"
+            (click)="nextPage()"
+            matTooltip="Siguiente"
+          >
             <mat-icon>chevron_right</mat-icon>
           </button>
-          <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+          <button
+            mat-icon-button
+            [disabled]="currentPage >= totalPages - 1"
+            (click)="lastPage()"
+            matTooltip="Última página"
+          >
             <mat-icon>last_page</mat-icon>
           </button>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-      background: #fff;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-      border-radius: 8px;
-      padding: 24px;
-    }
-    .filters-container {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 24px;
-      align-items: center;
-    }
-    .filter-field {
-      min-width: 200px;
-    }
-    .clear-filter-btn {
-      color: #666;
-    }
-    .loading-container { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-    .table-container { overflow-x: auto; margin-top: 1rem; }
-    .no-data { color: #888; font-style: italic; margin-top: 16px; }
-  `]
+  styles: [
+    `
+      :host {
+        display: block;
+        background: #fff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+        padding: 24px;
+      }
+      .filters-container {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 24px;
+        align-items: center;
+      }
+      .filter-field {
+        min-width: 200px;
+      }
+      .clear-filter-btn {
+        color: #666;
+      }
+      .loading-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .table-container {
+        overflow-x: auto;
+        margin-top: 1rem;
+      }
+      .no-data {
+        color: #888;
+        font-style: italic;
+        margin-top: 16px;
+      }
+      /* pill style para la columna ID */
+      .id-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background-color: rgba(63, 104, 89, 0.1);
+        color: #1f4136;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+    `,
+  ],
 })
 export class AlertasGlobalListComponent implements OnInit {
   alertas: any[] = [];
@@ -148,8 +216,16 @@ export class AlertasGlobalListComponent implements OnInit {
   pageSize = 10;
   currentPage = 0;
   loading = false;
-  displayedColumns: string[] = ['AudFecha', 'Estado', 'Asunto', 'Mensaje','Medio','Destinatarios'];
-  
+  displayedColumns: string[] = [
+    'Id',
+    'AudFecha',
+    'Estado',
+    'Asunto',
+    'Mensaje',
+    'Medio',
+    'Destinatarios',
+  ];
+
   // Filtro por estado
   estadosAlerta: any[] = [];
   selectedEstado: number | string = 1; // Pendiente por defecto
@@ -179,16 +255,16 @@ export class AlertasGlobalListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error cargando estados de alerta:', error);
-      }
+      },
     });
   }
 
   loadAlertas(page: number = 0, size: number = this.pageSize) {
     this.loading = true;
-    
+
     // Convertir a string si es necesario
     const estadoParam = this.selectedEstado ? this.selectedEstado.toString() : '';
-    
+
     this.alertaGlobalService.getAllPaginated(page, size, estadoParam).subscribe({
       next: (resp) => {
         // Ordenar alertas por fecha de auditoría descendente (más reciente primero)
@@ -197,7 +273,7 @@ export class AlertasGlobalListComponent implements OnInit {
           const fechaB = new Date(b.AudFecha).getTime();
           return fechaB - fechaA; // Descendente: más reciente primero
         });
-        
+
         this.alertas = datosOrdenados;
         this.totalAlertas = resp.total;
         this.loading = false;
@@ -206,7 +282,7 @@ export class AlertasGlobalListComponent implements OnInit {
         this.alertas = [];
         this.totalAlertas = 0;
         this.loading = false;
-      }
+      },
     });
   }
 

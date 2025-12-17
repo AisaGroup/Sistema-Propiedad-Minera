@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -63,7 +63,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     'AudUsuario',
     'Descripcion',
   ];
-  
+
   allAuditorias: AuditoriaView[] = [];
   filteredAuditorias: AuditoriaView[] = [];
   paginatedAuditorias: AuditoriaView[] = [];
@@ -72,7 +72,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   availableAcciones: string[] = [];
   availableEntidades: string[] = [];
   totalItems = 0;
-  
+
   // Paginación
   currentPage = 0;
   pageSize = 10;
@@ -108,6 +108,14 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupFilterListener();
     this.fetchAuditorias();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p') {
+      event.preventDefault();
+      this.exportPdf();
+    }
   }
 
   exportPdf(): void {

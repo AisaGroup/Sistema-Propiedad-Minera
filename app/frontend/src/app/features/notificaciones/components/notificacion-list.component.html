@@ -18,13 +18,23 @@
       <mat-form-field appearance="outline">
         <mat-label>Funcionario</mat-label>
         <mat-icon matPrefix>person</mat-icon>
-        <input matInput [(ngModel)]="filters.funcionario" (input)="onFilterChange()" placeholder="Buscar por funcionario">
+        <input
+          matInput
+          [(ngModel)]="filters.funcionario"
+          (input)="onFilterChange()"
+          placeholder="Buscar por funcionario"
+        />
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Expediente</mat-label>
         <mat-icon matPrefix>folder</mat-icon>
-        <input matInput [(ngModel)]="filters.expediente" (input)="onFilterChange()" placeholder="Buscar por código de expediente">
+        <input
+          matInput
+          [(ngModel)]="filters.expediente"
+          (input)="onFilterChange()"
+          placeholder="Buscar por código de expediente"
+        />
       </mat-form-field>
 
       <button mat-button (click)="clearFilters()" class="clear-filters-btn">
@@ -35,18 +45,30 @@
 
     <!-- Tabla -->
     <div class="table-container">
-      <mat-progress-spinner 
-        *ngIf="isLoading" 
-        mode="indeterminate" 
-        diameter="40">
+      <mat-progress-spinner *ngIf="isLoading" mode="indeterminate" diameter="40">
       </mat-progress-spinner>
 
-      <table mat-table [dataSource]="notificaciones" *ngIf="!isLoading" class="notificaciones-table">
+      <table
+        mat-table
+        [dataSource]="notificaciones"
+        *ngIf="!isLoading"
+        class="notificaciones-table"
+      >
+        <!-- ID Notificación Column -->
+        <ng-container matColumnDef="IdNotificacion">
+          <th mat-header-cell *matHeaderCellDef>ID</th>
+          <td mat-cell *matCellDef="let notificacion">
+            <span class="id-pill" [hidden]="!notificacion.IdNotificacion">
+              {{ notificacion.IdNotificacion }}
+            </span>
+          </td>
+        </ng-container>
+
         <!-- Emisión Column -->
         <ng-container matColumnDef="Emision">
           <th mat-header-cell *matHeaderCellDef>Fecha Emisión</th>
           <td mat-cell *matCellDef="let notificacion">
-            {{ notificacion.Emision ? (notificacion.Emision | date:'dd/MM/yyyy') : '-' }}
+            {{ notificacion.Emision ? (notificacion.Emision | date : 'dd/MM/yyyy') : '-' }}
           </td>
         </ng-container>
 
@@ -54,7 +76,11 @@
         <ng-container matColumnDef="Plazo">
           <th mat-header-cell *matHeaderCellDef>Plazo (días)</th>
           <td mat-cell *matCellDef="let notificacion">
-            {{ notificacion.Plazo !== null && notificacion.Plazo !== undefined ? notificacion.Plazo : '-' }}
+            {{
+              notificacion.Plazo !== null && notificacion.Plazo !== undefined
+                ? notificacion.Plazo
+                : '-'
+            }}
           </td>
         </ng-container>
 
@@ -80,23 +106,63 @@
         <ng-container matColumnDef="acciones">
           <th mat-header-cell *matHeaderCellDef>Acciones</th>
           <td mat-cell *matCellDef="let notificacion" (click)="$event.stopPropagation()">
-            <button mat-icon-button color="accent" (click)="verDetalle(notificacion)" matTooltip="Ver detalle">
+            <button
+              mat-icon-button
+              color="accent"
+              (click)="verDetalle(notificacion)"
+              matTooltip="Ver detalle"
+            >
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button color="primary" (click)="editarNotificacion(notificacion)" matTooltip="Editar">
+            <button
+              mat-icon-button
+              color="primary"
+              (click)="editarNotificacion(notificacion)"
+              matTooltip="Editar"
+            >
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="eliminarNotificacion(notificacion.IdNotificacion)" matTooltip="Eliminar">
+            <button
+              mat-icon-button
+              color="warn"
+              (click)="eliminarNotificacion(notificacion.IdNotificacion)"
+              matTooltip="Eliminar"
+            >
               <mat-icon>delete</mat-icon>
             </button>
           </td>
         </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="['Emision', 'Plazo', 'CodExp', 'Titular', 'Funcionario', 'acciones']"></tr>
-        <tr mat-row *matRowDef="let row; columns: ['Emision', 'Plazo', 'CodExp', 'Titular', 'Funcionario', 'acciones'];" 
-            class="clickable-row" 
-            (click)="verDetalle(row)" 
-            matTooltip=""></tr>
+        <tr
+          mat-header-row
+          *matHeaderRowDef="[
+            'IdNotificacion',
+            'Emision',
+            'Plazo',
+            'CodExp',
+            'Titular',
+            'Funcionario',
+            'acciones'
+          ]"
+        ></tr>
+        <tr
+          mat-row
+          *matRowDef="
+            let row;
+            columns: [
+              'IdNotificacion',
+              'Emision',
+              'Plazo',
+              'CodExp',
+              'Titular',
+              'Funcionario',
+              'acciones'
+            ]
+          "
+          class="clickable-row"
+          (click)="verDetalle(row)"
+          matTooltip=""
+        ></tr>
       </table>
 
       <!-- Mensaje cuando no hay datos -->
@@ -117,21 +183,42 @@
       </div>
 
       <div class="pagination-info">
-        {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalRecords) }} de {{ totalRecords }}
+        {{ currentPage * pageSize + 1 }} -
+        {{ Math.min((currentPage + 1) * pageSize, totalRecords) }} de {{ totalRecords }}
       </div>
 
       <div class="pagination-controls">
-        <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+        <button
+          mat-icon-button
+          [disabled]="currentPage === 0"
+          (click)="firstPage()"
+          matTooltip="Primera página"
+        >
           <mat-icon>first_page</mat-icon>
         </button>
-        <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+        <button
+          mat-icon-button
+          [disabled]="currentPage === 0"
+          (click)="previousPage()"
+          matTooltip="Anterior"
+        >
           <mat-icon>chevron_left</mat-icon>
         </button>
         <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-        <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+        <button
+          mat-icon-button
+          [disabled]="currentPage >= totalPages - 1"
+          (click)="nextPage()"
+          matTooltip="Siguiente"
+        >
           <mat-icon>chevron_right</mat-icon>
         </button>
-        <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+        <button
+          mat-icon-button
+          [disabled]="currentPage >= totalPages - 1"
+          (click)="lastPage()"
+          matTooltip="Última página"
+        >
           <mat-icon>last_page</mat-icon>
         </button>
       </div>

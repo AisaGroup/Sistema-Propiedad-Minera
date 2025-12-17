@@ -26,26 +26,50 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
     MatProgressSpinnerModule,
     MatPaginatorModule,
     AlertaCreateComponent,
-    AlertaEditComponent
+    AlertaEditComponent,
   ],
   template: `
     <div>
       <div class="header-row">
         <span class="section-title">Alertas Asociadas</span>
-        <mat-chip *ngIf="!mostrarFormulario && alertas.length > 0" class="count-chip">{{ alertas.length }}</mat-chip>
+        <mat-chip *ngIf="!mostrarFormulario && alertas.length > 0" class="count-chip">{{
+          alertas.length
+        }}</mat-chip>
         <span class="spacer"></span>
-        <button mat-raised-button color="primary" *ngIf="!mostrarFormulario" (click)="mostrarFormulario = true">
+        <button
+          mat-raised-button
+          color="primary"
+          *ngIf="!mostrarFormulario"
+          (click)="mostrarFormulario = true"
+        >
           <mat-icon>add_alert</mat-icon> Nueva Alerta
         </button>
       </div>
-      <button *ngIf="mostrarFormulario" mat-stroked-button class="close-btn" (click)="mostrarFormulario = false; editando = false; alertaEdit = null;" aria-label="Cerrar">
+      <button
+        *ngIf="mostrarFormulario"
+        mat-stroked-button
+        class="close-btn"
+        (click)="mostrarFormulario = false; editando = false; alertaEdit = null"
+        aria-label="Cerrar"
+      >
         Cerrar
       </button>
       <div *ngIf="mostrarFormulario && !editando">
-        <app-alerta-create [idTransaccion]="idTransaccion" [tipoPadre]="tipoPadre" [idPadre]="idPadre" (create)="onCrearAlerta($event)" (cancelar)="mostrarFormulario = false; editando = false; alertaEdit = null;"></app-alerta-create>
+        <app-alerta-create
+          [idTransaccion]="idTransaccion"
+          [tipoPadre]="tipoPadre"
+          [idPadre]="idPadre"
+          (create)="onCrearAlerta($event)"
+          (cancelar)="mostrarFormulario = false; editando = false; alertaEdit = null"
+        ></app-alerta-create>
       </div>
       <div *ngIf="mostrarFormulario && editando">
-        <app-alerta-edit [idTransaccion]="idTransaccion" [alerta]="alertaEdit" (update)="onActualizarAlerta($event)" (cancelar)="mostrarFormulario = false; editando = false; alertaEdit = null;"></app-alerta-edit>
+        <app-alerta-edit
+          [idTransaccion]="idTransaccion"
+          [alerta]="alertaEdit"
+          (update)="onActualizarAlerta($event)"
+          (cancelar)="mostrarFormulario = false; editando = false; alertaEdit = null"
+        ></app-alerta-edit>
       </div>
       <div *ngIf="!mostrarFormulario">
         <div *ngIf="loading" class="loading-container">
@@ -54,9 +78,19 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
         </div>
         <div class="table-container" *ngIf="dataSource.data.length > 0 && !loading">
           <table mat-table [dataSource]="dataSource" class="alertas-table mat-elevation-4">
+            <!-- ID Alerta -->
+            <ng-container matColumnDef="Id">
+              <th mat-header-cell *matHeaderCellDef>ID</th>
+              <td mat-cell *matCellDef="let alerta">
+                <span class="id-pill" [hidden]="!alerta.idAlerta">
+                  {{ alerta.idAlerta }}
+                </span>
+              </td>
+            </ng-container>
+
             <ng-container matColumnDef="Fecha de Creación">
               <th mat-header-cell *matHeaderCellDef>Fecha de Creación</th>
-              <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha | date: 'short' }}</td>
+              <td mat-cell *matCellDef="let alerta">{{ alerta.AudFecha | date : 'short' }}</td>
             </ng-container>
             <ng-container matColumnDef="Estado">
               <th mat-header-cell *matHeaderCellDef>Estado</th>
@@ -84,13 +118,18 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
                 <button mat-icon-button color="primary" matTooltip="Ver">
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <button mat-icon-button color="primary" matTooltip="Editar" (click)="onEditarAlerta(alerta)">
+                <button
+                  mat-icon-button
+                  color="primary"
+                  matTooltip="Editar"
+                  (click)="onEditarAlerta(alerta)"
+                >
                   <mat-icon>edit</mat-icon>
                 </button>
               </td>
             </ng-container>
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
           </table>
         </div>
         <div *ngIf="dataSource.data.length === 0 && !loading" class="no-data">
@@ -100,27 +139,54 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
         <div class="custom-pagination" *ngIf="totalAlertas > 0">
           <div class="page-size-selector">
             <span>Mostrar:</span>
-            <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
-            <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
-            <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+            <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">
+              5
+            </button>
+            <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">
+              10
+            </button>
+            <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">
+              25
+            </button>
           </div>
 
           <div class="pagination-info">
-            {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalAlertas) }} de {{ totalAlertas }}
+            {{ currentPage * pageSize + 1 }} -
+            {{ Math.min((currentPage + 1) * pageSize, totalAlertas) }} de {{ totalAlertas }}
           </div>
 
           <div class="pagination-controls">
-            <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+            <button
+              mat-icon-button
+              [disabled]="currentPage === 0"
+              (click)="firstPage()"
+              matTooltip="Primera página"
+            >
               <mat-icon>first_page</mat-icon>
             </button>
-            <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+            <button
+              mat-icon-button
+              [disabled]="currentPage === 0"
+              (click)="previousPage()"
+              matTooltip="Anterior"
+            >
               <mat-icon>chevron_left</mat-icon>
             </button>
             <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPages }}</span>
-            <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+            <button
+              mat-icon-button
+              [disabled]="currentPage >= totalPages - 1"
+              (click)="nextPage()"
+              matTooltip="Siguiente"
+            >
               <mat-icon>chevron_right</mat-icon>
             </button>
-            <button mat-icon-button [disabled]="currentPage >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+            <button
+              mat-icon-button
+              [disabled]="currentPage >= totalPages - 1"
+              (click)="lastPage()"
+              matTooltip="Última página"
+            >
               <mat-icon>last_page</mat-icon>
             </button>
           </div>
@@ -128,19 +194,77 @@ import type { EstadoAlerta } from '../models/estado-alerta.model';
       </div>
     </div>
   `,
-  styles: [`
-    .header-row { display: flex; align-items: center; margin-bottom: 12px; }
-    .section-title { font-size: 1.1rem; font-weight: 600; color: #333; }
-    .spacer { flex: 1 1 auto; }
-    .count-chip { background: #416759; color: #fff; margin-left: 8px; }
-    .close-btn { display: block; margin: 0 0 1.5rem 0; position: relative; left: 0; top: 0; background: #fff; border-radius: 6px; z-index: 2; }
-    .table-container { overflow-x: auto; }
-    .alertas-table th, .alertas-table td { color: #333; }
-    .no-data { color: #888; font-style: italic; margin-top: 16px; }
-    .loading-container { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
-    .clickable-row { cursor: pointer; transition: background 0.2s; }
-    .clickable-row:hover { background: #e6f2ed; }
-  `]
+  styles: [
+    `
+      .header-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+      }
+      .spacer {
+        flex: 1 1 auto;
+      }
+      .count-chip {
+        background: #416759;
+        color: #fff;
+        margin-left: 8px;
+      }
+      .close-btn {
+        display: block;
+        margin: 0 0 1.5rem 0;
+        position: relative;
+        left: 0;
+        top: 0;
+        background: #fff;
+        border-radius: 6px;
+        z-index: 2;
+      }
+      .table-container {
+        overflow-x: auto;
+      }
+      .alertas-table th,
+      .alertas-table td {
+        color: #333;
+      }
+      .no-data {
+        color: #888;
+        font-style: italic;
+        margin-top: 16px;
+      }
+      .loading-container {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .clickable-row {
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .clickable-row:hover {
+        background: #e6f2ed;
+      }
+
+      /* pill style para la columna ID */
+      .id-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background-color: rgba(63, 104, 89, 0.1);
+        color: #1f4136;
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+    `,
+  ],
 })
 export class AlertasListComponent implements OnInit, OnChanges {
   alertas: any[] = [];
@@ -150,7 +274,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
   currentPage = 0;
   loading = false;
   estadosAlerta: EstadoAlerta[] = [];
-  
+
   // Para usar Math en el template
   Math = Math;
 
@@ -165,7 +289,16 @@ export class AlertasListComponent implements OnInit, OnChanges {
   mostrarFormulario = false;
   editando = false;
   alertaEdit: any = null;
-  displayedColumns: string[] = ['Fecha de Creación', 'Estado', 'Asunto', 'Mensaje', 'Medio','Destinatarios', 'actions'];
+  displayedColumns: string[] = [
+    'Id',
+    'Fecha de Creación',
+    'Estado',
+    'Asunto',
+    'Mensaje',
+    'Medio',
+    'Destinatarios',
+    'actions',
+  ];
 
   constructor(
     private alertaService: AlertaService,
@@ -173,7 +306,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
-    this.estadoAlertaService.getEstadosAlerta().subscribe(estados => {
+    this.estadoAlertaService.getEstadosAlerta().subscribe((estados) => {
       this.estadosAlerta = estados;
     });
     if (this.idTransaccion) {
@@ -199,7 +332,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
           const fechaB = new Date(b.AudFecha).getTime();
           return fechaB - fechaA;
         });
-        
+
         this.alertas = datosOrdenados;
         this.dataSource.data = datosOrdenados;
         this.totalAlertas = resp.total;
@@ -210,7 +343,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
         this.dataSource.data = [];
         this.totalAlertas = 0;
         this.loading = false;
-      }
+      },
     });
   }
 
@@ -229,7 +362,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
     console.log('=== onActualizarAlerta recibido ===');
     console.log('Datos para actualizar:', alerta);
     console.log('Alerta original:', this.alertaEdit);
-    
+
     if (this.alertaEdit && this.alertaEdit.idAlerta) {
       console.log('Actualizando alerta ID:', this.alertaEdit.idAlerta);
       this.alertaService.updateAlerta(this.alertaEdit.idAlerta, alerta).subscribe({
@@ -242,7 +375,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
         },
         error: (err) => {
           console.error('Error al actualizar alerta:', err);
-        }
+        },
       });
     } else {
       console.error('No se encontró el ID de la alerta para actualizar');
@@ -257,7 +390,7 @@ export class AlertasListComponent implements OnInit, OnChanges {
 
   getEstadoNombre(idEstado: number): string {
     if (!idEstado || !this.estadosAlerta.length) return '';
-    const estado = this.estadosAlerta.find(e => e.IdEstado === idEstado);
+    const estado = this.estadosAlerta.find((e) => e.IdEstado === idEstado);
     return estado ? estado.nombre : '';
   }
 

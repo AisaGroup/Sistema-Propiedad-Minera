@@ -1,8 +1,7 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
@@ -18,8 +17,6 @@ import { MatMenuModule } from '@angular/material/menu';
 import { PropiedadMineraService } from './services/propiedad-minera.service';
 import { TitularMineroService, TitularMinero } from '../titulares/services/titular.service';
 import { PropiedadMinera, PropiedadMineraFilter } from './models/propiedad-minera.model';
-import { API_BASE_URL } from '../../core/api.constants';
-import html2pdf from 'html2pdf.js';
 
 @Component({
   selector: 'app-propiedades-list',
@@ -38,7 +35,7 @@ import html2pdf from 'html2pdf.js';
     MatFormFieldModule,
     MatChipsModule,
     MatTooltipModule,
-    MatMenuModule
+    MatMenuModule,
   ],
   template: `
     <div class="propiedades-container">
@@ -50,9 +47,9 @@ import html2pdf from 'html2pdf.js';
             <mat-icon>add</mat-icon>
             Nueva Propiedad
           </button>
-          <button mat-raised-button color="accent" (click)="descargarPDF()">
-            <mat-icon>print</mat-icon>
-            Imprimir
+          <button mat-raised-button color="primary" class="export-button" (click)="descargarPDF()">
+            <mat-icon>picture_as_pdf</mat-icon>
+            Exportar PDF
           </button>
         </div>
       </div>
@@ -67,7 +64,7 @@ import html2pdf from 'html2pdf.js';
             <div class="filter-row">
               <mat-form-field appearance="outline" class="filter-nombre input-height">
                 <mat-label>Nombre</mat-label>
-                <input matInput formControlName="Nombre" placeholder="Buscar propiedad...">
+                <input matInput formControlName="Nombre" placeholder="Buscar propiedad..." />
                 <mat-icon matSuffix>search</mat-icon>
               </mat-form-field>
 
@@ -76,7 +73,7 @@ import html2pdf from 'html2pdf.js';
                 <mat-select formControlName="Provincia">
                   <mat-option value="">Todas</mat-option>
                   <mat-option *ngFor="let provincia of provincias" [value]="provincia">
-                    {{provincia}}
+                    {{ provincia }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
@@ -86,14 +83,22 @@ import html2pdf from 'html2pdf.js';
                 <mat-select formControlName="IdTitular">
                   <mat-option value="">Todos</mat-option>
                   <mat-option *ngFor="let titular of titulares" [value]="titular.IdTitular">
-                    {{titular.Nombre}} - {{titular.DniCuit}}
+                    {{ titular.Nombre }} - {{ titular.DniCuit }}
                   </mat-option>
                 </mat-select>
               </mat-form-field>
 
-              <mat-form-field appearance="outline" class="input-height" style="align-items: center;">
+              <mat-form-field
+                appearance="outline"
+                class="input-height"
+                style="align-items: center;"
+              >
                 <mat-label>Expediente</mat-label>
-                <input matInput formControlName="Expediente" placeholder="Buscar por expediente...">
+                <input
+                  matInput
+                  formControlName="Expediente"
+                  placeholder="Buscar por expediente..."
+                />
               </mat-form-field>
             </div>
 
@@ -114,13 +119,16 @@ import html2pdf from 'html2pdf.js';
       <!-- Results Card -->
       <mat-card class="results-card">
         <mat-card-header>
-          <mat-card-title>
-            Resultados ({{propiedades.length}})
-          </mat-card-title>
+          <mat-card-title> Resultados ({{ propiedades.length }}) </mat-card-title>
         </mat-card-header>
         <mat-card-content>
           <div class="table-container">
-            <table mat-table [dataSource]="propiedades" class="propiedades-table mat-elevation-z1" matSort>
+            <table
+              mat-table
+              [dataSource]="propiedades"
+              class="propiedades-table mat-elevation-z1"
+              matSort
+            >
               <!-- ID Column -->
               <ng-container matColumnDef="IdPropiedadMinera">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>ID</th>
@@ -134,9 +142,15 @@ import html2pdf from 'html2pdf.js';
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Nombre</th>
                 <td mat-cell *matCellDef="let propiedad">
                   <div class="cell-content">
-                    <span class="primary-text">{{propiedad.Nombre || 'Sin nombre'}}</span>
-                    <span class="secondary-text" *ngIf="propiedad.TitularNombre">Titular: {{propiedad.TitularNombre}}</span>
-                    <span class="secondary-text" *ngIf="!propiedad.TitularNombre && propiedad.IdTitular">Titular ID: {{propiedad.IdTitular}}</span>
+                    <span class="primary-text">{{ propiedad.Nombre || 'Sin nombre' }}</span>
+                    <span class="secondary-text" *ngIf="propiedad.TitularNombre"
+                      >Titular: {{ propiedad.TitularNombre }}</span
+                    >
+                    <span
+                      class="secondary-text"
+                      *ngIf="!propiedad.TitularNombre && propiedad.IdTitular"
+                      >Titular ID: {{ propiedad.IdTitular }}</span
+                    >
                   </div>
                 </td>
               </ng-container>
@@ -146,7 +160,7 @@ import html2pdf from 'html2pdf.js';
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Provincia</th>
                 <td mat-cell *matCellDef="let propiedad">
                   <mat-chip-set>
-                    <mat-chip>{{propiedad.Provincia || 'No especificada'}}</mat-chip>
+                    <mat-chip>{{ propiedad.Provincia || 'No especificada' }}</mat-chip>
                   </mat-chip-set>
                 </td>
               </ng-container>
@@ -156,7 +170,7 @@ import html2pdf from 'html2pdf.js';
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Área (Ha)</th>
                 <td mat-cell *matCellDef="let propiedad">
                   <div class="area-info">
-                    <span>{{propiedad.AreaHectareas || 0}} ha</span>
+                    <span>{{ propiedad.AreaHectareas || 0 }} ha</span>
                   </div>
                 </td>
               </ng-container>
@@ -166,7 +180,7 @@ import html2pdf from 'html2pdf.js';
                 <th mat-header-cell *matHeaderCellDef mat-sort-header>Fecha Solicitud</th>
                 <td mat-cell *matCellDef="let propiedad">
                   <span *ngIf="propiedad.Solicitud; else noFecha">
-                    {{propiedad.Solicitud | date:'dd/MM/yyyy'}}
+                    {{ propiedad.Solicitud | date : 'dd/MM/yyyy' }}
                   </span>
                   <ng-template #noFecha>
                     <span class="no-data">No registrada</span>
@@ -194,44 +208,80 @@ import html2pdf from 'html2pdf.js';
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef>Acciones</th>
                 <td mat-cell *matCellDef="let propiedad">
-                  <button mat-icon-button [matMenuTriggerFor]="actionMenu" 
-                          [matMenuTriggerData]="{propiedad: propiedad}">
+                  <button
+                    mat-icon-button
+                    [matMenuTriggerFor]="actionMenu"
+                    [matMenuTriggerData]="{ propiedad: propiedad }"
+                  >
                     <mat-icon>more_vert</mat-icon>
                   </button>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
-                  class="table-row" (click)="viewPropiedad(row)"></tr>
+              <tr
+                mat-row
+                *matRowDef="let row; columns: displayedColumns"
+                class="table-row"
+                (click)="viewPropiedad(row)"
+              ></tr>
             </table>
 
             <!-- Paginación personalizada -->
             <div class="custom-pagination">
               <div class="page-size-selector">
                 <span>Mostrar:</span>
-                <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
-                <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
-                <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
-                <button mat-button [class.active]="pageSize === 50" (click)="changePageSize(50)">50</button>
+                <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">
+                  5
+                </button>
+                <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">
+                  10
+                </button>
+                <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">
+                  25
+                </button>
+                <button mat-button [class.active]="pageSize === 50" (click)="changePageSize(50)">
+                  50
+                </button>
               </div>
 
               <div class="pagination-info">
-                {{ (pageIndex * pageSize) + 1 }} - {{ Math.min((pageIndex + 1) * pageSize, totalRecords) }} de {{ totalRecords }}
+                {{ pageIndex * pageSize + 1 }} -
+                {{ Math.min((pageIndex + 1) * pageSize, totalRecords) }} de {{ totalRecords }}
               </div>
 
               <div class="pagination-controls">
-                <button mat-icon-button [disabled]="pageIndex === 0" (click)="firstPage()" matTooltip="Primera página">
+                <button
+                  mat-icon-button
+                  [disabled]="pageIndex === 0"
+                  (click)="firstPage()"
+                  matTooltip="Primera página"
+                >
                   <mat-icon>first_page</mat-icon>
                 </button>
-                <button mat-icon-button [disabled]="pageIndex === 0" (click)="previousPage()" matTooltip="Anterior">
+                <button
+                  mat-icon-button
+                  [disabled]="pageIndex === 0"
+                  (click)="previousPage()"
+                  matTooltip="Anterior"
+                >
                   <mat-icon>chevron_left</mat-icon>
                 </button>
                 <span class="page-number">Página {{ pageIndex + 1 }} de {{ totalPages }}</span>
-                <button mat-icon-button [disabled]="pageIndex >= totalPages - 1" (click)="nextPage()" matTooltip="Siguiente">
+                <button
+                  mat-icon-button
+                  [disabled]="pageIndex >= totalPages - 1"
+                  (click)="nextPage()"
+                  matTooltip="Siguiente"
+                >
                   <mat-icon>chevron_right</mat-icon>
                 </button>
-                <button mat-icon-button [disabled]="pageIndex >= totalPages - 1" (click)="lastPage()" matTooltip="Última página">
+                <button
+                  mat-icon-button
+                  [disabled]="pageIndex >= totalPages - 1"
+                  (click)="lastPage()"
+                  matTooltip="Última página"
+                >
                   <mat-icon>last_page</mat-icon>
                 </button>
               </div>
@@ -259,180 +309,193 @@ import html2pdf from 'html2pdf.js';
       </ng-template>
     </mat-menu>
   `,
-  styles: [`
-    .propiedades-container {
-      max-width: 1400px;
-      margin: 0 auto;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-    }
-
-    .header h1,
-    .mat-card-title,
-    .primary-text,
-    .secondary-text,
-    label,
-    td,
-    .mat-mdc-cell {
-      color: #333 !important;
-    }
-    th,
-    .mat-mdc-header-cell {
-      color: #fff !important;
-    }
-
-    .add-button {
-      height: 48px;
-      padding: 0 24px;
-      background-color: #416759 !important;
-      color: white !important;
-    }
-
-    .add-button:hover {
-      background-color: #335248 !important;
-    }
-
-    .filters-card {
-      margin-bottom: 24px;
-    }
-
-    .filters-form {
-      margin-top: 16px;
-    }
-
-    .filter-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-
-    .filter-actions {
-      display: flex;
-      gap: 12px;
-      padding-top: 8px;
-    }
-
-    .results-card {
-      margin-bottom: 24px;
-    }
-
-    .table-container {
-      overflow-x: auto;
-      margin-top: 16px;
-    }
-
-    .propiedades-table {
-      width: 100%;
-      background: white;
-    }
-
-    .table-row {
-      cursor: pointer;
-      transition: background-color 0.2s;
-    }
-
-    .table-row:hover {
-      background-color: #e8f4f1;
-    }
-
-    .id-number {
-      font-weight: 500;
-      color: #416759;
-    }
-
-    .id-pill {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      min-width: 48px;
-      padding: 4px 10px;
-      border-radius: 999px;
-      background-color: rgba(63, 104, 89, 0.1);
-      color: #1f4136;
-      font-weight: 600;
-    }
-
-    .cell-content {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .primary-text {
-      font-weight: 500;
-      color: #416759;
-    }
-
-    .secondary-text {
-      font-size: 0.85rem;
-      color: #666;
-      margin-top: 2px;
-    }
-
-    .area-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .labor-chip {
-      background-color: #416759 !important;
-      color: white !important;
-    }
-
-    .no-data {
-      color: #999;
-      font-style: italic;
-    }
-
-    .paginator {
-      margin-top: 16px;
-      border-top: 1px solid #e8f0ec;
-    }
-
-    .mat-mdc-paginator {
-      background: transparent;
-    }
-
-    .filter-nombre {
-      min-width: 0;
-      max-width: none;
-      width: 100%;
-    }
-
-    .input-height {
-      max-height: 50px;
-    }
-
-    .referente-star {
-      font-size: 1.2rem;
-      vertical-align: middle;
-    }
-
-    .star-on {
-      color: gold;
-    }
-
-    @media (max-width: 768px) {
-      .filter-row {
-        grid-template-columns: 1fr;
+  styles: [
+    `
+      .propiedades-container {
+        max-width: 1400px;
+        margin: 0 auto;
       }
-      
+
       .header {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
       }
-    }
-  `]
+
+      .header h1,
+      .mat-card-title,
+      .primary-text,
+      .secondary-text,
+      label,
+      td,
+      .mat-mdc-cell {
+        color: #333 !important;
+      }
+      th,
+      .mat-mdc-header-cell {
+        color: #fff !important;
+      }
+
+      .add-button {
+        height: 48px;
+        padding: 0 24px;
+        background-color: #416759 !important;
+        color: white !important;
+      }
+
+      .add-button:hover {
+        background-color: #335248 !important;
+      }
+
+      .export-button {
+        height: 48px;
+        padding: 0 24px;
+        background-color: #416759 !important;
+        color: white !important;
+      }
+
+      .export-button:hover {
+        background-color: #335248 !important;
+      }
+
+      .filters-card {
+        margin-bottom: 24px;
+      }
+
+      .filters-form {
+        margin-top: 16px;
+      }
+
+      .filter-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .filter-actions {
+        display: flex;
+        gap: 12px;
+        padding-top: 8px;
+      }
+
+      .results-card {
+        margin-bottom: 24px;
+      }
+
+      .table-container {
+        overflow-x: auto;
+        margin-top: 16px;
+      }
+
+      .propiedades-table {
+        width: 100%;
+        background: white;
+      }
+
+      .table-row {
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      .table-row:hover {
+        background-color: #e8f4f1;
+      }
+
+      .id-number {
+        font-weight: 500;
+        color: #416759;
+      }
+
+      .id-pill {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background-color: rgba(63, 104, 89, 0.1);
+        color: #1f4136;
+        font-weight: 600;
+      }
+
+      .cell-content {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .primary-text {
+        font-weight: 500;
+        color: #416759;
+      }
+
+      .secondary-text {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 2px;
+      }
+
+      .area-info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .labor-chip {
+        background-color: #416759 !important;
+        color: white !important;
+      }
+
+      .no-data {
+        color: #999;
+        font-style: italic;
+      }
+
+      .paginator {
+        margin-top: 16px;
+        border-top: 1px solid #e8f0ec;
+      }
+
+      .mat-mdc-paginator {
+        background: transparent;
+      }
+
+      .filter-nombre {
+        min-width: 0;
+        max-width: none;
+        width: 100%;
+      }
+
+      .input-height {
+        max-height: 50px;
+      }
+
+      .referente-star {
+        font-size: 1.2rem;
+        vertical-align: middle;
+      }
+
+      .star-on {
+        color: gold;
+      }
+
+      @media (max-width: 768px) {
+        .filter-row {
+          grid-template-columns: 1fr;
+        }
+
+        .header {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 16px;
+        }
+      }
+    `,
+  ],
 })
 export class PropiedadesListComponent implements OnInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
-  
+
   propiedades: PropiedadMinera[] = [];
   filterForm: FormGroup;
   displayedColumns: string[] = [
@@ -442,7 +505,7 @@ export class PropiedadesListComponent implements OnInit {
     'Provincia',
     'AreaHectareas',
     'Solicitud',
-    'actions'
+    'actions',
   ];
 
   provincias: string[] = [];
@@ -466,14 +529,13 @@ export class PropiedadesListComponent implements OnInit {
     private propiedadService: PropiedadMineraService,
     private fb: FormBuilder,
     private router: Router,
-    private titularService: TitularMineroService,
-    private http: HttpClient
+    private titularService: TitularMineroService
   ) {
     this.filterForm = this.fb.group({
       Nombre: [''],
       Provincia: [''],
       IdTitular: [''],
-      Expediente: ['']
+      Expediente: [''],
     });
   }
 
@@ -481,6 +543,14 @@ export class PropiedadesListComponent implements OnInit {
     this.loadDropdownData();
     this.loadTitulares();
     this.loadPropiedades();
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onGlobalKeydown(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.key?.toLowerCase() === 'p') {
+      event.preventDefault();
+      this.descargarPDF();
+    }
   }
 
   loadDropdownData() {
@@ -494,7 +564,7 @@ export class PropiedadesListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error cargando titulares:', error);
-      }
+      },
     });
   }
 
@@ -502,10 +572,10 @@ export class PropiedadesListComponent implements OnInit {
     // Calcular el rango para la paginación
     const start = this.pageIndex * this.pageSize;
     const end = start + this.pageSize - 1;
-    
+
     const paginatedFilters: PropiedadMineraFilter = {
       ...filters,
-      range: [start, end]
+      range: [start, end],
     };
 
     this.propiedadService.getPropiedades(paginatedFilters).subscribe({
@@ -519,7 +589,7 @@ export class PropiedadesListComponent implements OnInit {
         this.propiedades = [];
         this.totalRecords = 0;
         // Aquí podrías mostrar un mensaje de error al usuario
-      }
+      },
     });
   }
 
@@ -564,28 +634,39 @@ export class PropiedadesListComponent implements OnInit {
         error: (error) => {
           console.error('Error eliminando propiedad:', error);
           alert('Error al eliminar la propiedad');
-        }
+        },
       });
     }
   }
 
   descargarPDF() {
-    this.http.get(`${API_BASE_URL}/propiedades-mineras/reporte/html`, { responseType: 'text' }).subscribe({
-      next: (html) => {
-        const ventana = window.open('', '_blank');
-        if (ventana) {
-          ventana.document.write(html);
-          ventana.document.close();
-          ventana.onload = () => {
-            html2pdf().from(ventana.document.body).set({ filename: 'propiedades-mineras.pdf' }).save().then(() => {
-              ventana.close();
-            });
-          };
+    const { Nombre, Provincia, IdTitular, Expediente } = this.filterForm.value;
+    const idTitularNumber = Number(IdTitular);
+    const filtersPayload = {
+      nombre: Nombre && Nombre.trim() ? Nombre.trim() : null,
+      provincia: Provincia && Provincia.trim() ? Provincia.trim() : null,
+      idTitular: !isNaN(idTitularNumber) && IdTitular !== '' ? idTitularNumber : null,
+      expediente: Expediente && Expediente.trim() ? Expediente.trim() : null,
+    };
+
+    this.propiedadService.exportPropiedadesPdf(filtersPayload).subscribe({
+      next: (blob) => {
+        if (!blob || blob.size === 0) {
+          console.warn('El PDF de propiedades mineras está vacío.');
+          return;
         }
+        const blobUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = 'propiedades-mineras.pdf';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(blobUrl);
       },
       error: (err) => {
-        console.error('Error al obtener el reporte HTML:', err);
-      }
+        console.error('Error al generar el PDF de propiedades mineras:', err);
+      },
     });
   }
 

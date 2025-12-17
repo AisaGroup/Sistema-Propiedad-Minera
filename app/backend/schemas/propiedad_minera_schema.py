@@ -25,3 +25,10 @@ class PropiedadMineraRead(PropiedadMineraBase):
 
     class Config:
         from_attributes = True
+
+
+class PropiedadMineraExportFilters(BaseModel):
+    nombre: Optional[str] = None
+    provincia: Optional[str] = None
+    idTitular: Optional[int] = None
+    expediente: Optional[str] = None
