@@ -11,6 +11,7 @@ import { MatTableModule } from '@angular/material/table';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AuthService } from '../../auth/auth.service';
 import { PropiedadMineraService } from '../services/propiedad-minera.service';
 import {
   ReqMineroMovService,
@@ -27,6 +28,7 @@ import { Expediente } from '../../expedientes/models/expediente.model';
 import { AlertasListComponent } from '../../alertas/components/alertas-list.component';
 import { ObservacionesTabComponent } from '../../observaciones/components/observaciones-tab.component';
 import { ArchivosExpedienteComponent } from '../../expedientes/components/archivos/archivos-expediente.component';
+import { AuditoriaPropiedadTabComponent } from '../../auditorias/components/auditoria-propiedad-tab.component';
 
 @Component({
   selector: 'app-propiedad-detail',
@@ -48,6 +50,7 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
     AlertasListComponent,
     ObservacionesTabComponent,
     ArchivosExpedienteComponent,
+    AuditoriaPropiedadTabComponent,
   ],
   template: `
     <div class="detail-container">
@@ -592,6 +595,21 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
               </mat-card>
             </div>
           </mat-tab>
+
+          <!-- Tab 7: Auditoría -->
+          @if (userRole === 'Administrador') {
+          <mat-tab> 
+            <ng-template mat-tab-label>
+              <mat-icon>history</mat-icon>
+              Auditoría
+            </ng-template>
+            <div class="tab-content">
+              <app-auditoria-propiedad-tab
+                [propiedadId]="propiedadId"
+              ></app-auditoria-propiedad-tab>
+            </div>
+          </mat-tab>
+          }
         </mat-tab-group>
       </div>
 
@@ -1141,6 +1159,7 @@ export class PropiedadDetailComponent implements OnInit {
   loading = true;
   propiedadId: number | null = null;
   titularNombre: string = '';
+  userRole: string | null = null;
 
   // Requerimientos
   requerimientos: ReqMineroMov[] = [];
@@ -1194,10 +1213,13 @@ export class PropiedadDetailComponent implements OnInit {
     private reqMineroMovService: ReqMineroMovService,
     private reqMineroService: ReqMineroService,
     private titularService: TitularMineroService,
-    private expedienteService: ExpedienteService
+    private expedienteService: ExpedienteService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
+    this.userRole = this.authService.getUserRole();
+
     // Cargar tipos de requerimientos primero
     this.cargarTiposRequerimientos();
 
