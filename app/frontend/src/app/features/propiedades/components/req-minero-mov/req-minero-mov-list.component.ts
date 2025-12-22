@@ -632,16 +632,8 @@ export class ReqMineroMovListComponent implements OnInit {
   }
 
   crearRequerimiento() {
-    // Mostrar mensaje informando que debe crear el requerimiento desde una propiedad específica
-    this.snackBar.open(
-      'Para crear un requerimiento minero, debe hacerlo desde el detalle de una Propiedad Minera',
-      'Ir a Propiedades',
-      {
-        duration: 5000
-      }
-    ).onAction().subscribe(() => {
-      this.router.navigate(['/propiedades']);
-    });
+    // Navegar al formulario de creación independiente
+    this.router.navigate(['/req-minero-movs/nuevo']);
   }
 
   // Paginación
