@@ -20,4 +20,4 @@ class ReqMineroMov(Base):
     # propiedad_minera = relationship("PropiedadMinera", back_populates="req_minero_movs")
     # transaccion = relationship("Transaccion", back_populates="req_minero_movs")
     req_minero = relationship("ReqMinero", back_populates="req_minero_movs")
-    req_minero = relationship("ReqMinero", back_populates="req_minero_movs")
+    req_min_exp = relationship("ReqMinExp", back_populates="req_minero_mov")

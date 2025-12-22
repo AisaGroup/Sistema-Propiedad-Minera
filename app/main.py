@@ -20,6 +20,7 @@ from backend.controllers.req_minero_mov_controller import router as req_minero_m
 from backend.controllers.req_minero_controller import router as req_minero_router
 from backend.controllers.periodicidad_alerta_controller import router as periodicidad_alerta_router
 from backend.controllers.usuario_controller import router as usuario_router
+from backend.controllers.req_min_exp_controller import router as req_min_exp_router
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -60,3 +61,4 @@ app.include_router(req_minero_mov_router)
 app.include_router(req_minero_router)
 app.include_router(periodicidad_alerta_router)
 app.include_router(usuario_router)
+app.include_router(req_min_exp_router)
