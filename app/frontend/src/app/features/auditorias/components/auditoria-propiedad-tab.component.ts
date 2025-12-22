@@ -5,6 +5,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Subscription } from 'rxjs';
 import { AuditoriaService } from '../services/auditoria.service';
 import { AuditoriaDescripcionEntry, AuditoriaRaw } from '../models/auditoria.model';
@@ -24,6 +26,8 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
     MatIconModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatButtonModule,
+    MatSnackBarModule,
   ],
   template: `
     <div class="tab-content">
@@ -118,7 +122,22 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
                       [matTooltip]="getDescripcionCompleta(a)"
                       matTooltipClass="auditoria-detalle-tooltip"
                     >
-                      {{ getDescripcionResumen(a) }}
+                      <span>{{ getDescripcionBase(a) }}</span>
+                      <span
+                        *ngIf="a.descripcionEntries && a.descripcionEntries.length > 1"
+                        class="campos-count"
+                      >
+                        (+{{ a.descripcionEntries.length - 1 }} campos)
+                        <button
+                          mat-icon-button
+                          class="copy-icon-btn"
+                          matTooltip="Copiar detalle completo"
+                          matTooltipPosition="right"
+                          (click)="copyDetalle(a, $event)"
+                        >
+                          <mat-icon>content_copy</mat-icon>
+                        </button>
+                      </span>
                     </div>
                   </div>
                 </td>
@@ -205,13 +224,41 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
 
       .descripcion-cell {
         max-width: 420px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
       }
 
       .descripcion-resumen {
         cursor: default;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+
+      .campos-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .copy-icon-btn {
+        width: 20px;
+        height: 20px;
+        line-height: 20px;
+        padding: 0;
+        margin-left: 4px;
+      }
+
+      .copy-icon-btn mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        line-height: 16px;
+        color: #416759;
+      }
+
+      .copy-icon-btn:hover mat-icon {
+        color: #1f4136;
       }
 
       /* Tooltip de detalle: permitir interacción en el panel */
@@ -256,7 +303,7 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
 
   private dataSubscription?: Subscription;
 
-  constructor(private auditoriaService: AuditoriaService) {}
+  constructor(private auditoriaService: AuditoriaService, private snackBar: MatSnackBar) {}
 
   ngOnInit(): void {
     if (this.propiedadId) {
@@ -442,6 +489,15 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
       : base;
   }
 
+  getDescripcionBase(auditoria: AuditoriaView): string {
+    if (!auditoria.descripcionEntries || auditoria.descripcionEntries.length === 0) {
+      return 'Sin detalle disponible';
+    }
+
+    const first = auditoria.descripcionEntries[0];
+    return `${first.label}: ${first.value}`;
+  }
+
   getDescripcionCompleta(auditoria: AuditoriaView): string {
     if (!auditoria.descripcionEntries || auditoria.descripcionEntries.length === 0) {
       return 'Sin detalle disponible';
@@ -449,5 +505,29 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
 
     // Multilínea para que el tooltip se lea correctamente
     return auditoria.descripcionEntries.map((e) => `${e.label}: ${e.value}`).join('\n');
+  }
+
+  copyDetalle(auditoria: AuditoriaView, event: MouseEvent): void {
+    event.stopPropagation();
+    const text = this.getDescripcionCompleta(auditoria);
+
+    if (navigator && 'clipboard' in navigator) {
+      (navigator as any).clipboard
+        .writeText(text)
+        .then(() => {
+          this.snackBar.open('Detalle copiado al portapapeles.', 'Cerrar', {
+            duration: 2000,
+          });
+        })
+        .catch(() => {
+          this.snackBar.open('No se pudo copiar el detalle.', 'Cerrar', {
+            duration: 2500,
+          });
+        });
+    } else {
+      this.snackBar.open('La copia al portapapeles no es compatible en este navegador.', 'Cerrar', {
+        duration: 3000,
+      });
+    }
   }
 }
