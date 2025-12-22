@@ -119,8 +119,8 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
                   <div class="descripcion-cell">
                     <div
                       class="descripcion-resumen"
-                      [matTooltip]="getDescripcionCompleta(a)"
-                      matTooltipClass="auditoria-detalle-tooltip"
+                      (mouseenter)="showCustomTooltip(a.IdAuditoria, $event)"
+                      (mouseleave)="hideCustomTooltip()"
                     >
                       <span>{{ getDescripcionBase(a) }}</span>
                       <span
@@ -138,6 +138,22 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
                           <mat-icon>content_copy</mat-icon>
                         </button>
                       </span>
+                    </div>
+                    <!-- Tooltip personalizado con HTML -->
+                    <div
+                      *ngIf="visibleTooltipId === a.IdAuditoria"
+                      class="custom-detalle-tooltip"
+                      [style.left.px]="tooltipPosition.x"
+                      [style.top.px]="tooltipPosition.y"
+                      (mouseenter)="onTooltipMouseEnter()"
+                      (mouseleave)="hideCustomTooltip()"
+                    >
+                      <div class="tooltip-content-html">
+                        <div *ngFor="let entry of a.descripcionEntries" class="tooltip-entry">
+                          <strong class="tooltip-label">{{ entry.label }}:</strong>
+                          <span class="tooltip-value">{{ entry.value }}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </td>
@@ -192,11 +208,23 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
 
       .full-width-table {
         width: 100%;
+        overflow: visible !important;
       }
 
       th.mat-header-cell,
       td.mat-cell {
         padding: 8px 12px;
+        overflow: visible !important;
+        position: relative;
+      }
+
+      tr.mat-mdc-row {
+        position: relative;
+        z-index: 1;
+      }
+
+      tr.mat-mdc-row:hover {
+        z-index: 2;
       }
 
       .accion-pill {
@@ -223,6 +251,7 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
       }
 
       .descripcion-cell {
+        position: relative;
         max-width: 420px;
       }
 
@@ -261,6 +290,52 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
         color: #1f4136;
       }
 
+      /* Tooltip personalizado con HTML */
+      .custom-detalle-tooltip {
+        position: fixed;
+        z-index: 10000;
+        min-width: 300px;
+        max-width: 420px;
+        width: max-content;
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+        border: 1px solid #e0ece7;
+        pointer-events: auto;
+      }
+
+      .tooltip-content-html {
+        max-height: 420px;
+        overflow-y: auto;
+        padding: 10px 12px;
+        font-size: 12px;
+        line-height: 1.6;
+        user-select: text;
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        cursor: text;
+      }
+
+      .tooltip-entry {
+        margin-bottom: 6px;
+        word-break: break-word;
+      }
+
+      .tooltip-entry:last-child {
+        margin-bottom: 0;
+      }
+
+      .tooltip-label {
+        font-weight: 700;
+        color: #1f4136;
+        margin-right: 4px;
+      }
+
+      .tooltip-value {
+        color: #4a5a54;
+      }
+
       /* Tooltip de detalle: permitir interacción en el panel */
       ::ng-deep .auditoria-detalle-tooltip {
         pointer-events: auto !important;
@@ -268,6 +343,7 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
 
       /* Contenido del tooltip: formato multilínea, fondo, scroll y texto seleccionable */
       ::ng-deep .auditoria-detalle-tooltip .mdc-tooltip__surface {
+        z-index: 10000;
         white-space: pre-line;
         max-width: 420px;
         max-height: 4200px;
@@ -301,6 +377,10 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
   private allAuditorias: AuditoriaView[] = [];
   auditoriasFiltradas: AuditoriaView[] = [];
 
+  visibleTooltipId: number | null = null;
+  tooltipPosition = { x: 0, y: 0 };
+  private tooltipTimeout: any;
+
   private dataSubscription?: Subscription;
 
   constructor(private auditoriaService: AuditoriaService, private snackBar: MatSnackBar) {}
@@ -319,6 +399,36 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
 
   ngOnDestroy(): void {
     this.dataSubscription?.unsubscribe();
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
+  }
+
+  showCustomTooltip(auditoriaId: number, event: MouseEvent): void {
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
+    this.visibleTooltipId = auditoriaId;
+
+    // Calcular posición del tooltip
+    const target = event.target as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    this.tooltipPosition = {
+      x: rect.left,
+      y: rect.bottom + 8,
+    };
+  }
+
+  onTooltipMouseEnter(): void {
+    if (this.tooltipTimeout) {
+      clearTimeout(this.tooltipTimeout);
+    }
+  }
+
+  hideCustomTooltip(): void {
+    this.tooltipTimeout = setTimeout(() => {
+      this.visibleTooltipId = null;
+    }, 100);
   }
 
   private fetchAuditorias(): void {
