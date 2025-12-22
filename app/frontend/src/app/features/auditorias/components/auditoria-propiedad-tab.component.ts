@@ -143,6 +143,8 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
                     <div
                       *ngIf="visibleTooltipId === a.IdAuditoria"
                       class="custom-detalle-tooltip"
+                      [class.tooltip-visible]="tooltipVisible && !tooltipHiding"
+                      [class.tooltip-hiding]="tooltipHiding === a.IdAuditoria"
                       [style.left.px]="tooltipPosition.x"
                       [style.top.px]="tooltipPosition.y"
                       (mouseenter)="onTooltipMouseEnter()"
@@ -302,6 +304,22 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
         border: 1px solid #e0ece7;
         pointer-events: auto;
+        opacity: 0;
+        transform: translateY(-6px) scale(0.98);
+        transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+          transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+
+      .custom-detalle-tooltip.tooltip-visible {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+
+      .custom-detalle-tooltip.tooltip-hiding {
+        opacity: 0;
+        transform: translateY(-3px) scale(0.98);
+        transition: opacity 0.12s cubic-bezier(0.4, 0, 1, 1),
+          transform 0.12s cubic-bezier(0.4, 0, 1, 1);
       }
 
       .tooltip-content-html {
@@ -378,8 +396,12 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
   auditoriasFiltradas: AuditoriaView[] = [];
 
   visibleTooltipId: number | null = null;
+  tooltipVisible: boolean = false;
+  tooltipHiding: number | null = null;
   tooltipPosition = { x: 0, y: 0 };
   private tooltipTimeout: any;
+  private hideTimeout: any;
+  private showTimeout: any;
 
   private dataSubscription?: Subscription;
 
@@ -402,12 +424,28 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
     if (this.tooltipTimeout) {
       clearTimeout(this.tooltipTimeout);
     }
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
+    if (this.showTimeout) {
+      clearTimeout(this.showTimeout);
+    }
   }
 
   showCustomTooltip(auditoriaId: number, event: MouseEvent): void {
+    // Cancelar cualquier timeout pendiente
     if (this.tooltipTimeout) {
       clearTimeout(this.tooltipTimeout);
     }
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+    }
+    if (this.showTimeout) {
+      clearTimeout(this.showTimeout);
+    }
+
+    // Resetear estados
+    this.tooltipHiding = null;
     this.visibleTooltipId = auditoriaId;
 
     // Calcular posición del tooltip
@@ -417,18 +455,47 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
       x: rect.left,
       y: rect.bottom + 8,
     };
+
+    // Pequeño delay para activar la animación de entrada (permite que el DOM se actualice)
+    requestAnimationFrame(() => {
+      this.showTimeout = setTimeout(() => {
+        if (this.visibleTooltipId === auditoriaId) {
+          this.tooltipVisible = true;
+        }
+      }, 5);
+    });
   }
 
   onTooltipMouseEnter(): void {
+    // Cancelar todos los timeouts de ocultación
     if (this.tooltipTimeout) {
       clearTimeout(this.tooltipTimeout);
+      this.tooltipTimeout = null;
     }
+    if (this.hideTimeout) {
+      clearTimeout(this.hideTimeout);
+      this.hideTimeout = null;
+    }
+    // Restaurar tooltip a visible si el mouse entró mientras se estaba ocultando
+    this.tooltipHiding = null;
+    this.tooltipVisible = true;
   }
 
   hideCustomTooltip(): void {
+    // Iniciar animación de salida inmediatamente
+    this.tooltipVisible = false;
+    this.tooltipHiding = this.visibleTooltipId;
+
+    // Pequeño delay solo para permitir que el mouse se mueva al tooltip sin desaparecer
     this.tooltipTimeout = setTimeout(() => {
-      this.visibleTooltipId = null;
-    }, 100);
+      // Si el mouse no entró al tooltip, removerlo después de la animación
+      if (this.tooltipHiding !== null) {
+        this.hideTimeout = setTimeout(() => {
+          this.visibleTooltipId = null;
+          this.tooltipHiding = null;
+        }, 130); // Duración de animación (120ms) + pequeño buffer
+      }
+    }, 50);
   }
 
   private fetchAuditorias(): void {
