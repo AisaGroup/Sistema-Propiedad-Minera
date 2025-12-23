@@ -33,11 +33,11 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
     <div class="tab-content">
       <mat-card class="info-card">
         <mat-card-header>
-          <mat-card-title>
+          <mat-card-title class="card-title">
             <mat-icon aria-hidden="true">history</mat-icon>
             Auditoría de la Propiedad
           </mat-card-title>
-          <mat-card-subtitle>
+          <mat-card-subtitle class="card-subtitle">
             Historial de cambios registrados para esta propiedad minera
           </mat-card-subtitle>
         </mat-card-header>
@@ -131,7 +131,7 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
                         <button
                           mat-icon-button
                           class="copy-icon-btn"
-                          matTooltip="Copiar detalle completo"
+                          matTooltip="Copiar detalle"
                           matTooltipPosition="right"
                           (click)="copyDetalle(a, $event)"
                         >
@@ -171,6 +171,20 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
   `,
   styles: [
     `
+      .card-title {
+        padding: 10px 0 10px 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1f4136;
+      }
+
+      .card-subtitle {
+        padding: 0 0 28px 0;
+        font-size: 1rem;
+        font-weight: 400;
+        color: #666;
+      }
+
       .tab-content {
         padding: 0;
       }
@@ -305,25 +319,25 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
         border: 1px solid #e0ece7;
         pointer-events: auto;
         opacity: 0;
-        transform: translateY(-6px) scale(0.98);
+        transform: translateY(calc(-100% + 6px)) scale(0.98);
         transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1),
           transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
       }
 
       .custom-detalle-tooltip.tooltip-visible {
         opacity: 1;
-        transform: translateY(0) scale(1);
+        transform: translateY(-100%) scale(1);
       }
 
       .custom-detalle-tooltip.tooltip-hiding {
         opacity: 0;
-        transform: translateY(-3px) scale(0.98);
+        transform: translateY(calc(-100% + 3px)) scale(0.98);
         transition: opacity 0.12s cubic-bezier(0.4, 0, 1, 1),
           transform 0.12s cubic-bezier(0.4, 0, 1, 1);
       }
 
       .tooltip-content-html {
-        max-height: 420px;
+        max-height: 360px;
         overflow-y: auto;
         padding: 10px 12px;
         font-size: 12px;
@@ -448,12 +462,12 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
     this.tooltipHiding = null;
     this.visibleTooltipId = auditoriaId;
 
-    // Calcular posición del tooltip
+    // Calcular posición del tooltip (arriba del elemento)
     const target = event.target as HTMLElement;
     const rect = target.getBoundingClientRect();
     this.tooltipPosition = {
       x: rect.left,
-      y: rect.bottom + 8,
+      y: rect.top - 8,
     };
 
     // Pequeño delay para activar la animación de entrada (permite que el DOM se actualice)
