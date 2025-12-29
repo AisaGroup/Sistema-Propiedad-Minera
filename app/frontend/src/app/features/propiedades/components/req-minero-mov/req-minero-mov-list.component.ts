@@ -13,7 +13,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { ReqMineroMovService, ReqMineroMov, ReqMinero } from '../../services/req-minero-mov.service';
+import { ReqMineroMovService, ReqMineroMov, ReqMinero, ReqMinExp } from '../../services/req-minero-mov.service';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-req-minero-mov-list',
@@ -175,6 +177,44 @@ import { ReqMineroMovService, ReqMineroMov, ReqMinero } from '../../services/req
                     $ {{ req.Importe | number: '1.2-2' }}
                   </span>
                   <span *ngIf="!req.Importe">-</span>
+                </td>
+              </ng-container>
+
+              <!-- Expedientes Column -->
+              <ng-container matColumnDef="Expedientes">
+                <th mat-header-cell *matHeaderCellDef>Expedientes</th>
+                <td mat-cell *matCellDef="let req">
+                  <div class="expedientes-container">
+                    <button
+                      mat-stroked-button
+                      color="primary"
+                      type="button"
+                      class="expedientes-toggle"
+                      (click)="toggleExpedientes(req, $event)"
+                      *ngIf="expedientesMap.get(req.IdReqMineroMov) && expedientesMap.get(req.IdReqMineroMov)!.length > 0"
+                    >
+                      <mat-icon>
+                        {{ isExpedientesVisible(req) ? 'expand_less' : 'expand_more' }}
+                      </mat-icon>
+                      {{ isExpedientesVisible(req) ? 'Ocultar' : 'Ver expedientes' }}
+                      <span class="expedientes-count">({{ expedientesMap.get(req.IdReqMineroMov)!.length }})</span>
+                    </button>
+                    
+                    <span *ngIf="!expedientesMap.get(req.IdReqMineroMov) || expedientesMap.get(req.IdReqMineroMov)!.length === 0" class="no-expedientes">
+                      Sin expedientes
+                    </span>
+
+                    <div class="expedientes-detalle-contenedor" [class.is-visible]="isExpedientesVisible(req)">
+                      <div class="expedientes-detalle-contenido">
+                        <div class="expedientes-grid">
+                          <mat-chip *ngFor="let codigo of expedientesMap.get(req.IdReqMineroMov)" class="expediente-chip">
+                            <mat-icon>folder</mat-icon>
+                            {{ codigo }}
+                          </mat-chip>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </td>
               </ng-container>
 
@@ -397,6 +437,92 @@ import { ReqMineroMovService, ReqMineroMov, ReqMinero } from '../../services/req
       color: #2e7d32;
     }
 
+    .mat-column-Expedientes {
+      vertical-align: middle !important;
+    }
+
+    .expedientes-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      padding: 8px 0;
+    }
+
+    .expedientes-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+
+    .expedientes-toggle mat-icon {
+      font-size: 18px;
+    }
+
+    .expedientes-count {
+      font-size: 12px;
+      margin-left: 4px;
+      color: #416759;
+    }
+
+    .expedientes-detalle-contenedor {
+      max-height: 0;
+      opacity: 0;
+      transform: translateY(8px);
+      overflow: hidden;
+      transition: max-height 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        opacity 360ms cubic-bezier(0.22, 0.61, 0.36, 1),
+        transform 360ms cubic-bezier(0.22, 0.61, 0.36, 1);
+    }
+
+    .expedientes-detalle-contenedor.is-visible {
+      max-height: 500px;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .expedientes-detalle-contenido {
+      padding: 14px 18px;
+      border-radius: 12px;
+      border: 1px solid #e0ece7;
+      background: #f8fbfa;
+      box-shadow: inset 0 1px 2px rgba(65, 103, 89, 0.05);
+    }
+
+    .expedientes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .expediente-chip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      min-height: 32px;
+      padding: 6px 12px;
+      background-color: #e8f5e9 !important;
+      color: #2e7d32 !important;
+      font-weight: 500;
+    }
+
+    .expediente-chip mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+
+    .no-expedientes {
+      color: #999;
+      font-style: italic;
+      font-size: 13px;
+    }
+
     mat-chip {
       font-weight: 500;
     }
@@ -437,6 +563,7 @@ import { ReqMineroMovService, ReqMineroMov, ReqMinero } from '../../services/req
 
     td, .mat-mdc-cell {
       color: #333 !important;
+      vertical-align: middle !important;
     }
 
     .pagination-container {
@@ -514,6 +641,8 @@ import { ReqMineroMovService, ReqMineroMov, ReqMinero } from '../../services/req
 export class ReqMineroMovListComponent implements OnInit {
   reqMineroMovs: ReqMineroMov[] = [];
   reqMineros: ReqMinero[] = [];
+  expedientesMap: Map<number, string[]> = new Map(); // Mapa IdReqMineroMov -> array de códigos de expedientes
+  expandedReqMineroMovId: number | null = null; // ID del requerimiento con expedientes expandidos
   displayedColumns: string[] = [
     'IdReqMineroMov',
     'IdPropiedadMinera',
@@ -522,6 +651,7 @@ export class ReqMineroMovListComponent implements OnInit {
     'FechaInicio',
     'FechaFin',
     'Importe',
+    'Expedientes',
     'actions'
   ];
   
@@ -576,7 +706,9 @@ export class ReqMineroMovListComponent implements OnInit {
         this.reqMineroMovs = response.data;
         this.totalRequerimientos = response.total;
         this.totalPages = Math.ceil(this.totalRequerimientos / this.pageSize);
-        this.loading = false;
+        
+        // Cargar expedientes para cada requerimiento
+        this.loadExpedientesForRequerimientos(this.reqMineroMovs);
       },
       error: (error) => {
         console.error('Error loading req minero movs:', error);
@@ -584,6 +716,41 @@ export class ReqMineroMovListComponent implements OnInit {
         this.snackBar.open('Error al cargar los requerimientos mineros', 'Cerrar', {
           duration: 3000
         });
+      }
+    });
+  }
+
+  loadExpedientesForRequerimientos(requerimientos: ReqMineroMov[]) {
+    // Limpiar el mapa anterior
+    this.expedientesMap.clear();
+
+    // Crear un array de observables para cargar expedientes
+    const expedientesObservables = requerimientos.map(req =>
+      this.reqMineroMovService.getExpedientesByReqMineroMov(req.IdReqMineroMov).pipe(
+        catchError(error => {
+          console.error(`Error loading expedientes for ${req.IdReqMineroMov}:`, error);
+          return of([]); // Devolver array vacío en caso de error
+        })
+      )
+    );
+
+    // Ejecutar todas las peticiones en paralelo
+    forkJoin(expedientesObservables).subscribe({
+      next: (results) => {
+        // Mapear cada resultado con su IdReqMineroMov correspondiente
+        requerimientos.forEach((req, index) => {
+          const expedientes = results[index] as ReqMinExp[];
+          const codigosExpedientes = expedientes
+            .filter(exp => exp.CodigoExpediente) // Filtrar solo los que tienen código
+            .map(exp => exp.CodigoExpediente!);
+          this.expedientesMap.set(req.IdReqMineroMov, codigosExpedientes);
+        });
+        
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading expedientes:', error);
+        this.loading = false;
       }
     });
   }
@@ -665,5 +832,15 @@ export class ReqMineroMovListComponent implements OnInit {
   lastPage() {
     this.pageIndex = this.totalPages - 1;
     this.loadReqMineroMovs();
+  }
+
+  isExpedientesVisible(req: ReqMineroMov): boolean {
+    return this.expandedReqMineroMovId === req.IdReqMineroMov;
+  }
+
+  toggleExpedientes(req: ReqMineroMov, event: MouseEvent): void {
+    event.stopPropagation();
+    this.expandedReqMineroMovId =
+      this.expandedReqMineroMovId === req.IdReqMineroMov ? null : req.IdReqMineroMov;
   }
 }

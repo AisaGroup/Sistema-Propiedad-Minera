@@ -45,6 +45,14 @@ export interface ReqMineroMovFilter {
   range?: number[];
 }
 
+export interface ReqMinExp {
+  IdReqMinExp: number;
+  IdReqMineroMov?: number;
+  IdExpediente?: number;
+  IdPropiedadMinera?: number;
+  CodigoExpediente?: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -172,5 +180,22 @@ export class ReqMineroMovService {
   // Método para obtener una propiedad minera por ID
   getPropiedadMinera(id: number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/propiedades-mineras/${id}`);
+  }
+
+  // Método para crear relaciones entre ReqMineroMov y Expedientes
+  createReqMinExpRelations(idReqMineroMov: number, expedientes: number[]): Observable<any> {
+    const relations = expedientes.map(idExpediente => ({
+      IdReqMineroMov: idReqMineroMov,
+      IdExpediente: idExpediente
+    }));
+    
+    return this.http.post(`${this.apiUrl}/req-min-exp/bulk`, relations);
+  }
+
+  // Método para obtener expedientes por IdReqMineroMov
+  getExpedientesByReqMineroMov(idReqMineroMov: number, skip: number = 0, limit: number = 100): Observable<ReqMinExp[]> {
+    return this.http.get<ReqMinExp[]>(
+      `${this.apiUrl}/req-min-exps/req-minero-mov/${idReqMineroMov}?skip=${skip}&limit=${limit}`
+    );
   }
 }

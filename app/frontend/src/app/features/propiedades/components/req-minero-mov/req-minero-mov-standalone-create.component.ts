@@ -42,18 +42,20 @@ import { SharedDatepickerModule } from '../../../../shared/shared-datepicker.mod
         </mat-card-header>
         <mat-card-content>
           <form [formGroup]="reqMineroForm" (ngSubmit)="onSubmit()">
-            <!-- Campo de Expediente -->
+            <!-- Campo de Expedientes (multi-select) -->
             <div class="form-row horizontal-field">
-              <label class="field-label">Expediente:</label>
+              <label class="field-label">Expedientes:</label>
               <div class="field-content">
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-select formControlName="IdExpediente" placeholder="Seleccione un expediente (opcional)">
-                    <mat-option [value]="null">Ninguno</mat-option>
+                  <mat-select formControlName="IdExpedientes" 
+                             multiple 
+                             placeholder="Seleccione expedientes (opcional)">
                     <mat-option *ngFor="let expediente of expedientes" [value]="expediente.IdExpediente">
                       {{ expediente.CodigoExpediente || 'Sin código' }} - {{ expediente.Caratula || 'Sin carátula' }}
                     </mat-option>
                   </mat-select>
                   <mat-icon matIconSuffix>folder</mat-icon>
+                  <mat-hint>Puede seleccionar múltiples expedientes</mat-hint>
                 </mat-form-field>
               </div>
             </div>
@@ -371,7 +373,7 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
 
   private createForm(): FormGroup {
     return this.fb.group({
-      IdExpediente: [null],
+      IdExpedientes: [[]],  // Array para múltiples expedientes
       IdReqMinero: [null, [Validators.required, Validators.min(1)]],
       FechaInicio: [null],
       FechaFin: [null],
@@ -401,13 +403,22 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
         Importe: isNaN(importe) ? null : importe
       };
 
+      // Crear el requerimiento minero primero
       this.reqMineroMovService.createReqMineroMov(reqMineroData).subscribe({
         next: (response) => {
-          this.snackBar.open('Requerimiento minero creado exitosamente', 'Cerrar', {
-            duration: 3000
-          });
-          this.isSubmitting = false;
-          this.router.navigate(['/req-minero-movs']);
+          const idReqMineroMov = response.IdReqMineroMov;
+          const expedientesSeleccionados = formValue.IdExpedientes || [];
+
+          // Si hay expedientes seleccionados, crear las relaciones
+          if (expedientesSeleccionados.length > 0) {
+            this.crearRelacionesExpedientes(idReqMineroMov, expedientesSeleccionados);
+          } else {
+            this.snackBar.open('Requerimiento minero creado exitosamente', 'Cerrar', {
+              duration: 3000
+            });
+            this.isSubmitting = false;
+            this.router.navigate(['/req-minero-movs']);
+          }
         },
         error: (error) => {
           console.error('Error creating req minero mov:', error);
@@ -418,6 +429,31 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
         }
       });
     }
+  }
+
+  private crearRelacionesExpedientes(idReqMineroMov: number, expedientes: number[]) {
+    // Crear las relaciones en la tabla intermedia ReqMinExp
+    this.reqMineroMovService.createReqMinExpRelations(idReqMineroMov, expedientes).subscribe({
+      next: () => {
+        this.snackBar.open(
+          `Requerimiento minero creado exitosamente con ${expedientes.length} expediente(s) asociado(s)`,
+          'Cerrar',
+          { duration: 3000 }
+        );
+        this.isSubmitting = false;
+        this.router.navigate(['/req-minero-movs']);
+      },
+      error: (error) => {
+        console.error('Error creating expediente relations:', error);
+        this.snackBar.open(
+          'Requerimiento creado pero hubo un error al asociar los expedientes',
+          'Cerrar',
+          { duration: 4000 }
+        );
+        this.isSubmitting = false;
+        this.router.navigate(['/req-minero-movs']);
+      }
+    });
   }
 
   onImporteInput(event: any) {
