@@ -114,6 +114,24 @@ def create_req_min_exp(
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Error al crear relación: {str(e)}")
 
+@router.post("/req-min-exp/bulk", response_model=List[ReqMinExpOut], status_code=201)
+def create_req_min_exp_bulk(
+    req_min_exp_list: List[ReqMinExpCreate],
+    service: ReqMinExpService = Depends(get_req_min_exp_service),
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Crear múltiples relaciones Requerimiento-Expediente en una sola operación
+    """
+    try:
+        created_relations = []
+        for req_min_exp_data in req_min_exp_list:
+            created = service.create(req_min_exp_data)
+            created_relations.append(created)
+        return created_relations
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error al crear relaciones: {str(e)}")
+
 @router.put("/req-min-exps/{id_req_min_exp}", response_model=ReqMinExpOut)
 def update_req_min_exp(
     id_req_min_exp: int,

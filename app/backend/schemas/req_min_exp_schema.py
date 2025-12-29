@@ -14,6 +14,7 @@ class ReqMinExpUpdate(ReqMinExpBase):
 
 class ReqMinExpOut(ReqMinExpBase):
     IdReqMinExp: int
+    CodigoExpediente: Optional[str] = None
 
     class Config:
         from_attributes = True

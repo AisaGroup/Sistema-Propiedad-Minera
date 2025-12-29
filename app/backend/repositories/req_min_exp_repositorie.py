@@ -1,5 +1,6 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from backend.models.req_min_exp import ReqMinExp
+from backend.models.expediente_model import Expediente
 from backend.schemas.req_min_exp_schema import ReqMinExpCreate, ReqMinExpUpdate
 from typing import List, Optional
 
@@ -14,7 +15,9 @@ class ReqMinExpRepository:
         return self.db.query(ReqMinExp).filter(ReqMinExp.IdReqMinExp == id_req_min_exp).first()
 
     def get_by_req_minero_mov(self, id_req_minero_mov: int, skip: int = 0, limit: int = 100) -> List[ReqMinExp]:
-        return self.db.query(ReqMinExp).filter(
+        return self.db.query(ReqMinExp).options(
+            joinedload(ReqMinExp.expediente)
+        ).filter(
             ReqMinExp.IdReqMineroMov == id_req_minero_mov
         ).order_by(ReqMinExp.IdReqMinExp.desc()).offset(skip).limit(limit).all()
 

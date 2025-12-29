@@ -14,8 +14,22 @@ class ReqMinExpService:
     def get_by_id(self, id_req_min_exp: int) -> Optional[ReqMinExp]:
         return self.repository.get_by_id(id_req_min_exp)
 
-    def get_by_req_minero_mov(self, id_req_minero_mov: int, skip: int = 0, limit: int = 100) -> List[ReqMinExp]:
-        return self.repository.get_by_req_minero_mov(id_req_minero_mov, skip, limit)
+    def get_by_req_minero_mov(self, id_req_minero_mov: int, skip: int = 0, limit: int = 100) -> List[dict]:
+        registros = self.repository.get_by_req_minero_mov(id_req_minero_mov, skip, limit)
+        
+        # Agregar CodigoExpediente a cada registro
+        result = []
+        for reg in registros:
+            reg_dict = {
+                "IdReqMinExp": reg.IdReqMinExp,
+                "IdReqMineroMov": reg.IdReqMineroMov,
+                "IdExpediente": reg.IdExpediente,
+                "IdPropiedadMinera": reg.IdPropiedadMinera,
+                "CodigoExpediente": reg.expediente.CodigoExpediente if reg.expediente else None
+            }
+            result.append(reg_dict)
+        
+        return result
 
     def get_by_expediente(self, id_expediente: int, skip: int = 0, limit: int = 100) -> List[ReqMinExp]:
         return self.repository.get_by_expediente(id_expediente, skip, limit)
