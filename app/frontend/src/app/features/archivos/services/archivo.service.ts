@@ -31,19 +31,17 @@ export interface FileUploadProgress {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ArchivoService {
   private apiUrl = `${API_BASE_URL}/archivos`;
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   // Obtener todos los archivos
   getArchivos(skip: number = 0, limit: number = 100): Observable<Archivo[]> {
-    const params = new HttpParams()
-      .set('skip', skip.toString())
-      .set('limit', limit.toString());
-    
+    const params = new HttpParams().set('skip', skip.toString()).set('limit', limit.toString());
+
     return this.http.get<Archivo[]>(`${this.apiUrl}/`, { params });
   }
 
@@ -80,30 +78,32 @@ export class ArchivoService {
     formData.append('file', file);
     formData.append('tipo', tipo);
     formData.append('AudUsuario', audUsuario.toString());
-    
+
     if (idTransaccion) {
       formData.append('IdTransaccion', idTransaccion.toString());
     }
     if (nombre) {
       formData.append('Nombre', nombre);
     }
-  formData.append('descripcion', descripcion ?? '');
+    formData.append('descripcion', descripcion ?? '');
 
     // tipo: 'acta' o 'expediente', idTransaccion: id de la entidad
-    return this.http.post<Archivo>(`${this.apiUrl}/upload/${tipo}/${idTransaccion}`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
-      map(event => {
-        if (event.type === HttpEventType.UploadProgress && event.total) {
-          const progress = Math.round(100 * event.loaded / event.total);
-          return { progress, file };
-        } else if (event.type === HttpEventType.Response) {
-          return { progress: 100, file, response: event.body! };
-        }
-        return { progress: 0, file };
+    return this.http
+      .post<Archivo>(`${this.apiUrl}/upload/${tipo}/${idTransaccion}`, formData, {
+        reportProgress: true,
+        observe: 'events',
       })
-    );
+      .pipe(
+        map((event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            const progress = Math.round((100 * event.loaded) / event.total);
+            return { progress, file };
+          } else if (event.type === HttpEventType.Response) {
+            return { progress: 100, file, response: event.body! };
+          }
+          return { progress: 0, file };
+        })
+      );
   }
 
   // Actualizar archivo
@@ -121,10 +121,23 @@ export class ArchivoService {
     return `${this.apiUrl}/download/${tipo}/${filename}`;
   }
 
+  // Obtener URL de preview
+  getPreviewUrl(link: string, nombre: string): string {
+    const params = new HttpParams().set('link', link).set('nombre', nombre);
+    return `${this.apiUrl}/preview?${params.toString()}`;
+  }
+
   // Obtener archivos por entidad (genérico)
-  getArchivosByEntidad(entidad: string, idEntidad: number, page: number = 1, pageSize: number = 10): Observable<any> {
-  // El backend debe aceptar parámetros ?page=1&limit=10
-  return this.http.get<any>(`${this.apiUrl}/${entidad}/${idEntidad}?page=${page}&limit=${pageSize}`);
+  getArchivosByEntidad(
+    entidad: string,
+    idEntidad: number,
+    page: number = 1,
+    pageSize: number = 10
+  ): Observable<any> {
+    // El backend debe aceptar parámetros ?page=1&limit=10
+    return this.http.get<any>(
+      `${this.apiUrl}/${entidad}/${idEntidad}?page=${page}&limit=${pageSize}`
+    );
   }
 
   // Subir archivo por entidad (genérico)
@@ -138,36 +151,36 @@ export class ArchivoService {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('aud_usuario', audUsuario.toString());
-    
+
     if (descripcion) {
       formData.append('descripcion', descripcion);
     }
 
-    return this.http.post<Archivo>(`${this.apiUrl}/upload/${entidad}/${idEntidad}`, formData, {
-      reportProgress: true,
-      observe: 'events'
-    }).pipe(
-      map(event => {
-        if (event.type === HttpEventType.UploadProgress && event.total) {
-          const progress = Math.round(100 * event.loaded / event.total);
-          return { progress, file };
-        } else if (event.type === HttpEventType.Response) {
-          return { progress: 100, file, response: event.body! };
-        }
-        return { progress: 0, file };
+    return this.http
+      .post<Archivo>(`${this.apiUrl}/upload/${entidad}/${idEntidad}`, formData, {
+        reportProgress: true,
+        observe: 'events',
       })
-    );
+      .pipe(
+        map((event) => {
+          if (event.type === HttpEventType.UploadProgress && event.total) {
+            const progress = Math.round((100 * event.loaded) / event.total);
+            return { progress, file };
+          } else if (event.type === HttpEventType.Response) {
+            return { progress: 100, file, response: event.body! };
+          }
+          return { progress: 0, file };
+        })
+      );
   }
 
   // Descargar archivo usando link y nombre
   downloadArchivo(link: string, nombre: string): Observable<Blob> {
-    const params = new HttpParams()
-      .set('link', link)
-      .set('nombre', nombre);
-    
+    const params = new HttpParams().set('link', link).set('nombre', nombre);
+
     return this.http.get(`${this.apiUrl}/download`, {
       params,
-      responseType: 'blob'
+      responseType: 'blob',
     });
   }
 }
