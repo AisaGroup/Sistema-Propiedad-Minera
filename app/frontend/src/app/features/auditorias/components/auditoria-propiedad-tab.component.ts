@@ -88,7 +88,7 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
               <ng-container matColumnDef="Accion">
                 <th mat-header-cell *matHeaderCellDef>Acción</th>
                 <td mat-cell *matCellDef="let a">
-                  <span class="accion-pill">{{ a.Accion }}</span>
+                  <span class="accion-pill" [ngClass]="getAccionClass(a.Accion)">{{ a.Accion }}</span>
                 </td>
               </ng-container>
 
@@ -245,12 +245,39 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
 
       .accion-pill {
         display: inline-flex;
-        padding: 4px 10px;
+        align-items: center;
+        padding: 4px 12px;
         border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        letter-spacing: 0.2px;
+        border: 1px solid transparent;
         background-color: rgba(63, 104, 89, 0.1);
         color: #1f4136;
-        font-weight: 600;
-        font-size: 0.85rem;
+      }
+
+      .accion-pill.accion-update {
+        background: #fbf2d6;
+        color: #c08a00;
+        border-color: #f2e1a3;
+      }
+
+      .accion-pill.accion-delete {
+        background: #f4d8d8;
+        color: #c23b38;
+        border-color: #e4b5b5;
+      }
+
+      .accion-pill.accion-create {
+        background: #dff0d8;
+        color: #3f7f3a;
+        border-color: #c5e4bd;
+      }
+
+      .accion-pill.accion-default {
+        background: rgba(63, 104, 89, 0.1);
+        color: #1f4136;
+        border-color: rgba(63, 104, 89, 0.18);
       }
 
       .id-pill {
@@ -720,5 +747,20 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
         duration: 3000,
       });
     }
+  }
+
+  getAccionClass(accion: string | null | undefined): string {
+    const value = (accion || '').toLowerCase();
+
+    if (value.includes('delete') || value.includes('eliminar') || value.includes('borrar')) {
+      return 'accion-delete';
+    }
+    if (value.includes('update') || value.includes('actualizar') || value.includes('modificar')) {
+      return 'accion-update';
+    }
+    if (value.includes('create') || value.includes('crear') || value.includes('insert')) {
+      return 'accion-create';
+    }
+    return 'accion-default';
   }
 }
