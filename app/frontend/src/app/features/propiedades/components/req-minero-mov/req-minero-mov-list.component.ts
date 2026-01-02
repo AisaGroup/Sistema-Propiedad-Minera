@@ -756,10 +756,15 @@ export class ReqMineroMovListComponent implements OnInit {
         // Mapear cada resultado con su IdReqMineroMov correspondiente
         requerimientos.forEach((req, index) => {
           const expedientes = results[index] as ReqMinExp[];
+          console.log(`Expedientes para ReqMineroMov ${req.IdReqMineroMov}:`, expedientes);
           const codigosExpedientes = expedientes
             .filter(exp => exp.CodigoExpediente) // Filtrar solo los que tienen código
             .map(exp => exp.CodigoExpediente!);
-          this.expedientesMap.set(req.IdReqMineroMov, codigosExpedientes);
+          
+          // Eliminar duplicados usando Set
+          const codigosUnicos = Array.from(new Set(codigosExpedientes));
+          console.log(`Códigos únicos para ReqMineroMov ${req.IdReqMineroMov}:`, codigosUnicos);
+          this.expedientesMap.set(req.IdReqMineroMov, codigosUnicos);
         });
         
         this.loading = false;
