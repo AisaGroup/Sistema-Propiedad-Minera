@@ -29,6 +29,15 @@ class ReqMinExpRepository:
     def create(self, req_min_exp_data: ReqMinExpCreate) -> ReqMinExp:
         req_min_exp_dict = req_min_exp_data.dict()
         
+        # Obtener IdPropiedadMinera del Expediente si no viene en los datos
+        if req_min_exp_dict.get('IdExpediente') and not req_min_exp_dict.get('IdPropiedadMinera'):
+            expediente = self.db.query(Expediente).filter(
+                Expediente.IdExpediente == req_min_exp_dict['IdExpediente']
+            ).first()
+            
+            if expediente and expediente.IdPropiedadMinera:
+                req_min_exp_dict['IdPropiedadMinera'] = expediente.IdPropiedadMinera
+        
         try:
             db_req_min_exp = ReqMinExp(**req_min_exp_dict)
             self.db.add(db_req_min_exp)

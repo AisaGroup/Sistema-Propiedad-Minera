@@ -14,6 +14,8 @@ import { MatSelectModule } from '@angular/material/select';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ReqMineroMovService, ReqMineroMov, ReqMinero, ReqMinExp } from '../../services/req-minero-mov.service';
+import { ExpedienteService } from '../../../expedientes/services/expediente.service';
+import { Expediente } from '../../../expedientes/models/expediente.model';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 
@@ -73,6 +75,16 @@ import { catchError } from 'rxjs/operators';
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="filter-field">
+              <mat-label>Expediente</mat-label>
+              <mat-select formControlName="CodigoExpediente">
+                <mat-option value="">Todos</mat-option>
+                <mat-option *ngFor="let expediente of expedientes" [value]="expediente.CodigoExpediente">
+                  {{ expediente.CodigoExpediente || 'Sin código' }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Descripción</mat-label>
               <input matInput formControlName="Descripcion" placeholder="Buscar por descripción...">
             </mat-form-field>
@@ -119,17 +131,6 @@ import { catchError } from 'rxjs/operators';
                 <th mat-header-cell *matHeaderCellDef>ID</th>
                 <td mat-cell *matCellDef="let req">
                   <span class="id-pill">{{ req.IdReqMineroMov }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Propiedad Minera Column -->
-              <ng-container matColumnDef="IdPropiedadMinera">
-                <th mat-header-cell *matHeaderCellDef>Propiedad Minera</th>
-                <td mat-cell *matCellDef="let req">
-                  <span class="propiedad-link" (click)="verPropiedad(req.IdPropiedadMinera)">
-                    <mat-icon>business</mat-icon>
-                    ID: {{ req.IdPropiedadMinera }}
-                  </span>
                 </td>
               </ng-container>
 
@@ -641,11 +642,11 @@ import { catchError } from 'rxjs/operators';
 export class ReqMineroMovListComponent implements OnInit {
   reqMineroMovs: ReqMineroMov[] = [];
   reqMineros: ReqMinero[] = [];
+  expedientes: Expediente[] = [];
   expedientesMap: Map<number, string[]> = new Map(); // Mapa IdReqMineroMov -> array de códigos de expedientes
   expandedReqMineroMovId: number | null = null; // ID del requerimiento con expedientes expandidos
   displayedColumns: string[] = [
     'IdReqMineroMov',
-    'IdPropiedadMinera',
     'TipoRequerimiento',
     'Descripcion',
     'FechaInicio',
@@ -666,18 +667,21 @@ export class ReqMineroMovListComponent implements OnInit {
 
   constructor(
     private reqMineroMovService: ReqMineroMovService,
+    private expedienteService: ExpedienteService,
     private router: Router,
     private fb: FormBuilder,
     private snackBar: MatSnackBar
   ) {
     this.filterForm = this.fb.group({
       IdReqMinero: [''],
+      CodigoExpediente: [''],
       Descripcion: ['']
     });
   }
 
   ngOnInit() {
     this.loadReqMineros();
+    this.loadExpedientes();
     this.loadReqMineroMovs();
   }
 
@@ -692,11 +696,23 @@ export class ReqMineroMovListComponent implements OnInit {
     });
   }
 
+  loadExpedientes() {
+    this.expedienteService.getExpedientes(0, 1000).subscribe({
+      next: (response) => {
+        this.expedientes = response.data;
+      },
+      error: (error) => {
+        console.error('Error loading expedientes:', error);
+      }
+    });
+  }
+
   loadReqMineroMovs() {
     this.loading = true;
     
     const filters = {
       IdReqMinero: this.filterForm.value.IdReqMinero || undefined,
+      CodigoExpediente: this.filterForm.value.CodigoExpediente || undefined,
       Descripcion: this.filterForm.value.Descripcion || undefined,
       range: [this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize - 1]
     };
