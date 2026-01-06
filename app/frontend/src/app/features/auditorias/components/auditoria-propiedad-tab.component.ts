@@ -92,6 +92,12 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
                 </td>
               </ng-container>
 
+              <!-- Entidad -->
+              <ng-container matColumnDef="Entidad">
+                <th mat-header-cell *matHeaderCellDef>Entidad</th>
+                <td mat-cell *matCellDef="let a">{{ a.Entidad }}</td>
+              </ng-container>
+
               <!-- Usuario -->
               <ng-container matColumnDef="Usuario">
                 <th mat-header-cell *matHeaderCellDef>Usuario</th>
@@ -428,7 +434,7 @@ type AuditoriaView = Omit<AuditoriaRaw, 'AudFecha'> & {
 export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDestroy {
   @Input() propiedadId: number | null = null;
 
-  displayedColumns: string[] = ['IdAuditoria', 'AudFecha', 'Accion', 'Usuario', 'Descripcion'];
+  displayedColumns: string[] = ['IdAuditoria', 'AudFecha', 'Accion', 'Entidad', 'Usuario', 'Descripcion'];
 
   loading = false;
   error: string | null = null;
@@ -573,7 +579,14 @@ export class AuditoriaPropiedadTabComponent implements OnInit, OnChanges, OnDest
     const idLower = idStr.toLowerCase();
 
     this.auditoriasFiltradas = this.allAuditorias
-      .filter((auditoria) => this.matchesPropiedadId(auditoria, idLower))
+      .filter((auditoria) => {
+        // Excluir eventos de login
+        const accion = (auditoria.Accion || '').toLowerCase();
+        if (accion === 'login') {
+          return false;
+        }
+        return this.matchesPropiedadId(auditoria, idLower);
+      })
       .sort((a, b) => {
         const timeA = a.AudFecha ? a.AudFecha.getTime() : 0;
         const timeB = b.AudFecha ? b.AudFecha.getTime() : 0;
