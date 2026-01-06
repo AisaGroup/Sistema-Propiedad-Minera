@@ -54,6 +54,9 @@ class ReqMineroMovService:
         if filters.IdReqMinero:
             filter_dict['IdReqMinero'] = filters.IdReqMinero
         
+        if filters.CodigoExpediente:
+            filter_dict['CodigoExpediente'] = filters.CodigoExpediente
+        
         if filters.Descripcion:
             filter_dict['Descripcion'] = filters.Descripcion
         
@@ -62,6 +65,8 @@ class ReqMineroMovService:
         
         if filters.FechaHasta:
             filter_dict['FechaHasta'] = filters.FechaHasta
+        
+        print(f"[DEBUG SERVICE] Filtros procesados: {filter_dict}")
         
         # Manejar paginación
         skip = 0

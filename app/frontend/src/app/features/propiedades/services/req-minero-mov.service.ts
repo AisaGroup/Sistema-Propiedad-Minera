@@ -39,6 +39,7 @@ export interface ReqMineroMovCreate {
 export interface ReqMineroMovFilter {
   IdPropiedadMinera?: number;
   IdReqMinero?: number;
+  CodigoExpediente?: string;
   Descripcion?: string;
   FechaDesde?: Date;
   FechaHasta?: Date;
@@ -76,6 +77,10 @@ export class ReqMineroMovService {
         filterObj.IdReqMinero = filters.IdReqMinero;
       }
       
+      if (filters.CodigoExpediente && filters.CodigoExpediente.trim()) {
+        filterObj.CodigoExpediente = filters.CodigoExpediente.trim();
+      }
+      
       if (filters.Descripcion && filters.Descripcion.trim()) {
         filterObj.Descripcion = filters.Descripcion.trim();
       }
@@ -90,6 +95,7 @@ export class ReqMineroMovService {
       
       // Solo agregar el parámetro filter si hay algún filtro activo
       if (Object.keys(filterObj).length > 0) {
+        console.log('[SERVICE] Objeto de filtros a enviar:', filterObj);
         params = params.append('filter', JSON.stringify(filterObj));
       }
       
@@ -98,6 +104,8 @@ export class ReqMineroMovService {
         params = params.append('range', JSON.stringify(filters.range));
       }
     }
+
+    console.log('[SERVICE] Parámetros finales:', params.toString());
 
     return this.http.get<ReqMineroMov[]>(`${this.apiUrl}/req-minero-movs`, { 
       params,

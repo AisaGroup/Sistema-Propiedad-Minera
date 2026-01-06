@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ReqMineroMovService, ReqMineroMov, ReqMinero, ReqMinExp } from '../../services/req-minero-mov.service';
@@ -34,6 +35,7 @@ import { catchError } from 'rxjs/operators';
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
+    MatAutocompleteModule,
     ReactiveFormsModule,
     MatSnackBarModule
   ],
@@ -76,12 +78,15 @@ import { catchError } from 'rxjs/operators';
 
             <mat-form-field appearance="outline" class="filter-field">
               <mat-label>Expediente</mat-label>
-              <mat-select formControlName="CodigoExpediente">
-                <mat-option value="">Todos</mat-option>
-                <mat-option *ngFor="let expediente of expedientes" [value]="expediente.CodigoExpediente">
-                  {{ expediente.CodigoExpediente || 'Sin código' }}
+              <input matInput 
+                     formControlName="CodigoExpediente" 
+                     placeholder="Buscar por código de expediente..."
+                     [matAutocomplete]="autoExpediente">
+              <mat-autocomplete #autoExpediente="matAutocomplete">
+                <mat-option *ngFor="let expediente of filteredExpedientes" [value]="expediente.CodigoExpediente">
+                  {{ expediente.CodigoExpediente }}
                 </mat-option>
-              </mat-select>
+              </mat-autocomplete>
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="filter-field">
@@ -643,6 +648,7 @@ export class ReqMineroMovListComponent implements OnInit {
   reqMineroMovs: ReqMineroMov[] = [];
   reqMineros: ReqMinero[] = [];
   expedientes: Expediente[] = [];
+  filteredExpedientes: Expediente[] = [];
   expedientesMap: Map<number, string[]> = new Map(); // Mapa IdReqMineroMov -> array de códigos de expedientes
   expandedReqMineroMovId: number | null = null; // ID del requerimiento con expedientes expandidos
   displayedColumns: string[] = [
@@ -683,6 +689,7 @@ export class ReqMineroMovListComponent implements OnInit {
     this.loadReqMineros();
     this.loadExpedientes();
     this.loadReqMineroMovs();
+    this.setupExpedienteFilter();
   }
 
   loadReqMineros() {
@@ -700,6 +707,7 @@ export class ReqMineroMovListComponent implements OnInit {
     this.expedienteService.getExpedientes(0, 1000).subscribe({
       next: (response) => {
         this.expedientes = response.data;
+        this.filteredExpedientes = response.data;
       },
       error: (error) => {
         console.error('Error loading expedientes:', error);
@@ -707,15 +715,38 @@ export class ReqMineroMovListComponent implements OnInit {
     });
   }
 
+  setupExpedienteFilter() {
+    this.filterForm.get('CodigoExpediente')?.valueChanges.subscribe(value => {
+      if (value && typeof value === 'string') {
+        const filterValue = value.toLowerCase();
+        this.filteredExpedientes = this.expedientes.filter(exp => 
+          exp.CodigoExpediente?.toLowerCase().includes(filterValue)
+        );
+      } else {
+        this.filteredExpedientes = this.expedientes;
+      }
+    });
+  }
+
   loadReqMineroMovs() {
     this.loading = true;
     
-    const filters = {
-      IdReqMinero: this.filterForm.value.IdReqMinero || undefined,
-      CodigoExpediente: this.filterForm.value.CodigoExpediente || undefined,
-      Descripcion: this.filterForm.value.Descripcion || undefined,
+    const filters: any = {
       range: [this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize - 1]
     };
+
+    // Solo agregar filtros si tienen valor
+    if (this.filterForm.value.IdReqMinero) {
+      filters.IdReqMinero = this.filterForm.value.IdReqMinero;
+    }
+
+    if (this.filterForm.value.CodigoExpediente?.trim()) {
+      filters.CodigoExpediente = this.filterForm.value.CodigoExpediente.trim();
+    }
+
+    if (this.filterForm.value.Descripcion?.trim()) {
+      filters.Descripcion = this.filterForm.value.Descripcion.trim();
+    }
 
     this.reqMineroMovService.getReqMineroMovs(filters).subscribe({
       next: (response) => {
