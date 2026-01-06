@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,11 +9,15 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatChipsModule } from '@angular/material/chips';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { ReqMineroMovCreate, ReqMinero, ReqMineroMovService } from '../../services/req-minero-mov.service';
 import { ExpedienteService } from '../../../expedientes/services/expediente.service';
 import { Expediente } from '../../../expedientes/models/expediente.model';
 import { SharedDatepickerModule } from '../../../../shared/shared-datepicker.module';
+import { Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-req-minero-mov-standalone-create',
@@ -28,6 +32,8 @@ import { SharedDatepickerModule } from '../../../../shared/shared-datepicker.mod
     MatIconModule,
     MatCardModule,
     MatSelectModule,
+    MatAutocompleteModule,
+    MatChipsModule,
     MatSnackBarModule,
     SharedDatepickerModule
   ],
@@ -42,20 +48,40 @@ import { SharedDatepickerModule } from '../../../../shared/shared-datepicker.mod
         </mat-card-header>
         <mat-card-content>
           <form [formGroup]="reqMineroForm" (ngSubmit)="onSubmit()">
-            <!-- Campo de Expedientes (multi-select) -->
+            <!-- Campo de Expedientes con autocomplete y chips -->
             <div class="form-row horizontal-field">
               <label class="field-label">Expedientes:</label>
               <div class="field-content">
+                <!-- Chips de expedientes seleccionados -->
+                <div class="expedientes-chips" *ngIf="expedientesSeleccionados.length > 0">
+                  <mat-chip-set>
+                    <mat-chip *ngFor="let exp of expedientesSeleccionados" 
+                              (removed)="removeExpediente(exp)"
+                              class="expediente-chip">
+                      <mat-icon>folder</mat-icon>
+                      {{ exp.CodigoExpediente }}
+                      <button matChipRemove>
+                        <mat-icon>cancel</mat-icon>
+                      </button>
+                    </mat-chip>
+                  </mat-chip-set>
+                </div>
+                
+                <!-- Input con autocomplete -->
                 <mat-form-field appearance="outline" class="full-width">
-                  <mat-select formControlName="IdExpedientes" 
-                             multiple 
-                             placeholder="Seleccione expedientes (opcional)">
-                    <mat-option *ngFor="let expediente of expedientes" [value]="expediente.IdExpediente">
+                  <input matInput
+                         [formControl]="expedienteInput"
+                         [matAutocomplete]="autoExpediente"
+                         placeholder="Buscar y agregar expedientes...">
+                  <mat-icon matIconSuffix>search</mat-icon>
+                  <mat-autocomplete #autoExpediente="matAutocomplete"
+                                    (optionSelected)="addExpediente($event)">
+                    <mat-option *ngFor="let expediente of filteredExpedientes | async" 
+                                [value]="expediente">
                       {{ expediente.CodigoExpediente || 'Sin código' }} - {{ expediente.Caratula || 'Sin carátula' }}
                     </mat-option>
-                  </mat-select>
-                  <mat-icon matIconSuffix>folder</mat-icon>
-                  <mat-hint>Puede seleccionar múltiples expedientes</mat-hint>
+                  </mat-autocomplete>
+                  <mat-hint>Escriba para buscar expedientes</mat-hint>
                 </mat-form-field>
               </div>
             </div>
@@ -122,18 +148,18 @@ import { SharedDatepickerModule } from '../../../../shared/shared-datepicker.mod
               </mat-form-field>
             </div>
 
-            <!-- Campo Importe - Solo aparece si se selecciona Canon (ID = 1) -->
-            <div class="form-row" *ngIf="reqMineroForm.get('IdReqMinero')?.value === 1">
+            <!-- Campo Importe - Solo aparece si se selecciona Canon (ID = 1) o Plan de Inversión (ID = 3) -->
+            <div class="form-row" *ngIf="reqMineroForm.get('IdReqMinero')?.value === 1 || reqMineroForm.get('IdReqMinero')?.value === 3">
               <mat-form-field appearance="outline" class="full-width">
                 <mat-label>Importe</mat-label>
                 <input matInput 
-                       type="text"
+                       type="number"
                        formControlName="Importe"
-                       placeholder="Ej: 1.234,56"
-                       (input)="onImporteInput($event)">
+                       placeholder="Ej: 1234.56"
+                       step="0.01">
                 <span matTextPrefix>$ </span>
                 <mat-hint align="start">
-                  Ingrese el importe en formato argentino (puntos para miles, coma para decimales). Ej: <b>1.234,56</b>
+                  Ingrese el importe. Use punto para decimales. Ej: <b>1234.56</b>
                 </mat-hint>
                 <mat-error *ngIf="reqMineroForm.get('Importe')?.hasError('min')">
                   El importe debe ser mayor a 0
@@ -245,6 +271,35 @@ import { SharedDatepickerModule } from '../../../../shared/shared-datepicker.mod
     .btn-crear-requerimiento:disabled {
       cursor: not-allowed !important;
     }
+
+    /* Estilos para chips de expedientes */
+    .expedientes-chips {
+      margin-bottom: 12px;
+    }
+
+    .expediente-chip {
+      margin: 4px;
+      background-color: #e8f5e9 !important;
+      color: #2e7d32 !important;
+      font-weight: 500;
+      border: 2px solid #4caf50;
+      box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+    }
+
+    .expediente-chip mat-icon {
+      color: #2e7d32;
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .expediente-chip button[matChipRemove] {
+      opacity: 0.7;
+    }
+
+    .expediente-chip button[matChipRemove]:hover {
+      opacity: 1;
+    }
     
     /* Estilos normales para campos regulares */
     .mat-mdc-form-field {
@@ -316,6 +371,9 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
   reqMineroForm: FormGroup;
   reqMineros: ReqMinero[] = [];
   expedientes: Expediente[] = [];
+  expedientesSeleccionados: Expediente[] = [];
+  expedienteInput = new FormControl('');
+  filteredExpedientes: any;
   isSubmitting = false;
 
   constructor(
@@ -334,10 +392,22 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
 
     // Escuchar cambios en IdReqMinero para manejar el campo Importe
     this.reqMineroForm.get('IdReqMinero')?.valueChanges.subscribe(value => {
-      if (value !== 1) {
+      if (value !== 1 && value !== 3) {
         this.reqMineroForm.patchValue({ Importe: null });
       }
     });
+
+    // Configurar filtro de expedientes (solo por código)
+    this.filteredExpedientes = this.expedienteInput.valueChanges.pipe(
+      startWith(''),
+      map(value => {
+        const filterValue = typeof value === 'string' ? value.toLowerCase() : '';
+        return this.expedientes.filter(exp => 
+          !this.expedientesSeleccionados.find(selected => selected.IdExpediente === exp.IdExpediente) &&
+          exp.CodigoExpediente?.toLowerCase().includes(filterValue)
+        );
+      })
+    );
   }
 
   private loadReqMineros() {
@@ -414,7 +484,8 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
             this.crearRelacionesExpedientes(idReqMineroMov, expedientesSeleccionados);
           } else {
             this.snackBar.open('Requerimiento minero creado exitosamente', 'Cerrar', {
-              duration: 3000
+              duration: 3000,
+              panelClass: ['success-snackbar']
             });
             this.isSubmitting = false;
             this.router.navigate(['/req-minero-movs']);
@@ -423,7 +494,8 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
         error: (error) => {
           console.error('Error creating req minero mov:', error);
           this.snackBar.open('Error al crear el requerimiento minero', 'Cerrar', {
-            duration: 3000
+            duration: 3000,
+            panelClass: ['error-snackbar']
           });
           this.isSubmitting = false;
         }
@@ -438,7 +510,10 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
         this.snackBar.open(
           `Requerimiento minero creado exitosamente con ${expedientes.length} expediente(s) asociado(s)`,
           'Cerrar',
-          { duration: 3000 }
+          { 
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          }
         );
         this.isSubmitting = false;
         this.router.navigate(['/req-minero-movs']);
@@ -448,7 +523,10 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
         this.snackBar.open(
           'Requerimiento creado pero hubo un error al asociar los expedientes',
           'Cerrar',
-          { duration: 4000 }
+          { 
+            duration: 4000,
+            panelClass: ['error-snackbar']
+          }
         );
         this.isSubmitting = false;
         this.router.navigate(['/req-minero-movs']);
@@ -456,13 +534,26 @@ export class ReqMineroMovStandaloneCreateComponent implements OnInit {
     });
   }
 
-  onImporteInput(event: any) {
-    let value = event.target.value;
-    value = value.replace(/[^\d.,]/g, '');
-    let parts = value.split(',');
-    let ent = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    value = parts.length > 1 ? `${ent},${parts[1]}` : ent;
-    this.reqMineroForm.get('Importe')?.setValue(value, { emitEvent: false });
+  addExpediente(event: any) {
+    const expediente = event.option.value;
+    if (!this.expedientesSeleccionados.find(exp => exp.IdExpediente === expediente.IdExpediente)) {
+      this.expedientesSeleccionados.push(expediente);
+      this.updateExpedientesFormControl();
+    }
+    this.expedienteInput.setValue('');
+  }
+
+  removeExpediente(expediente: Expediente) {
+    const index = this.expedientesSeleccionados.indexOf(expediente);
+    if (index >= 0) {
+      this.expedientesSeleccionados.splice(index, 1);
+      this.updateExpedientesFormControl();
+    }
+  }
+
+  private updateExpedientesFormControl() {
+    const ids = this.expedientesSeleccionados.map(exp => exp.IdExpediente);
+    this.reqMineroForm.patchValue({ IdExpedientes: ids });
   }
 
   onCancel() {
