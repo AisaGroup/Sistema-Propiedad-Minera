@@ -61,6 +61,7 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
     'Entidad',
     'AudFecha',
     'AudUsuario',
+    'Diff',
     'Descripcion',
   ];
 
@@ -461,6 +462,139 @@ export class AuditoriasListComponent implements OnInit, OnDestroy {
   private cleanLabel(label: string): string {
     // Saco el prefijo "data." o "changes." del principio de la etiqueta
     return label.replace(/^(data|changes)\./i, '');
+  }
+
+  /**
+   * Extrae el ID de la entidad desde la descripción JSON
+   */
+  private extractEntityId(auditoria: AuditoriaView): number | null {
+    if (!auditoria.Descripcion) {
+      return null;
+    }
+
+    try {
+      const parsed = JSON.parse(auditoria.Descripcion);
+      if (parsed && typeof parsed.id === 'number') {
+        return parsed.id;
+      }
+    } catch (error) {
+      // Si no es JSON válido, retornar null
+    }
+    return null;
+  }
+
+  /**
+   * Encuentra el registro anterior con el mismo ID de entidad y Entidad
+   * La lista está ordenada por fecha descendente (más nuevos primero),
+   * así que buscamos hacia adelante (índices mayores) para encontrar registros más antiguos
+   */
+  private findPreviousRecord(
+    currentIndex: number,
+    currentEntityId: number | null,
+    currentEntidad: string
+  ): AuditoriaView | null {
+    if (currentEntityId === null) {
+      return null;
+    }
+
+    // Buscar hacia adelante en la lista filtrada (ordenada por fecha descendente)
+    // Los índices mayores corresponden a registros más antiguos (anteriores)
+    for (let i = currentIndex + 1; i < this.filteredAuditorias.length; i++) {
+      const prevAuditoria = this.filteredAuditorias[i];
+      const prevEntityId = this.extractEntityId(prevAuditoria);
+
+      if (prevEntityId === currentEntityId && prevAuditoria.Entidad === currentEntidad) {
+        return prevAuditoria;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * Calcula la diferencia entre el registro actual y el anterior
+   */
+  getDiff(auditoria: AuditoriaView): string {
+    const entityId = this.extractEntityId(auditoria);
+    if (entityId === null) {
+      return '—';
+    }
+
+    // Encontrar el índice en filteredAuditorias
+    const indexInFiltered = this.filteredAuditorias.findIndex(
+      (a) => a.IdAuditoria === auditoria.IdAuditoria
+    );
+
+    if (indexInFiltered === -1) {
+      return '—';
+    }
+
+    const previousRecord = this.findPreviousRecord(indexInFiltered, entityId, auditoria.Entidad);
+    if (!previousRecord) {
+      return 'Primer registro';
+    }
+
+    try {
+      const currentDesc = auditoria.Descripcion ? JSON.parse(auditoria.Descripcion) : null;
+      const previousDesc = previousRecord.Descripcion
+        ? JSON.parse(previousRecord.Descripcion)
+        : null;
+
+      if (!currentDesc || !previousDesc) {
+        return '—';
+      }
+
+      // Para UPDATE, comparar los campos que cambiaron
+      if (auditoria.Accion === 'UPDATE' && currentDesc.changes) {
+        const changes = currentDesc.changes;
+
+        // Obtener el estado anterior completo (puede estar en "data" o "changes" del registro anterior)
+        let previousState: Record<string, any> = {};
+        if (previousDesc.data) {
+          previousState = previousDesc.data;
+        } else if (previousDesc.changes) {
+          previousState = previousDesc.changes;
+        }
+
+        const diffFields: string[] = [];
+        for (const [key, value] of Object.entries(changes)) {
+          const prevValue = previousState[key];
+          if (JSON.stringify(value) !== JSON.stringify(prevValue)) {
+            diffFields.push(key);
+          }
+        }
+
+        if (diffFields.length === 0) {
+          return 'Sin cambios';
+        }
+
+        return diffFields.length === 1
+          ? `Cambió: ${diffFields[0]}`
+          : `${diffFields.length} campos cambiados`;
+      }
+
+      // Para CREATE, mostrar que es nuevo
+      if (auditoria.Accion === 'CREATE') {
+        return 'Registro nuevo';
+      }
+
+      // Para DELETE, mostrar que fue eliminado
+      if (auditoria.Accion === 'DELETE') {
+        return 'Registro eliminado';
+      }
+
+      // Comparación general si no es UPDATE
+      const currentKeys = Object.keys(currentDesc).filter((k) => k !== 'id');
+      const previousKeys = Object.keys(previousDesc).filter((k) => k !== 'id');
+
+      if (JSON.stringify(currentKeys.sort()) !== JSON.stringify(previousKeys.sort())) {
+        return 'Estructura diferente';
+      }
+
+      return '—';
+    } catch (error) {
+      return '—';
+    }
   }
 
   private updateAvailableAcciones(): void {
