@@ -237,7 +237,7 @@ import { catchError } from 'rxjs/operators';
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns" class="table-row" (click)="verRequerimiento(row.IdReqMineroMov)"></tr>
             </table>
 
             <!-- Pagination -->
@@ -844,6 +844,10 @@ export class ReqMineroMovListComponent implements OnInit {
     if (idPropiedadMinera) {
       this.router.navigate(['/propiedades', idPropiedadMinera, 'detalle']);
     }
+  }
+
+  verRequerimiento(idReqMineroMov: number) {
+    this.router.navigate(['/req-minero-movs', idReqMineroMov]);
   }
 
   volver() {

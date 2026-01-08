@@ -8,5 +8,9 @@ export const REQ_MINERO_MOV_ROUTES: Routes = [
   {
     path: 'nuevo',
     loadComponent: () => import('./components/req-minero-mov/req-minero-mov-standalone-create.component').then(m => m.ReqMineroMovStandaloneCreateComponent)
+  },
+  {
+    path: ':id',
+    loadComponent: () => import('./components/req-minero-mov/req-minero-mov-detail.component').then(m => m.ReqMineroMovDetailComponent)
   }
 ];
