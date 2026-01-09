@@ -233,6 +233,12 @@ import { catchError } from 'rxjs/operators';
                           (click)="verPropiedad(req.IdPropiedadMinera)">
                     <mat-icon>visibility</mat-icon>
                   </button>
+                  <button mat-icon-button 
+                          color="warn"
+                          matTooltip="Eliminar"
+                          (click)="eliminarRequerimiento(req.IdReqMineroMov, $event)">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </td>
               </ng-container>
 
@@ -898,5 +904,26 @@ export class ReqMineroMovListComponent implements OnInit {
     event.stopPropagation();
     this.expandedReqMineroMovId =
       this.expandedReqMineroMovId === req.IdReqMineroMov ? null : req.IdReqMineroMov;
+  }
+
+  eliminarRequerimiento(id: number, event: MouseEvent): void {
+    event.stopPropagation(); // Evitar que se active el click de la fila
+    
+    if (confirm('¿Está seguro de que desea eliminar este requerimiento minero?')) {
+      this.reqMineroMovService.deleteReqMineroMov(id).subscribe({
+        next: () => {
+          this.snackBar.open('Requerimiento eliminado correctamente', 'Cerrar', {
+            duration: 3000
+          });
+          this.loadReqMineroMovs(); // Recargar la lista
+        },
+        error: (error) => {
+          console.error('Error al eliminar requerimiento:', error);
+          this.snackBar.open('Error al eliminar el requerimiento', 'Cerrar', {
+            duration: 3000
+          });
+        }
+      });
+    }
   }
 }
