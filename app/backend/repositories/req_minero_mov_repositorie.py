@@ -1,7 +1,5 @@
 from sqlalchemy.orm import Session
 from backend.models.req_minero_mov_model import ReqMineroMov
-from backend.models.req_min_exp import ReqMinExp
-from backend.models.expediente_model import Expediente
 from backend.schemas.req_minero_mov_schema import ReqMineroMovCreate, ReqMineroMovUpdate
 from typing import List, Optional
 from datetime import datetime
@@ -91,20 +89,7 @@ class ReqMineroMovRepository:
         ).count()
 
     def search(self, filters: dict, skip: int = 0, limit: int = 100) -> List[ReqMineroMov]:
-        print(f"[DEBUG] search() - Filtros recibidos: {filters}")
         query = self.db.query(ReqMineroMov)
-        
-        # Si se filtra por CodigoExpediente, hacer JOIN con las tablas necesarias
-        if filters.get('CodigoExpediente'):
-            print(f"[DEBUG] Aplicando filtro por CodigoExpediente: {filters['CodigoExpediente']}")
-            query = query.join(
-                ReqMinExp, ReqMineroMov.IdReqMineroMov == ReqMinExp.IdReqMineroMov
-            ).join(
-                Expediente, ReqMinExp.IdExpediente == Expediente.IdExpediente
-            ).filter(
-                Expediente.CodigoExpediente.contains(filters['CodigoExpediente'])
-            ).distinct()
-            print(f"[DEBUG] Query con JOIN aplicado")
         
         if filters.get('IdPropiedadMinera'):
             query = query.filter(ReqMineroMov.IdPropiedadMinera == filters['IdPropiedadMinera'])
@@ -121,22 +106,10 @@ class ReqMineroMovRepository:
         if filters.get('FechaHasta'):
             query = query.filter(ReqMineroMov.Fecha <= filters['FechaHasta'])
         
-        result = query.order_by(ReqMineroMov.IdReqMineroMov.desc()).offset(skip).limit(limit).all()
-        print(f"[DEBUG] Resultados encontrados: {len(result)} registros")
-        return result
+        return query.order_by(ReqMineroMov.IdReqMineroMov.desc()).offset(skip).limit(limit).all()
 
     def search_count(self, filters: dict) -> int:
         query = self.db.query(ReqMineroMov)
-        
-        # Si se filtra por CodigoExpediente, hacer JOIN con las tablas necesarias
-        if filters.get('CodigoExpediente'):
-            query = query.join(
-                ReqMinExp, ReqMineroMov.IdReqMineroMov == ReqMinExp.IdReqMineroMov
-            ).join(
-                Expediente, ReqMinExp.IdExpediente == Expediente.IdExpediente
-            ).filter(
-                Expediente.CodigoExpediente.contains(filters['CodigoExpediente'])
-            ).distinct()
         
         if filters.get('IdPropiedadMinera'):
             query = query.filter(ReqMineroMov.IdPropiedadMinera == filters['IdPropiedadMinera'])

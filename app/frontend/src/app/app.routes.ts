@@ -21,10 +21,6 @@ export const routes: Routes = [
         loadChildren: () => import('./features/propiedades/propiedades.routes').then(r => r.PROPIEDADES_ROUTES)
       },
       {
-        path: 'req-minero-movs',
-        loadChildren: () => import('./features/propiedades/req-minero-mov.routes').then(r => r.REQ_MINERO_MOV_ROUTES)
-      },
-      {
         path: 'expedientes',
         loadChildren: () => import('./features/expedientes/routes/expedientes.routes').then(r => r.EXPEDIENTES_ROUTES)
       },

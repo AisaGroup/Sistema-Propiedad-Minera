@@ -48,9 +48,13 @@ def upload_archivo_entidad(
     aud_usuario: int = Form(1),
     db: Session = Depends(get_db),
 ):
-
-    entidades_permitidas = ["expediente", "acta", "resolucion", "propiedad-minera", "notificacion", "requerimiento"]
-  
+    entidades_permitidas = [
+        "expediente",
+        "acta",
+        "resolucion",
+        "propiedad-minera",
+        "notificacion",
+    ]
     if entidad not in entidades_permitidas:
         raise HTTPException(
             status_code=400,
@@ -154,24 +158,9 @@ def upload_archivo_entidad(
             except Exception as e:
                 print(f"[ERROR] Error en notificacion: {str(e)}")
                 print(f"[ERROR] Tipo de error: {type(e)}")
-                
-                raise HTTPException(status_code=500, detail=f"Error al procesar notificación: {str(e)}")
-        elif entidad == "requerimiento":
-            try:
-                from backend.models.req_minero_mov_model import ReqMineroMov
-                print(f"[DEBUG] Buscando requerimiento con IdTransaccion: {id_entidad}")
-                requerimiento = db.query(ReqMineroMov).filter_by(IdTransaccion=id_entidad).first()
-                print(f"[DEBUG] Requerimiento encontrado: {requerimiento}")
-                if not requerimiento:
-                    print(f"[DEBUG] No se encontró requerimiento con IdTransaccion: {id_entidad}")
-                    raise HTTPException(status_code=404, detail="Requerimiento no encontrado para ese IdTransaccion")
-                print(f"[DEBUG] IdReqMineroMov del requerimiento: {requerimiento.IdReqMineroMov}")
-                return _upload_archivo_requerimiento(requerimiento.IdTransaccion, file, descripcion, aud_usuario, db, requerimiento.IdReqMineroMov)
-            except Exception as e:
-                print(f"[ERROR] Error en requerimiento: {str(e)}")
-                print(f"[ERROR] Tipo de error: {type(e)}")
-                raise HTTPException(status_code=500, detail=f"Error al procesar requerimiento: {str(e)}")
-
+                raise HTTPException(
+                    status_code=500, detail=f"Error al procesar notificación: {str(e)}"
+                )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir archivo: {str(e)}")
 
@@ -460,59 +449,6 @@ def _upload_archivo_notificacion(
         )
 
 
-def _upload_archivo_requerimiento(id_transaccion: int, file: UploadFile, descripcion: Optional[str], aud_usuario: int, db: Session, id_req_minero_mov: int):
-    print(f"[DEBUG] Iniciando upload para requerimiento - IdTransaccion: {id_transaccion}, IdReqMineroMov: {id_req_minero_mov}")
-    archivo_service = ArchivoService(db)
-    requerimiento_folder = os.path.join(BASE_UPLOAD_DIR, "requerimientos")
-    print(f"[DEBUG] Carpeta de requerimientos: {requerimiento_folder}")
-    os.makedirs(requerimiento_folder, exist_ok=True)
-    descripcion_r = f"REQ_{id_req_minero_mov}".replace(" ", "_")
-    print(f"[DEBUG] Descripción procesada: {descripcion_r}")
-    file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
-    original_name_without_ext = os.path.splitext(file.filename)[0] if file.filename else "archivo"
-    temp_nombre = f"{descripcion_r}_{original_name_without_ext}{file_extension}"
-    print(f"[DEBUG] Nombre temporal: {temp_nombre}")
-    temp_file_path = os.path.join(requerimiento_folder, temp_nombre)
-    print(f"[DEBUG] Ruta temporal del archivo: {temp_file_path}")
-    
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    print(f"[DEBUG] Archivo escrito temporalmente en: {temp_file_path}")
-    
-    try:
-        argentina_tz = pytz.timezone('America/Argentina/San_Juan')
-        fecha_local = datetime.now(argentina_tz)
-        archivo_data = ArchivoCreate(
-            IdTransaccion=id_transaccion,
-            Nombre=temp_nombre,
-            Descripcion=descripcion,
-            Tipo="requerimiento",
-            Link="/uploads/requerimientos/",
-            AudFecha=fecha_local,
-            AudUsuario=aud_usuario
-        )
-        print(f"[DEBUG] Datos del archivo a crear en BD: {archivo_data}")
-        archivo_creado = archivo_service.create_archivo(archivo_data)
-        print(f"[DEBUG] Archivo creado en BD con ID: {archivo_creado.IdArchivo}")
-        
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{descripcion_r}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-        nuevo_file_path = os.path.join(requerimiento_folder, nuevo_nombre)
-        os.rename(temp_file_path, nuevo_file_path)
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/requerimientos/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-        print(f"[DEBUG] Archivo renombrado y actualizado: {nuevo_nombre}")
-        return archivo_creado
-    except Exception as e:
-        print(f"[ERROR] Error al crear registro en BD: {str(e)}")
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        raise HTTPException(status_code=500, detail=f"Error al crear registro en BD: {str(e)}")
-
 # Endpoint genérico para obtener archivos por entidad con paginación
 @router.get("/{entidad}/{id_entidad}", response_model=ArchivosPaginatedResponse)
 def get_archivos_entidad(
@@ -522,9 +458,13 @@ def get_archivos_entidad(
     limit: int = 10,
     db: Session = Depends(get_db),
 ):
-
-    entidades_permitidas = ["expediente", "acta", "resolucion", "propiedad-minera", "notificacion", "requerimiento"]
-
+    entidades_permitidas = [
+        "expediente",
+        "acta",
+        "resolucion",
+        "propiedad-minera",
+        "notificacion",
+    ]
     if entidad not in entidades_permitidas:
         raise HTTPException(status_code=400, detail=f"Entidad '{entidad}' no permitida")
     if page < 1:
