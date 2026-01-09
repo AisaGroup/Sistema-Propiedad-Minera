@@ -15,16 +15,16 @@ import { ArchivoEditComponent } from './archivo-edit.component';
   selector: 'app-archivos-expediente',
   standalone: true,
   imports: [
-  CommonModule,
-  MatTabsModule,
-  MatCardModule,
-  MatButtonModule,
-  MatIconModule,
-  MatTableModule,
-  MatProgressSpinnerModule,
-  MatTooltipModule,
-  ArchivoCreateComponent,
-  ArchivoEditComponent
+    CommonModule,
+    MatTabsModule,
+    MatCardModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTableModule,
+    MatProgressSpinnerModule,
+    MatTooltipModule,
+    ArchivoCreateComponent,
+    ArchivoEditComponent,
   ],
   template: `
     <div class="archivos-container">
@@ -49,7 +49,8 @@ import { ArchivoEditComponent } from './archivo-edit.component';
         [idEntidad]="idEntidad"
         [entidad]="entidad"
         (archivoCreado)="onArchivoCreado($event)"
-        (cancelar)="onCancelarCreacion()">
+        (cancelar)="onCancelarCreacion()"
+      >
       </app-archivo-create>
 
       <!-- Formulario de edición -->
@@ -57,7 +58,8 @@ import { ArchivoEditComponent } from './archivo-edit.component';
         *ngIf="archivoEnEdicion"
         [archivo]="archivoEnEdicion"
         (archivoActualizado)="onArchivoActualizado($event)"
-        (cancelar)="onCancelarEdicion()">
+        (cancelar)="onCancelarEdicion()"
+      >
       </app-archivo-edit>
 
       <!-- Tabla de archivos -->
@@ -69,7 +71,13 @@ import { ArchivoEditComponent } from './archivo-edit.component';
               <ng-container matColumnDef="nombre">
                 <th mat-header-cell *matHeaderCellDef>Nombre del Archivo</th>
                 <td mat-cell *matCellDef="let archivo">
-                  {{ archivo.Nombre }}
+                  <a
+                    class="archivo-link"
+                    (click)="previsualizarArchivo(archivo)"
+                    title="Click para previsualizar"
+                  >
+                    {{ archivo.Nombre }}
+                  </a>
                 </td>
               </ng-container>
 
@@ -93,20 +101,32 @@ import { ArchivoEditComponent } from './archivo-edit.component';
               <ng-container matColumnDef="acciones">
                 <th mat-header-cell *matHeaderCellDef>Acciones</th>
                 <td mat-cell *matCellDef="let archivo">
+                  <button
+                    mat-icon-button
+                    (click)="previsualizarArchivo(archivo)"
+                    title="Previsualizar"
+                  >
+                    <mat-icon>visibility</mat-icon>
+                  </button>
                   <button mat-icon-button (click)="descargarArchivo(archivo)" title="Descargar">
                     <mat-icon>download</mat-icon>
                   </button>
                   <button mat-icon-button (click)="editarArchivo(archivo)" title="Editar">
                     <mat-icon>edit</mat-icon>
                   </button>
-                  <button mat-icon-button (click)="eliminarArchivo(archivo)" title="Eliminar" color="warn">
+                  <button
+                    mat-icon-button
+                    (click)="eliminarArchivo(archivo)"
+                    title="Eliminar"
+                    color="warn"
+                  >
                     <mat-icon>delete</mat-icon>
                   </button>
                 </td>
               </ng-container>
 
               <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
             </table>
 
             <!-- Mensaje cuando no hay archivos -->
@@ -119,119 +139,160 @@ import { ArchivoEditComponent } from './archivo-edit.component';
       </div>
 
       <!-- Paginación personalizada -->
-      <div class="custom-pagination" *ngIf="totalItems > 0 && !mostrandoFormCreacion && !archivoEnEdicion">
+      <div
+        class="custom-pagination"
+        *ngIf="totalItems > 0 && !mostrandoFormCreacion && !archivoEnEdicion"
+      >
         <div class="page-size-selector">
           <span>Mostrar:</span>
           <button mat-button [class.active]="pageSize === 5" (click)="changePageSize(5)">5</button>
-          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">10</button>
-          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">25</button>
+          <button mat-button [class.active]="pageSize === 10" (click)="changePageSize(10)">
+            10
+          </button>
+          <button mat-button [class.active]="pageSize === 25" (click)="changePageSize(25)">
+            25
+          </button>
         </div>
 
         <div class="pagination-info">
-          {{ (currentPage * pageSize) + 1 }} - {{ Math.min((currentPage + 1) * pageSize, totalItems) }} de {{ totalItems }}
+          {{ currentPage * pageSize + 1 }} -
+          {{ Math.min((currentPage + 1) * pageSize, totalItems) }} de {{ totalItems }}
         </div>
 
         <div class="pagination-controls">
-          <button mat-icon-button [disabled]="currentPage === 0" (click)="firstPage()" matTooltip="Primera página">
+          <button
+            mat-icon-button
+            [disabled]="currentPage === 0"
+            (click)="firstPage()"
+            matTooltip="Primera página"
+          >
             <mat-icon>first_page</mat-icon>
           </button>
-          <button mat-icon-button [disabled]="currentPage === 0" (click)="previousPage()" matTooltip="Anterior">
+          <button
+            mat-icon-button
+            [disabled]="currentPage === 0"
+            (click)="previousPage()"
+            matTooltip="Anterior"
+          >
             <mat-icon>chevron_left</mat-icon>
           </button>
           <span class="page-number">Página {{ currentPage + 1 }} de {{ totalPagesCalc }}</span>
-          <button mat-icon-button [disabled]="currentPage >= totalPagesCalc - 1" (click)="nextPage()" matTooltip="Siguiente">
+          <button
+            mat-icon-button
+            [disabled]="currentPage >= totalPagesCalc - 1"
+            (click)="nextPage()"
+            matTooltip="Siguiente"
+          >
             <mat-icon>chevron_right</mat-icon>
           </button>
-          <button mat-icon-button [disabled]="currentPage >= totalPagesCalc - 1" (click)="lastPage()" matTooltip="Última página">
+          <button
+            mat-icon-button
+            [disabled]="currentPage >= totalPagesCalc - 1"
+            (click)="lastPage()"
+            matTooltip="Última página"
+          >
             <mat-icon>last_page</mat-icon>
           </button>
         </div>
       </div>
     </div>
   `,
-  styles: [`
-    .archivos-container {
-      padding: 16px;
-      padding-bottom: 64px; /* Espacio extra para el dropdown del paginator */
-    }
+  styles: [
+    `
+      .archivos-container {
+        padding: 16px;
+        padding-bottom: 64px; /* Espacio extra para el dropdown del paginator */
+      }
 
-    .archivos-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
+      .archivos-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+      }
 
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 32px;
-    }
+      .loading-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 32px;
+      }
 
-    .full-width-table {
-      width: 100%;
-    }
+      .full-width-table {
+        width: 100%;
+      }
 
-    .no-archivos {
-      text-align: center;
-      padding: 32px;
-      color: #666;
-    }
+      .no-archivos {
+        text-align: center;
+        padding: 32px;
+        color: #666;
+      }
 
-    .no-archivos mat-icon {
-      font-size: 48px;
-      width: 48px;
-      height: 48px;
-      margin-bottom: 16px;
-    }
+      .no-archivos mat-icon {
+        font-size: 48px;
+        width: 48px;
+        height: 48px;
+        margin-bottom: 16px;
+      }
 
-    /* Estilos de paginación personalizada */
-    .custom-pagination {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px;
-      background: #fafafa;
-      border-top: 1px solid #e0e0e0;
-      margin-top: 8px;
-    }
-    .page-size-selector {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .page-size-selector span {
-      font-size: 14px;
-      color: #666;
-    }
-    .page-size-selector button {
-      min-width: 40px;
-      height: 32px;
-      line-height: 32px;
-      padding: 0 8px;
-      font-size: 13px;
-      color: #666;
-    }
-    .page-size-selector button.active {
-      background-color: #416759;
-      color: white;
-    }
-    .pagination-info {
-      font-size: 14px;
-      color: #666;
-    }
-    .pagination-controls {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .page-number {
-      margin: 0 8px;
-      font-size: 14px;
-      color: #333;
-    }
-  `]
+      /* Estilos de paginación personalizada */
+      .custom-pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: #fafafa;
+        border-top: 1px solid #e0e0e0;
+        margin-top: 8px;
+      }
+      .page-size-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .page-size-selector span {
+        font-size: 14px;
+        color: #666;
+      }
+      .page-size-selector button {
+        min-width: 40px;
+        height: 32px;
+        line-height: 32px;
+        padding: 0 8px;
+        font-size: 13px;
+        color: #666;
+      }
+      .page-size-selector button.active {
+        background-color: #416759;
+        color: white;
+      }
+      .pagination-info {
+        font-size: 14px;
+        color: #666;
+      }
+      .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .page-number {
+        margin: 0 8px;
+        font-size: 14px;
+        color: #333;
+      }
+      .archivo-link {
+        color: #416759;
+        text-decoration: none;
+        cursor: pointer;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      .archivo-link:hover {
+        color: #2d5a48;
+        text-decoration: underline;
+      }
+    `,
+  ],
 })
 export class ArchivosExpedienteComponent implements OnInit {
   @Input() idEntidad!: number;
@@ -268,20 +329,22 @@ export class ArchivosExpedienteComponent implements OnInit {
   cargarArchivos(page: number = this.currentPage, size: number = this.pageSize) {
     this.loading = true;
     // API espera páginas desde 1, pero internamente usamos desde 0
-    this.archivoService.getArchivosByEntidad(this.entidad, this.idEntidad, page + 1, size).subscribe({
-      next: (response: any) => {
-        this.archivos = response.archivos || [];
-        // Leer paginación desde response.pagination
-        const pag = response.pagination || {};
-        this.totalItems = pag.total_items || 0;
-        this.totalPages = pag.total_pages || 1;
-        this.loading = false;
-      },
-      error: (error: any) => {
-        console.error('Error al cargar archivos:', error);
-        this.loading = false;
-      }
-    });
+    this.archivoService
+      .getArchivosByEntidad(this.entidad, this.idEntidad, page + 1, size)
+      .subscribe({
+        next: (response: any) => {
+          this.archivos = response.archivos || [];
+          // Leer paginación desde response.pagination
+          const pag = response.pagination || {};
+          this.totalItems = pag.total_items || 0;
+          this.totalPages = pag.total_pages || 1;
+          this.loading = false;
+        },
+        error: (error: any) => {
+          console.error('Error al cargar archivos:', error);
+          this.loading = false;
+        },
+      });
   }
 
   mostrarFormularioCreacion() {
@@ -289,9 +352,9 @@ export class ArchivosExpedienteComponent implements OnInit {
   }
 
   onArchivoCreado(archivo: Archivo) {
-  // Recargar archivos para reflejar el nuevo archivo en la paginación
-  this.mostrandoFormCreacion = false;
-  this.cargarArchivos();
+    // Recargar archivos para reflejar el nuevo archivo en la paginación
+    this.mostrandoFormCreacion = false;
+    this.cargarArchivos();
   }
 
   onCancelarCreacion() {
@@ -303,7 +366,7 @@ export class ArchivosExpedienteComponent implements OnInit {
   }
 
   onArchivoActualizado(archivo: Archivo) {
-    const index = this.archivos.findIndex(a => a.IdArchivo === archivo.IdArchivo);
+    const index = this.archivos.findIndex((a) => a.IdArchivo === archivo.IdArchivo);
     if (index !== -1) {
       this.archivos[index] = archivo;
     }
@@ -314,10 +377,17 @@ export class ArchivosExpedienteComponent implements OnInit {
     this.archivoEnEdicion = null;
   }
 
+  previsualizarArchivo(archivo: Archivo) {
+    const link = archivo.Link || '';
+    const nombre = archivo.Nombre || '';
+    const previewUrl = this.archivoService.getPreviewUrl(link, nombre);
+    window.open(previewUrl, '_blank');
+  }
+
   descargarArchivo(archivo: Archivo) {
     const link = archivo.Link || '';
     const nombre = archivo.Nombre || '';
-    
+
     this.archivoService.downloadArchivo(link, nombre).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
@@ -331,7 +401,7 @@ export class ArchivosExpedienteComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error al descargar archivo:', error);
-      }
+      },
     });
   }
 
@@ -344,11 +414,10 @@ export class ArchivosExpedienteComponent implements OnInit {
         },
         error: (error) => {
           console.error('Error al eliminar archivo:', error);
-        }
+        },
       });
     }
   }
-
 
   formatDate(date: Date | string | null | undefined): string {
     if (!date) return '-';
@@ -359,7 +428,7 @@ export class ArchivosExpedienteComponent implements OnInit {
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       });
     } catch {
       return '-';
