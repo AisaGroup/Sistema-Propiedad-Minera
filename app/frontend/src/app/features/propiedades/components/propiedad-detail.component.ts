@@ -17,6 +17,7 @@ import {
   ReqMineroMov,
   ReqMineroMovCreate,
 } from '../services/req-minero-mov.service';
+import { ViewReqMinMovGlobalService, ViewReqMinMovGlobal } from '../services/view-req-min-mov-global.service';
 import { ReqMineroService, ReqMinero } from '../services/req-minero.service';
 import { TitularMineroService } from '../../titulares/services/titular.service';
 import { PropiedadMinera } from '../models/propiedad-minera.model';
@@ -249,6 +250,20 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
                               ? getTipoRequerimientoNombre(req.IdReqMinero)
                               : 'Sin tipo especificado'
                           }}
+                        </td>
+                      </ng-container>
+
+                      <!-- Columna Expedientes -->
+                      <ng-container matColumnDef="expedientes">
+                        <th mat-header-cell *matHeaderCellDef>Expedientes</th>
+                        <td mat-cell *matCellDef="let req">
+                          <div *ngIf="req.CodigosExpedientes && req.CodigosExpedientes.length > 0" class="expedientes-chips">
+                            <mat-chip *ngFor="let codigo of req.CodigosExpedientes" class="expediente-chip-small">
+                              <mat-icon>folder</mat-icon>
+                              {{ codigo }}
+                            </mat-chip>
+                          </div>
+                          <span *ngIf="!req.CodigosExpedientes || req.CodigosExpedientes.length === 0" class="text-muted">Sin expedientes</span>
                         </td>
                       </ng-container>
 
@@ -1010,6 +1025,38 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
       .full-width-table {
         width: 100%;
       }
+      
+      .expedientes-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 4px 0;
+      }
+      
+      .expediente-chip-small {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px !important;
+        min-height: 24px !important;
+        padding: 4px 8px !important;
+        background-color: #e8f5e9 !important;
+        color: #2e7d32 !important;
+        font-weight: 500;
+      }
+      
+      .expediente-chip-small mat-icon {
+        font-size: 14px !important;
+        width: 14px !important;
+        height: 14px !important;
+      }
+      
+      .text-muted {
+        color: #999;
+        font-style: italic;
+        font-size: 13px;
+      }
+      
       .error-container {
         display: flex;
         flex-direction: column;
@@ -1149,6 +1196,7 @@ export class PropiedadDetailComponent implements OnInit {
     'fechaInicio',
     'fechaFin',
     'nombreReqMinero',
+    'expedientes',
     'descripcion',
     'importe',
     'acciones',
@@ -1192,6 +1240,7 @@ export class PropiedadDetailComponent implements OnInit {
     private router: Router,
     private propiedadService: PropiedadMineraService,
     private reqMineroMovService: ReqMineroMovService,
+    private viewReqMinMovGlobalService: ViewReqMinMovGlobalService,
     private reqMineroService: ReqMineroService,
     private titularService: TitularMineroService,
     private expedienteService: ExpedienteService
@@ -1239,12 +1288,15 @@ export class PropiedadDetailComponent implements OnInit {
     size: number = this.requerimientosPageSize
   ) {
     this.loadingRequerimientos = true;
-    const skip = page * size;
-    const limit = size;
-    this.reqMineroMovService.getReqMineroMovsByPropiedad(idPropiedadMinera, skip, limit).subscribe({
-      next: (result) => {
-        this.requerimientos = result.data;
-        this.requerimientosTotal = result.total;
+    
+    // Usar el endpoint específico que filtra por IdPropiedadMinera O IdPropiedadMineraExp
+    this.viewReqMinMovGlobalService.getViewByPropiedadCompleta(idPropiedadMinera, page * size, size).subscribe({
+      next: (data) => {
+        // Agrupar por IdReqMineroMov para evitar duplicados
+        const uniqueReqs = this.groupRequerimientosByIdReqMineroMov(data);
+        
+        this.requerimientos = uniqueReqs;
+        this.requerimientosTotal = uniqueReqs.length;
         this.loadingRequerimientos = false;
       },
       error: (error: any) => {
@@ -1254,6 +1306,36 @@ export class PropiedadDetailComponent implements OnInit {
         this.loadingRequerimientos = false;
       },
     });
+  }
+
+  // Método auxiliar para agrupar requerimientos por IdReqMineroMov
+  groupRequerimientosByIdReqMineroMov(data: ViewReqMinMovGlobal[]): any[] {
+    const grouped = new Map<number, any>();
+    
+    data.forEach(item => {
+      if (!grouped.has(item.IdReqMineroMov)) {
+        grouped.set(item.IdReqMineroMov, {
+          IdReqMineroMov: item.IdReqMineroMov,
+          IdPropiedadMinera: item.IdPropiedadMinera,
+          IdReqMinero: item.IdReqMinero,
+          FechaInicio: item.FechaInicio,
+          FechaFin: item.FechaFin,
+          Descripcion: item.Descripcion,
+          Importe: item.Importe,
+          CodigosExpedientes: [] as string[]
+        });
+      }
+      
+      // Agregar el código de expediente si existe y no está duplicado
+      if (item.CodigoExpediente) {
+        const req = grouped.get(item.IdReqMineroMov)!;
+        if (!req.CodigosExpedientes.includes(item.CodigoExpediente)) {
+          req.CodigosExpedientes.push(item.CodigoExpediente);
+        }
+      }
+    });
+    
+    return Array.from(grouped.values());
   }
 
   // Métodos de paginación personalizada para requerimientos

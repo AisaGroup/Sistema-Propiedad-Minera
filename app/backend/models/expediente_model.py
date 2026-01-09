@@ -25,3 +25,4 @@ class Expediente(Base):
     IdTransaccion = Column(Integer, nullable=True)
 
     tipo_expediente = relationship("TipoExpediente", backref="expedientes")
+    req_min_exp = relationship("ReqMinExp", back_populates="expediente")

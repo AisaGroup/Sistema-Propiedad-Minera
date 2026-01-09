@@ -29,6 +29,7 @@ class ReqMineroMovOut(ReqMineroMovBase):
 class ReqMineroMovFilter(BaseModel):
     IdPropiedadMinera: Optional[int] = None
     IdReqMinero: Optional[int] = None
+    CodigoExpediente: Optional[str] = None
     Descripcion: Optional[str] = None
     FechaDesde: Optional[datetime] = None
     FechaHasta: Optional[datetime] = None

@@ -19,6 +19,10 @@ class PropiedadMinera(Base):
     DescubrimientoDirecto = Column(String(50), nullable=True)
     Referente = Column(Integer, nullable=True)  # bit en SQL Server, usar Integer (0/1) en SQLAlchemy
     
+    #relacion con ReqMinero Exp
+    req_min_exp = relationship("ReqMinExp", back_populates="propiedad_minera")
+
+
     # Relación con TitularMinero (sin foreign key constraint para evitar problemas)
     def get_titular_nombre(self, db):
         """Método para obtener el nombre del titular"""

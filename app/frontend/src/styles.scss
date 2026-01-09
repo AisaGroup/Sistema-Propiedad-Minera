@@ -15,6 +15,55 @@
   z-index: 1000000 !important;
   position: fixed !important;
 }
+
+/* Estilos globales para snackbars personalizados */
+.success-snackbar {
+  --mdc-snackbar-container-color: #ffffff !important;
+  --mat-snack-bar-button-color: #2e7d32 !important;
+  background-color: #ffffff !important;
+}
+
+.success-snackbar .mdc-snackbar__surface {
+  background-color: #ffffff !important;
+  box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12) !important;
+}
+
+.success-snackbar .mat-mdc-snack-bar-label,
+.success-snackbar .mdc-snackbar__label {
+  color: #2e7d32 !important;
+}
+
+.success-snackbar .mat-mdc-button {
+  color: #2e7d32 !important;
+  font-weight: 500 !important;
+}
+
+.error-snackbar {
+  --mdc-snackbar-container-color: #ffffff !important;
+  --mat-snack-bar-button-color: #c62828 !important;
+  background-color: #ffffff !important;
+}
+
+.error-snackbar .mdc-snackbar__surface {
+  background-color: #ffffff !important;
+  box-shadow: 0 3px 5px -1px rgba(0,0,0,.2), 0 6px 10px 0 rgba(0,0,0,.14), 0 1px 18px 0 rgba(0,0,0,.12) !important;
+}
+
+.error-snackbar .mat-mdc-snack-bar-label,
+.error-snackbar .mdc-snackbar__label {
+  color: #c62828 !important;
+}
+
+.error-snackbar .mat-mdc-button {
+  color: #c62828 !important;
+  font-weight: 500 !important;
+}
+
+/* Asegurar que el snackbar tenga z-index alto */
+.mat-mdc-snack-bar-container {
+  z-index: 9999999 !important;
+}
+
 // Include theming for Angular Material with `mat.theme()`.
 // This Sass mixin will define CSS variables that are used for styling Angular Material
 // components according to the Material 3 design spec.
