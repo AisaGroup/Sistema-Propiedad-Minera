@@ -107,10 +107,16 @@ def create_alerta(
 ):
     service = AlertaService(db)
     created_alerta = service.create_alerta(alerta)
+    
+    # Preparar el payload para incluir IdTransaccion del objeto creado si está disponible
+    payload = alerta.model_dump()
+    if hasattr(created_alerta, 'IdTransaccion') and created_alerta.IdTransaccion is not None:
+        payload['IdTransaccion'] = created_alerta.IdTransaccion
+    
     AuditLogger(db, current_user).log_creation(
         entidad="Alerta",
         entity_id=created_alerta.idAlerta,
-        payload=alerta.model_dump(),
+        payload=payload,
     )
     return created_alerta
 
@@ -125,10 +131,16 @@ def update_alerta(
     obj = service.update_alerta(id, alerta)
     if not obj:
         raise HTTPException(status_code=404, detail="Alerta not found")
+    
+    # Preparar los cambios para incluir IdTransaccion si está disponible
+    changes = alerta.model_dump(exclude_unset=True)
+    if hasattr(obj, 'IdTransaccion') and obj.IdTransaccion is not None:
+        changes['IdTransaccion'] = obj.IdTransaccion
+    
     AuditLogger(db, current_user).log_update(
         entidad="Alerta",
         entity_id=id,
-        changes=alerta.model_dump(exclude_unset=True),
+        changes=changes,
     )
     return obj
 
@@ -143,12 +155,20 @@ def delete_alerta(
     alerta = service.get_alerta(id)
     if not alerta:
         raise HTTPException(status_code=404, detail="Alerta not found")
+    
+    # Preparar la descripción para incluir IdTransaccion si está disponible
+    descripcion = {"id": id}
+    if hasattr(alerta, 'IdTransaccion') and alerta.IdTransaccion is not None:
+        descripcion['IdTransaccion'] = alerta.IdTransaccion
+    
     deleted = service.delete_alerta(id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Alerta not found")
-    AuditLogger(db, current_user).log_deletion(
+    
+    AuditLogger(db, current_user).log(
+        accion="DELETE",
         entidad="Alerta",
-        entity_id=id,
+        descripcion=descripcion,
     )
     return {"ok": True}
 

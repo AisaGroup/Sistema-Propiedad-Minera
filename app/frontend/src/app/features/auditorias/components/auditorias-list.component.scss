@@ -241,6 +241,20 @@
   }
 }
 
+.diff-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background-color: rgba(63, 104, 89, 0.08);
+  color: #1f4136;
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .descripcion-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
