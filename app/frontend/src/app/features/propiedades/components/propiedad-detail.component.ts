@@ -555,9 +555,6 @@ import { ArchivosExpedienteComponent } from '../../expedientes/components/archiv
             </ng-template>
             <div class="tab-content">
               <mat-card class="info-card">
-                <mat-card-header>
-                  <mat-card-title>Alertas asociadas a la propiedad minera</mat-card-title>
-                </mat-card-header>
                 <mat-card-content>
                   <app-alertas-list
                     [idTransaccion]="propiedad.IdTransaccion ?? null"
