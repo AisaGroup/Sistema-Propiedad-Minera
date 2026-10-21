@@ -31,7 +31,17 @@ else:
     BASE_UPLOAD_DIR = os.path.join(
         os.path.dirname(os.path.dirname(__file__)), "uploads"
     )
+# Ruta absoluta: la validación de path traversal compara contra ella
+BASE_UPLOAD_DIR = os.path.abspath(BASE_UPLOAD_DIR)
 os.makedirs(BASE_UPLOAD_DIR, exist_ok=True)
+
+
+def _ruta_segura(file_path: str) -> bool:
+    """True si file_path queda dentro de BASE_UPLOAD_DIR."""
+    try:
+        return os.path.commonpath([BASE_UPLOAD_DIR, file_path]) == BASE_UPLOAD_DIR
+    except ValueError:  # distinta unidad en Windows
+        return False
 
 
 # Endpoint genérico para subir archivos por entidad
@@ -571,7 +581,7 @@ def download_archivo(link: str, nombre: str):
     file_path = os.path.join(BASE_UPLOAD_DIR, carpeta, nombre)
     file_path = os.path.normpath(file_path)
     # Seguridad: evitar path traversal
-    if not file_path.startswith(os.path.abspath(BASE_UPLOAD_DIR)):
+    if not _ruta_segura(file_path):
         raise HTTPException(status_code=400, detail="Ruta de archivo no permitida")
     if not os.path.isfile(file_path):
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
@@ -595,7 +605,7 @@ def preview_archivo(link: str, nombre: str):
     file_path = os.path.join(BASE_UPLOAD_DIR, carpeta, nombre)
     file_path = os.path.normpath(file_path)
     # Seguridad: evitar path traversal
-    if not file_path.startswith(os.path.abspath(BASE_UPLOAD_DIR)):
+    if not _ruta_segura(file_path):
         raise HTTPException(status_code=400, detail="Ruta de archivo no permitida")
     if not os.path.isfile(file_path):
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
