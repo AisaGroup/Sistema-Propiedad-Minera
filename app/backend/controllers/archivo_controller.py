@@ -14,24 +14,15 @@ import os
 import mimetypes
 from datetime import datetime
 import pytz
-from fastapi.responses import FileResponse
+from urllib.parse import quote
+from fastapi.responses import StreamingResponse
 import logging
 from backend.services.auth_jwt import get_current_user
-from dotenv import load_dotenv
+from backend.services.storage_service import StorageService
 
-load_dotenv()
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/archivos", tags=["archivos"])
-BASE_UPLOAD_DIR = os.getenv("FILEROUTE")
-if BASE_UPLOAD_DIR:
-    # Normalizar la ruta para evitar problemas con secuencias de escape
-    BASE_UPLOAD_DIR = os.path.normpath(BASE_UPLOAD_DIR)
-else:
-    # Ruta por defecto si no está definida en .env
-    BASE_UPLOAD_DIR = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "uploads"
-    )
-os.makedirs(BASE_UPLOAD_DIR, exist_ok=True)
 
 
 # Endpoint genérico para subir archivos por entidad
@@ -68,13 +59,15 @@ def upload_archivo_entidad(
                     status_code=404,
                     detail="Expediente no encontrado para ese IdTransaccion",
                 )
-            return _upload_archivo_expediente(
+            return _upload_archivo(
                 expediente.IdTransaccion,
                 file,
                 descripcion,
                 aud_usuario,
                 db,
-                expediente.CodigoExpediente,
+                tipo="expediente",
+                carpeta="expedientes",
+                prefijo=expediente.CodigoExpediente or f"EXP-{expediente.IdTransaccion}",
             )
         elif entidad == "acta":
             from backend.models.acta_model import Acta
@@ -84,8 +77,15 @@ def upload_archivo_entidad(
                 raise HTTPException(
                     status_code=404, detail="Acta no encontrada para ese IdTransaccion"
                 )
-            return _upload_archivo_acta(
-                acta.IdTransaccion, file, descripcion, aud_usuario, db, acta.Descripcion
+            return _upload_archivo(
+                acta.IdTransaccion,
+                file,
+                descripcion,
+                aud_usuario,
+                db,
+                tipo="acta",
+                carpeta="actas",
+                prefijo=(acta.Descripcion or "ACTA").replace(" ", "_"),
             )
         elif entidad == "resolucion":
             from backend.models.resolucion_model import Resolucion
@@ -98,13 +98,15 @@ def upload_archivo_entidad(
                     status_code=404,
                     detail="Resolución no encontrada para ese IdTransaccion",
                 )
-            return _upload_archivo_resolucion(
+            return _upload_archivo(
                 resolucion.IdTransaccion,
                 file,
                 descripcion,
                 aud_usuario,
                 db,
-                resolucion.Titulo,
+                tipo="resolucion",
+                carpeta="resoluciones",
+                prefijo=(resolucion.Titulo or "RESOLUCION").replace(" ", "_"),
             )
         elif entidad == "propiedad-minera":
             from backend.models.propiedad_minera_model import PropiedadMinera
@@ -117,13 +119,15 @@ def upload_archivo_entidad(
                     status_code=404,
                     detail="Propiedad minera no encontrada para ese IdTransaccion",
                 )
-            return _upload_archivo_propiedad_minera(
+            return _upload_archivo(
                 propiedad.IdTransaccion,
                 file,
                 descripcion,
                 aud_usuario,
                 db,
-                propiedad.Nombre,
+                tipo="propiedad-minera",
+                carpeta="propiedad-minera",
+                prefijo=(propiedad.Nombre or "PROPIEDAD_MINERA").replace(" ", "_"),
             )
         elif entidad == "notificacion":
             try:
@@ -143,13 +147,15 @@ def upload_archivo_entidad(
                         detail="Notificación no encontrada para ese IdTransaccion",
                     )
                 print(f"[DEBUG] CodExp de la notificación: {notificacion.CodExp}")
-                return _upload_archivo_notificacion(
+                return _upload_archivo(
                     notificacion.IdTransaccion,
                     file,
                     descripcion,
                     aud_usuario,
                     db,
-                    notificacion.CodExp,
+                    tipo="notificacion",
+                    carpeta="notificaciones",
+                    prefijo=(notificacion.CodExp or "NOTIFICACION").replace(" ", "_"),
                 )
             except Exception as e:
                 print(f"[ERROR] Error en notificacion: {str(e)}")
@@ -166,7 +172,16 @@ def upload_archivo_entidad(
                     print(f"[DEBUG] No se encontró requerimiento con IdTransaccion: {id_entidad}")
                     raise HTTPException(status_code=404, detail="Requerimiento no encontrado para ese IdTransaccion")
                 print(f"[DEBUG] IdReqMineroMov del requerimiento: {requerimiento.IdReqMineroMov}")
-                return _upload_archivo_requerimiento(requerimiento.IdTransaccion, file, descripcion, aud_usuario, db, requerimiento.IdReqMineroMov)
+                return _upload_archivo(
+                    requerimiento.IdTransaccion,
+                    file,
+                    descripcion,
+                    aud_usuario,
+                    db,
+                    tipo="requerimiento",
+                    carpeta="requerimientos",
+                    prefijo=f"REQ_{requerimiento.IdReqMineroMov}",
+                )
             except Exception as e:
                 print(f"[ERROR] Error en requerimiento: {str(e)}")
                 print(f"[ERROR] Tipo de error: {type(e)}")
@@ -176,27 +191,27 @@ def upload_archivo_entidad(
         raise HTTPException(status_code=500, detail=f"Error al subir archivo: {str(e)}")
 
 
-def _upload_archivo_resolucion(
+def _upload_archivo(
     id_transaccion: int,
     file: UploadFile,
     descripcion: Optional[str],
     aud_usuario: int,
     db: Session,
-    titulo_resolucion: Optional[str],
+    tipo: str,
+    carpeta: str,
+    prefijo: str,
 ):
+    """
+    Registra el archivo en BD y lo sube a MinIO bajo la clave "<carpeta>/<IdArchivo>_<prefijo>_<nombre>".
+    El Link guardado en BD mantiene el formato histórico "/uploads/<carpeta>/<nombre>".
+    """
     archivo_service = ArchivoService(db)
-    resolucion_folder = os.path.join(BASE_UPLOAD_DIR, "resoluciones")
-    os.makedirs(resolucion_folder, exist_ok=True)
-    descripcion_r = (titulo_resolucion or "RESOLUCION").replace(" ", "_")
+    storage = StorageService()
     file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
     original_name_without_ext = (
         os.path.splitext(file.filename)[0] if file.filename else "archivo"
     )
-    temp_nombre = f"{descripcion_r}_{original_name_without_ext}{file_extension}"
-
-    temp_file_path = os.path.join(resolucion_folder, temp_nombre)
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
+    temp_nombre = f"{prefijo}_{original_name_without_ext}{file_extension}"
 
     try:
         argentina_tz = pytz.timezone("America/Argentina/San_Juan")
@@ -205,313 +220,46 @@ def _upload_archivo_resolucion(
             IdTransaccion=id_transaccion,
             Nombre=temp_nombre,
             Descripcion=descripcion,
-            Tipo="resolucion",
-            Link="/uploads/resoluciones/",
+            Tipo=tipo,
+            Link=f"/uploads/{carpeta}/",
             AudFecha=fecha_local,
             AudUsuario=aud_usuario,
         )
         archivo_creado = archivo_service.create_archivo(archivo_data)
-
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{descripcion_r}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-
-        nuevo_file_path = os.path.join(resolucion_folder, nuevo_nombre)
-        os.rename(temp_file_path, nuevo_file_path)
-
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/resoluciones/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-
-        return archivo_creado
     except Exception as e:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
         raise HTTPException(
             status_code=500, detail=f"Error al crear registro en BD: {str(e)}"
         )
 
+    nuevo_nombre = f"{archivo_creado.IdArchivo}_{prefijo}_{original_name_without_ext}{file_extension}"
+    # Las barras romperían la clave del objeto en MinIO
+    nuevo_nombre = nuevo_nombre.replace("/", "_").replace("\\", "_")
+    if len(nuevo_nombre) > 255:
+        max_name_length = 255 - len(file_extension)
+        nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
 
-def _upload_archivo_expediente(
-    id_transaccion: int,
-    file: UploadFile,
-    descripcion: Optional[str],
-    aud_usuario: int,
-    db: Session,
-    codigo_expediente: Optional[str],
-):
-    archivo_service = ArchivoService(db)
-    expediente_folder = os.path.join(BASE_UPLOAD_DIR, "expedientes")
-    os.makedirs(expediente_folder, exist_ok=True)
-    codigo = codigo_expediente or f"EXP-{id_transaccion}"
-    file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
-    original_name_without_ext = (
-        os.path.splitext(file.filename)[0] if file.filename else "archivo"
+    key = StorageService.build_key(carpeta, nuevo_nombre)
+    content_type = (
+        file.content_type
+        or mimetypes.guess_type(nuevo_nombre)[0]
+        or "application/octet-stream"
     )
-    temp_nombre = f"{codigo}_{original_name_without_ext}{file_extension}"
-    temp_file_path = os.path.join(expediente_folder, temp_nombre)
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
     try:
-        argentina_tz = pytz.timezone("America/Argentina/San_Juan")
-        fecha_local = datetime.now(argentina_tz)
-        archivo_data = ArchivoCreate(
-            IdTransaccion=id_transaccion,
-            Nombre=temp_nombre,
-            Descripcion=descripcion,
-            Tipo="expediente",
-            Link="/uploads/expedientes/",
-            AudFecha=fecha_local,
-            AudUsuario=aud_usuario,
-        )
-        archivo_creado = archivo_service.create_archivo(archivo_data)
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{codigo}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-        nuevo_file_path = os.path.join(expediente_folder, nuevo_nombre)
-        os.rename(temp_file_path, nuevo_file_path)
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/expedientes/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-        return archivo_creado
+        storage.subir(key, file.file, content_type)
     except Exception as e:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
+        # Sin archivo en MinIO el registro no sirve: se revierte
+        archivo_service.delete_archivo(archivo_creado.IdArchivo)
+        logger.error(f"Error al subir '{key}' a MinIO: {e}")
         raise HTTPException(
-            status_code=500, detail=f"Error al crear registro en BD: {str(e)}"
+            status_code=500, detail=f"Error al guardar el archivo en el almacenamiento: {str(e)}"
         )
 
+    archivo_creado.Nombre = nuevo_nombre
+    archivo_creado.Link = StorageService.build_link(key)
+    db.commit()
+    db.refresh(archivo_creado)
+    return archivo_creado
 
-def _upload_archivo_acta(
-    id_transaccion: int,
-    file: UploadFile,
-    descripcion: Optional[str],
-    aud_usuario: int,
-    db: Session,
-    descripcion_acta: Optional[str],
-):
-    archivo_service = ArchivoService(db)
-    acta_folder = os.path.join(BASE_UPLOAD_DIR, "actas")
-    os.makedirs(acta_folder, exist_ok=True)
-    descripcion_a = (descripcion_acta or "ACTA").replace(" ", "_")
-    file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
-    original_name_without_ext = (
-        os.path.splitext(file.filename)[0] if file.filename else "archivo"
-    )
-    temp_nombre = f"{descripcion_a}_{original_name_without_ext}{file_extension}"
-    temp_file_path = os.path.join(acta_folder, temp_nombre)
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    try:
-        argentina_tz = pytz.timezone("America/Argentina/San_Juan")
-        fecha_local = datetime.now(argentina_tz)
-        archivo_data = ArchivoCreate(
-            IdTransaccion=id_transaccion,
-            Nombre=temp_nombre,
-            Descripcion=descripcion,
-            Tipo="acta",
-            Link="/uploads/actas/",
-            AudFecha=fecha_local,
-            AudUsuario=aud_usuario,
-        )
-        archivo_creado = archivo_service.create_archivo(archivo_data)
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{descripcion_a}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-        nuevo_file_path = os.path.join(acta_folder, nuevo_nombre)
-        os.rename(temp_file_path, nuevo_file_path)
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/actas/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-        return archivo_creado
-    except Exception as e:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        raise HTTPException(
-            status_code=500, detail=f"Error al crear registro en BD: {str(e)}"
-        )
-
-
-def _upload_archivo_propiedad_minera(
-    id_transaccion: int,
-    file: UploadFile,
-    descripcion: Optional[str],
-    aud_usuario: int,
-    db: Session,
-    nombre_propiedad: Optional[str],
-):
-    archivo_service = ArchivoService(db)
-    propiedad_folder = os.path.join(BASE_UPLOAD_DIR, "propiedad-minera")
-    os.makedirs(propiedad_folder, exist_ok=True)
-    nombre_p = (nombre_propiedad or "PROPIEDAD_MINERA").replace(" ", "_")
-    file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
-    original_name_without_ext = (
-        os.path.splitext(file.filename)[0] if file.filename else "archivo"
-    )
-    temp_nombre = f"{nombre_p}_{original_name_without_ext}{file_extension}"
-    temp_file_path = os.path.join(propiedad_folder, temp_nombre)
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    try:
-        argentina_tz = pytz.timezone("America/Argentina/San_Juan")
-        fecha_local = datetime.now(argentina_tz)
-        archivo_data = ArchivoCreate(
-            IdTransaccion=id_transaccion,
-            Nombre=temp_nombre,
-            Descripcion=descripcion,
-            Tipo="propiedad-minera",
-            Link="/uploads/propiedad-minera/",
-            AudFecha=fecha_local,
-            AudUsuario=aud_usuario,
-        )
-        archivo_creado = archivo_service.create_archivo(archivo_data)
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{nombre_p}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-        nuevo_file_path = os.path.join(propiedad_folder, nuevo_nombre)
-        os.rename(temp_file_path, nuevo_file_path)
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/propiedad-minera/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-        return archivo_creado
-    except Exception as e:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        raise HTTPException(
-            status_code=500, detail=f"Error al crear registro en BD: {str(e)}"
-        )
-
-
-def _upload_archivo_notificacion(
-    id_transaccion: int,
-    file: UploadFile,
-    descripcion: Optional[str],
-    aud_usuario: int,
-    db: Session,
-    cod_exp_notificacion: Optional[str],
-):
-    print(
-        f"[DEBUG] Iniciando upload para notificación - IdTransaccion: {id_transaccion}, CodExp: {cod_exp_notificacion}"
-    )
-    archivo_service = ArchivoService(db)
-    notificacion_folder = os.path.join(BASE_UPLOAD_DIR, "notificaciones")
-    print(f"[DEBUG] Carpeta de notificaciones: {notificacion_folder}")
-    os.makedirs(notificacion_folder, exist_ok=True)
-    descripcion_n = (cod_exp_notificacion or "NOTIFICACION").replace(" ", "_")
-    print(f"[DEBUG] Descripción procesada: {descripcion_n}")
-    file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
-    original_name_without_ext = (
-        os.path.splitext(file.filename)[0] if file.filename else "archivo"
-    )
-    temp_nombre = f"{descripcion_n}_{original_name_without_ext}{file_extension}"
-    print(f"[DEBUG] Nombre temporal: {temp_nombre}")
-    temp_file_path = os.path.join(notificacion_folder, temp_nombre)
-    print(f"[DEBUG] Ruta temporal del archivo: {temp_file_path}")
-
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    print(f"[DEBUG] Archivo escrito temporalmente en: {temp_file_path}")
-
-    try:
-        argentina_tz = pytz.timezone("America/Argentina/San_Juan")
-        fecha_local = datetime.now(argentina_tz)
-        archivo_data = ArchivoCreate(
-            IdTransaccion=id_transaccion,
-            Nombre=temp_nombre,
-            Descripcion=descripcion,
-            Tipo="notificacion",
-            Link="/uploads/notificaciones/",
-            AudFecha=fecha_local,
-            AudUsuario=aud_usuario,
-        )
-        print(f"[DEBUG] Datos del archivo a crear en BD: {archivo_data}")
-        archivo_creado = archivo_service.create_archivo(archivo_data)
-        print(f"[DEBUG] Archivo creado en BD con ID: {archivo_creado.IdArchivo}")
-
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{descripcion_n}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-
-        nuevo_file_path = os.path.join(notificacion_folder, nuevo_nombre)
-        print(f"[DEBUG] Renombrando archivo de {temp_file_path} a {nuevo_file_path}")
-        os.rename(temp_file_path, nuevo_file_path)
-        print(f"[DEBUG] Archivo renombrado exitosamente")
-
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/notificaciones/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-        print(f"[DEBUG] Archivo guardado exitosamente: {nuevo_file_path}")
-        return archivo_creado
-    except Exception as e:
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        raise HTTPException(
-            status_code=500, detail=f"Error al crear registro en BD: {str(e)}"
-        )
-
-
-def _upload_archivo_requerimiento(id_transaccion: int, file: UploadFile, descripcion: Optional[str], aud_usuario: int, db: Session, id_req_minero_mov: int):
-    print(f"[DEBUG] Iniciando upload para requerimiento - IdTransaccion: {id_transaccion}, IdReqMineroMov: {id_req_minero_mov}")
-    archivo_service = ArchivoService(db)
-    requerimiento_folder = os.path.join(BASE_UPLOAD_DIR, "requerimientos")
-    print(f"[DEBUG] Carpeta de requerimientos: {requerimiento_folder}")
-    os.makedirs(requerimiento_folder, exist_ok=True)
-    descripcion_r = f"REQ_{id_req_minero_mov}".replace(" ", "_")
-    print(f"[DEBUG] Descripción procesada: {descripcion_r}")
-    file_extension = os.path.splitext(file.filename)[1] if file.filename else ""
-    original_name_without_ext = os.path.splitext(file.filename)[0] if file.filename else "archivo"
-    temp_nombre = f"{descripcion_r}_{original_name_without_ext}{file_extension}"
-    print(f"[DEBUG] Nombre temporal: {temp_nombre}")
-    temp_file_path = os.path.join(requerimiento_folder, temp_nombre)
-    print(f"[DEBUG] Ruta temporal del archivo: {temp_file_path}")
-    
-    with open(temp_file_path, "wb") as buffer:
-        buffer.write(file.file.read())
-    print(f"[DEBUG] Archivo escrito temporalmente en: {temp_file_path}")
-    
-    try:
-        argentina_tz = pytz.timezone('America/Argentina/San_Juan')
-        fecha_local = datetime.now(argentina_tz)
-        archivo_data = ArchivoCreate(
-            IdTransaccion=id_transaccion,
-            Nombre=temp_nombre,
-            Descripcion=descripcion,
-            Tipo="requerimiento",
-            Link="/uploads/requerimientos/",
-            AudFecha=fecha_local,
-            AudUsuario=aud_usuario
-        )
-        print(f"[DEBUG] Datos del archivo a crear en BD: {archivo_data}")
-        archivo_creado = archivo_service.create_archivo(archivo_data)
-        print(f"[DEBUG] Archivo creado en BD con ID: {archivo_creado.IdArchivo}")
-        
-        nuevo_nombre = f"{archivo_creado.IdArchivo}_{descripcion_r}_{original_name_without_ext}{file_extension}"
-        if len(nuevo_nombre) > 255:
-            max_name_length = 255 - len(file_extension)
-            nuevo_nombre = nuevo_nombre[:max_name_length] + file_extension
-        nuevo_file_path = os.path.join(requerimiento_folder, nuevo_nombre)
-        os.rename(temp_file_path, nuevo_file_path)
-        archivo_creado.Nombre = nuevo_nombre
-        archivo_creado.Link = f"/uploads/requerimientos/{nuevo_nombre}"
-        db.commit()
-        db.refresh(archivo_creado)
-        print(f"[DEBUG] Archivo renombrado y actualizado: {nuevo_nombre}")
-        return archivo_creado
-    except Exception as e:
-        print(f"[ERROR] Error al crear registro en BD: {str(e)}")
-        if os.path.exists(temp_file_path):
-            os.remove(temp_file_path)
-        raise HTTPException(status_code=500, detail=f"Error al crear registro en BD: {str(e)}")
 
 # Endpoint genérico para obtener archivos por entidad con paginación
 @router.get("/{entidad}/{id_entidad}", response_model=ArchivosPaginatedResponse)
@@ -556,61 +304,48 @@ def get_archivos_entidad(
     )
 
 
+def _content_disposition(disposition: str, nombre: str) -> str:
+    # Igual que FileResponse: nombres no ASCII van codificados según RFC 5987
+    nombre_quoted = quote(nombre)
+    if nombre_quoted != nombre:
+        return f"{disposition}; filename*=utf-8''{nombre_quoted}"
+    return f'{disposition}; filename="{nombre}"'
+
+
+def _stream_archivo(link: str, nombre: str, media_type: str, disposition: str):
+    try:
+        key = StorageService.key_desde_link(link, nombre)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Ruta de archivo no permitida")
+    storage = StorageService()
+    size = storage.tamanio(key)
+    if size is None:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    return StreamingResponse(
+        storage.stream(key),
+        media_type=media_type,
+        headers={
+            "Content-Disposition": _content_disposition(disposition, nombre),
+            "Content-Length": str(size),
+        },
+    )
+
+
 # Endpoint para descargar archivos
 @router.get("/download")
 def download_archivo(link: str, nombre: str):
-    # Quitar el prefijo y barras iniciales/finales del link
-    carpeta_o_archivo = link.replace("/uploads/", "").strip("/\\")
-    partes = carpeta_o_archivo.split("/")
-    # Si el link incluye el nombre del archivo, lo separamos
-    if partes and partes[-1] == nombre:
-        carpeta = "/".join(partes[:-1])
-    else:
-        carpeta = carpeta_o_archivo
-    # Construir la ruta completa al archivo
-    file_path = os.path.join(BASE_UPLOAD_DIR, carpeta, nombre)
-    file_path = os.path.normpath(file_path)
-    # Seguridad: evitar path traversal
-    if not file_path.startswith(os.path.abspath(BASE_UPLOAD_DIR)):
-        raise HTTPException(status_code=400, detail="Ruta de archivo no permitida")
-    if not os.path.isfile(file_path):
-        raise HTTPException(status_code=404, detail="Archivo no encontrado")
-    return FileResponse(
-        file_path, media_type="application/octet-stream", filename=nombre
-    )
+    return _stream_archivo(link, nombre, "application/octet-stream", "attachment")
 
 
 # Endpoint para previsualizar archivos
 @router.get("/preview")
 def preview_archivo(link: str, nombre: str):
-    # Quitar el prefijo y barras iniciales/finales del link
-    carpeta_o_archivo = link.replace("/uploads/", "").strip("/\\")
-    partes = carpeta_o_archivo.split("/")
-    # Si el link incluye el nombre del archivo, lo separamos
-    if partes and partes[-1] == nombre:
-        carpeta = "/".join(partes[:-1])
-    else:
-        carpeta = carpeta_o_archivo
-    # Construir la ruta completa al archivo
-    file_path = os.path.join(BASE_UPLOAD_DIR, carpeta, nombre)
-    file_path = os.path.normpath(file_path)
-    # Seguridad: evitar path traversal
-    if not file_path.startswith(os.path.abspath(BASE_UPLOAD_DIR)):
-        raise HTTPException(status_code=400, detail="Ruta de archivo no permitida")
-    if not os.path.isfile(file_path):
-        raise HTTPException(status_code=404, detail="Archivo no encontrado")
-
     # Determinar el Content-Type basado en la extensión del archivo
-    content_type, _ = mimetypes.guess_type(file_path)
+    content_type, _ = mimetypes.guess_type(nombre)
     if content_type is None:
         content_type = "application/octet-stream"
-
-    # Retornar el archivo con Content-Disposition: inline para que se muestre en el navegador
-    return FileResponse(
-        file_path,
-        media_type=content_type,
-        headers={"Content-Disposition": f'inline; filename="{nombre}"'},
-    )
+    # Content-Disposition: inline para que se muestre en el navegador
+    return _stream_archivo(link, nombre, content_type, "inline")
 
 
 # Endpoint para actualizar archivo (por ejemplo, descripción)

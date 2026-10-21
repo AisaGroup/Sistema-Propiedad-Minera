@@ -1,0 +1,33 @@
+# Almacenamiento de archivos (S3) para desarrollo local.
+# Uso (desde app/): docker compose -f docker-compose.minio.yml --env-file .env up -d
+# La API se publica en 9002 porque el backend FastAPI ya usa el 9000.
+#
+# Se usa RustFS (Apache 2.0, compatible con S3/MinIO) porque MinIO dejó de mantener su
+# edición open source y retiró sus imágenes. El backend usa el SDK de MinIO, que habla S3
+# estándar, así que funciona sin cambios contra RustFS o cualquier otro servidor S3.
+services:
+  minio:
+    image: rustfs/rustfs:1.0.3
+    container_name: propiedad-minera-s3
+    environment:
+      RUSTFS_VOLUMES: /data
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${MINIO_SECRET_KEY}
+    ports:
+      - "9002:9000"   # API S3  -> MINIO_ENDPOINT=localhost:9002
+      - "9001:9001"   # Consola web -> http://localhost:9001
+    volumes:
+      - s3-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  s3-data:
